@@ -1,0 +1,627 @@
+<?xml version="1.0" encoding="utf-8"?>
+<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <soap:Body>
+        <RunQueryResponse xmlns="http://SDMDataAccess.nrcs.usda.gov/Tabular/SDMTabularService.asmx">
+            <RunQueryResult>
+                <xs:schema id="NewDataSet" xmlns="" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+                    xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+                    <xs:element name="NewDataSet" msdata:IsDataSet="true"
+                        msdata:UseCurrentLocale="true">
+                        <xs:complexType>
+                            <xs:choice minOccurs="0" maxOccurs="unbounded">
+                                <xs:element name="Table">
+                                    <xs:complexType>
+                                        <xs:sequence>
+                                            <xs:element name="cokey" type="xs:string" minOccurs="0" />
+                                            <xs:element name="chkey" type="xs:string" minOccurs="0" />
+                                            <xs:element name="prcent" type="xs:string" minOccurs="0" />
+                                            <xs:element name="slope_r" type="xs:string"
+                                                minOccurs="0" />
+                                            <xs:element name="slope" type="xs:string" minOccurs="0" />
+                                            <xs:element name="hzname" type="xs:string" minOccurs="0" />
+                                            <xs:element name="depth" type="xs:string" minOccurs="0" />
+                                            <xs:element name="awc" type="xs:string" minOccurs="0" />
+                                            <xs:element name="clay" type="xs:string" minOccurs="0" />
+                                            <xs:element name="silt" type="xs:string" minOccurs="0" />
+                                            <xs:element name="sand" type="xs:string" minOccurs="0" />
+                                            <xs:element name="OM" type="xs:string" minOccurs="0" />
+                                            <xs:element name="dbthirdbar" type="xs:string"
+                                                minOccurs="0" />
+                                            <xs:element name="th33" type="xs:string" minOccurs="0" />
+                                            <xs:element name="bd" type="xs:string" minOccurs="0" />
+                                        </xs:sequence>
+                                    </xs:complexType>
+                                </xs:element>
+                            </xs:choice>
+                        </xs:complexType>
+                    </xs:element>
+                </xs:schema>
+                <diffgr:diffgram xmlns:msdata="urn:schemas-microsoft-com:xml-msdata"
+                    xmlns:diffgr="urn:schemas-microsoft-com:xml-diffgram-v1">
+                    <NewDataSet xmlns="">
+                        <Table diffgr:id="Table1" msdata:rowOrder="0" diffgr:hasChanges="inserted">
+                            <cokey>24671605</cokey>
+                            <chkey />
+                            <prcent>5</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname />
+                            <depth />
+                            <awc />
+                            <clay />
+                            <silt />
+                            <sand />
+                            <OM />
+                            <dbthirdbar />
+                            <th33 />
+                            <bd />
+                        </Table>
+                        <Table diffgr:id="Table2" msdata:rowOrder="1" diffgr:hasChanges="inserted">
+                            <cokey>24671606</cokey>
+                            <chkey />
+                            <prcent>5</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname />
+                            <depth />
+                            <awc />
+                            <clay />
+                            <silt />
+                            <sand />
+                            <OM />
+                            <dbthirdbar />
+                            <th33 />
+                            <bd />
+                        </Table>
+                        <Table diffgr:id="Table3" msdata:rowOrder="2" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342055</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>A</hzname>
+                            <depth>10</depth>
+                            <awc>0.18</awc>
+                            <clay>4.9</clay>
+                            <silt>37.7</silt>
+                            <sand>57.4</sand>
+                            <OM>5</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.202</th33>
+                            <bd>1.298</bd>
+                        </Table>
+                        <Table diffgr:id="Table4" msdata:rowOrder="3" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342056</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BCg1</hzname>
+                            <depth>145</depth>
+                            <awc>0.16</awc>
+                            <clay>22.3</clay>
+                            <silt>23.1</silt>
+                            <sand>54.6</sand>
+                            <OM>0.15</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.205</th33>
+                            <bd>1.295</bd>
+                        </Table>
+                        <Table diffgr:id="Table5" msdata:rowOrder="4" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342056</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BCg1</hzname>
+                            <depth>145</depth>
+                            <awc>0.16</awc>
+                            <clay>22.3</clay>
+                            <silt>23.1</silt>
+                            <sand>54.6</sand>
+                            <OM>0.15</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.205</th33>
+                            <bd>1.295</bd>
+                        </Table>
+                        <Table diffgr:id="Table6" msdata:rowOrder="5" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342056</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BCg1</hzname>
+                            <depth>145</depth>
+                            <awc>0.16</awc>
+                            <clay>22.3</clay>
+                            <silt>23.1</silt>
+                            <sand>54.6</sand>
+                            <OM>0.15</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.205</th33>
+                            <bd>1.295</bd>
+                        </Table>
+                        <Table diffgr:id="Table7" msdata:rowOrder="6" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342056</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BCg1</hzname>
+                            <depth>145</depth>
+                            <awc>0.16</awc>
+                            <clay>22.3</clay>
+                            <silt>23.1</silt>
+                            <sand>54.6</sand>
+                            <OM>0.15</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.205</th33>
+                            <bd>1.295</bd>
+                        </Table>
+                        <Table diffgr:id="Table8" msdata:rowOrder="7" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342057</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BCg2</hzname>
+                            <depth>196</depth>
+                            <awc>0.16</awc>
+                            <clay>30.6</clay>
+                            <silt>50.8</silt>
+                            <sand>18.6</sand>
+                            <OM>0.5</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.21</th33>
+                            <bd>1.29</bd>
+                        </Table>
+                        <Table diffgr:id="Table9" msdata:rowOrder="8" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342057</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BCg2</hzname>
+                            <depth>196</depth>
+                            <awc>0.16</awc>
+                            <clay>30.6</clay>
+                            <silt>50.8</silt>
+                            <sand>18.6</sand>
+                            <OM>0.5</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.21</th33>
+                            <bd>1.29</bd>
+                        </Table>
+                        <Table diffgr:id="Table10" msdata:rowOrder="9" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342057</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BCg2</hzname>
+                            <depth>196</depth>
+                            <awc>0.16</awc>
+                            <clay>30.6</clay>
+                            <silt>50.8</silt>
+                            <sand>18.6</sand>
+                            <OM>0.5</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.21</th33>
+                            <bd>1.29</bd>
+                        </Table>
+                        <Table diffgr:id="Table11" msdata:rowOrder="10" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342057</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BCg2</hzname>
+                            <depth>196</depth>
+                            <awc>0.16</awc>
+                            <clay>30.6</clay>
+                            <silt>50.8</silt>
+                            <sand>18.6</sand>
+                            <OM>0.5</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.21</th33>
+                            <bd>1.29</bd>
+                        </Table>
+                        <Table diffgr:id="Table12" msdata:rowOrder="11" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342058</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt1</hzname>
+                            <depth>18</depth>
+                            <awc>0.16</awc>
+                            <clay>8.6</clay>
+                            <silt>40.3</silt>
+                            <sand>51.1</sand>
+                            <OM>1</OM>
+                            <dbthirdbar>1.81</dbthirdbar>
+                            <th33>0.124</th33>
+                            <bd>1.686</bd>
+                        </Table>
+                        <Table diffgr:id="Table13" msdata:rowOrder="12" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342058</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt1</hzname>
+                            <depth>18</depth>
+                            <awc>0.16</awc>
+                            <clay>8.6</clay>
+                            <silt>40.3</silt>
+                            <sand>51.1</sand>
+                            <OM>1</OM>
+                            <dbthirdbar>1.81</dbthirdbar>
+                            <th33>0.124</th33>
+                            <bd>1.686</bd>
+                        </Table>
+                        <Table diffgr:id="Table14" msdata:rowOrder="13" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342058</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt1</hzname>
+                            <depth>18</depth>
+                            <awc>0.16</awc>
+                            <clay>8.6</clay>
+                            <silt>40.3</silt>
+                            <sand>51.1</sand>
+                            <OM>1</OM>
+                            <dbthirdbar>1.81</dbthirdbar>
+                            <th33>0.124</th33>
+                            <bd>1.686</bd>
+                        </Table>
+                        <Table diffgr:id="Table15" msdata:rowOrder="14" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342059</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt2</hzname>
+                            <depth>33</depth>
+                            <awc>0.16</awc>
+                            <clay>18.1</clay>
+                            <silt>48.5</silt>
+                            <sand>33.4</sand>
+                            <OM>0.55</OM>
+                            <dbthirdbar>1.64</dbthirdbar>
+                            <th33>0.172</th33>
+                            <bd>1.468</bd>
+                        </Table>
+                        <Table diffgr:id="Table16" msdata:rowOrder="15" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342059</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt2</hzname>
+                            <depth>33</depth>
+                            <awc>0.16</awc>
+                            <clay>18.1</clay>
+                            <silt>48.5</silt>
+                            <sand>33.4</sand>
+                            <OM>0.55</OM>
+                            <dbthirdbar>1.64</dbthirdbar>
+                            <th33>0.172</th33>
+                            <bd>1.468</bd>
+                        </Table>
+                        <Table diffgr:id="Table17" msdata:rowOrder="16" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342059</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt2</hzname>
+                            <depth>33</depth>
+                            <awc>0.16</awc>
+                            <clay>18.1</clay>
+                            <silt>48.5</silt>
+                            <sand>33.4</sand>
+                            <OM>0.55</OM>
+                            <dbthirdbar>1.64</dbthirdbar>
+                            <th33>0.172</th33>
+                            <bd>1.468</bd>
+                        </Table>
+                        <Table diffgr:id="Table18" msdata:rowOrder="17" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342060</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt3</hzname>
+                            <depth>117</depth>
+                            <awc>0.16</awc>
+                            <clay>28.2</clay>
+                            <silt>50.9</silt>
+                            <sand>20.9</sand>
+                            <OM>0.23</OM>
+                            <dbthirdbar>1.58</dbthirdbar>
+                            <th33>0.209</th33>
+                            <bd>1.371</bd>
+                        </Table>
+                        <Table diffgr:id="Table19" msdata:rowOrder="18" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342060</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt3</hzname>
+                            <depth>117</depth>
+                            <awc>0.16</awc>
+                            <clay>28.2</clay>
+                            <silt>50.9</silt>
+                            <sand>20.9</sand>
+                            <OM>0.23</OM>
+                            <dbthirdbar>1.58</dbthirdbar>
+                            <th33>0.209</th33>
+                            <bd>1.371</bd>
+                        </Table>
+                        <Table diffgr:id="Table20" msdata:rowOrder="19" diffgr:hasChanges="inserted">
+                            <cokey>24671607</cokey>
+                            <chkey>73342060</chkey>
+                            <prcent>31</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt3</hzname>
+                            <depth>117</depth>
+                            <awc>0.16</awc>
+                            <clay>28.2</clay>
+                            <silt>50.9</silt>
+                            <sand>20.9</sand>
+                            <OM>0.23</OM>
+                            <dbthirdbar>1.58</dbthirdbar>
+                            <th33>0.209</th33>
+                            <bd>1.371</bd>
+                        </Table>
+                        <Table diffgr:id="Table21" msdata:rowOrder="20" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342061</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BE</hzname>
+                            <depth>25</depth>
+                            <awc>0.18</awc>
+                            <clay>18.1</clay>
+                            <silt>62.6</silt>
+                            <sand>19.3</sand>
+                            <OM>0.9</OM>
+                            <dbthirdbar>1.45</dbthirdbar>
+                            <th33>0.19</th33>
+                            <bd>1.26</bd>
+                        </Table>
+                        <Table diffgr:id="Table22" msdata:rowOrder="21" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342061</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BE</hzname>
+                            <depth>25</depth>
+                            <awc>0.18</awc>
+                            <clay>18.1</clay>
+                            <silt>62.6</silt>
+                            <sand>19.3</sand>
+                            <OM>0.9</OM>
+                            <dbthirdbar>1.45</dbthirdbar>
+                            <th33>0.19</th33>
+                            <bd>1.26</bd>
+                        </Table>
+                        <Table diffgr:id="Table23" msdata:rowOrder="22" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342062</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt1</hzname>
+                            <depth>53</depth>
+                            <awc>0.12</awc>
+                            <clay>32.4</clay>
+                            <silt>53.9</silt>
+                            <sand>13.7</sand>
+                            <OM>0.4</OM>
+                            <dbthirdbar>1.55</dbthirdbar>
+                            <th33>0.22</th33>
+                            <bd>1.33</bd>
+                        </Table>
+                        <Table diffgr:id="Table24" msdata:rowOrder="23" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342062</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt1</hzname>
+                            <depth>53</depth>
+                            <awc>0.12</awc>
+                            <clay>32.4</clay>
+                            <silt>53.9</silt>
+                            <sand>13.7</sand>
+                            <OM>0.4</OM>
+                            <dbthirdbar>1.55</dbthirdbar>
+                            <th33>0.22</th33>
+                            <bd>1.33</bd>
+                        </Table>
+                        <Table diffgr:id="Table25" msdata:rowOrder="24" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342062</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt1</hzname>
+                            <depth>53</depth>
+                            <awc>0.12</awc>
+                            <clay>32.4</clay>
+                            <silt>53.9</silt>
+                            <sand>13.7</sand>
+                            <OM>0.4</OM>
+                            <dbthirdbar>1.55</dbthirdbar>
+                            <th33>0.22</th33>
+                            <bd>1.33</bd>
+                        </Table>
+                        <Table diffgr:id="Table26" msdata:rowOrder="25" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342063</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BC</hzname>
+                            <depth>203</depth>
+                            <awc>0.04</awc>
+                            <clay>30.3</clay>
+                            <silt>47</silt>
+                            <sand>22.7</sand>
+                            <OM>0.1</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.14</th33>
+                            <bd>1.36</bd>
+                        </Table>
+                        <Table diffgr:id="Table27" msdata:rowOrder="26" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342063</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BC</hzname>
+                            <depth>203</depth>
+                            <awc>0.04</awc>
+                            <clay>30.3</clay>
+                            <silt>47</silt>
+                            <sand>22.7</sand>
+                            <OM>0.1</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.14</th33>
+                            <bd>1.36</bd>
+                        </Table>
+                        <Table diffgr:id="Table28" msdata:rowOrder="27" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342063</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BC</hzname>
+                            <depth>203</depth>
+                            <awc>0.04</awc>
+                            <clay>30.3</clay>
+                            <silt>47</silt>
+                            <sand>22.7</sand>
+                            <OM>0.1</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.14</th33>
+                            <bd>1.36</bd>
+                        </Table>
+                        <Table diffgr:id="Table29" msdata:rowOrder="28" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342063</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>BC</hzname>
+                            <depth>203</depth>
+                            <awc>0.04</awc>
+                            <clay>30.3</clay>
+                            <silt>47</silt>
+                            <sand>22.7</sand>
+                            <OM>0.1</OM>
+                            <dbthirdbar>1.5</dbthirdbar>
+                            <th33>0.14</th33>
+                            <bd>1.36</bd>
+                        </Table>
+                        <Table diffgr:id="Table30" msdata:rowOrder="29" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342064</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>A</hzname>
+                            <depth>15</depth>
+                            <awc>0.22</awc>
+                            <clay>12</clay>
+                            <silt>66</silt>
+                            <sand>22</sand>
+                            <OM>2</OM>
+                            <dbthirdbar>1.3</dbthirdbar>
+                            <th33>0.263</th33>
+                            <bd>1.037</bd>
+                        </Table>
+                        <Table diffgr:id="Table31" msdata:rowOrder="30" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342065</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt2</hzname>
+                            <depth>125</depth>
+                            <awc>0.04</awc>
+                            <clay>41.2</clay>
+                            <silt>52.6</silt>
+                            <sand>6.2</sand>
+                            <OM>0.2</OM>
+                            <dbthirdbar>1.68</dbthirdbar>
+                            <th33>0.22</th33>
+                            <bd>1.46</bd>
+                        </Table>
+                        <Table diffgr:id="Table32" msdata:rowOrder="31" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342065</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt2</hzname>
+                            <depth>125</depth>
+                            <awc>0.04</awc>
+                            <clay>41.2</clay>
+                            <silt>52.6</silt>
+                            <sand>6.2</sand>
+                            <OM>0.2</OM>
+                            <dbthirdbar>1.68</dbthirdbar>
+                            <th33>0.22</th33>
+                            <bd>1.46</bd>
+                        </Table>
+                        <Table diffgr:id="Table33" msdata:rowOrder="32" diffgr:hasChanges="inserted">
+                            <cokey>24671608</cokey>
+                            <chkey>73342065</chkey>
+                            <prcent>30</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname>Bt2</hzname>
+                            <depth>125</depth>
+                            <awc>0.04</awc>
+                            <clay>41.2</clay>
+                            <silt>52.6</silt>
+                            <sand>6.2</sand>
+                            <OM>0.2</OM>
+                            <dbthirdbar>1.68</dbthirdbar>
+                            <th33>0.22</th33>
+                            <bd>1.46</bd>
+                        </Table>
+                        <Table diffgr:id="Table34" msdata:rowOrder="33" diffgr:hasChanges="inserted">
+                            <cokey>24671609</cokey>
+                            <chkey />
+                            <prcent>29</prcent>
+                            <slope_r>3</slope_r>
+                            <slope>5</slope>
+                            <hzname />
+                            <depth />
+                            <awc />
+                            <clay />
+                            <silt />
+                            <sand />
+                            <OM />
+                            <dbthirdbar />
+                            <th33 />
+                            <bd />
+                        </Table>
+                    </NewDataSet>
+                </diffgr:diffgram>
+            </RunQueryResult>
+        </RunQueryResponse>
+    </soap:Body>
+</soap:Envelope>
