@@ -1,24 +1,28 @@
+import asyncio
+import json
 from typing import Any, List
 import subprocess
 import time
+from fastapi.responses import StreamingResponse
 import os
 import sys
 import re
 import pandas as pd
+import glob
 import logging
 from datetime import datetime, timedelta
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, BackgroundTasks
 
 from app.api.deps import SessionDep, CurrentUser
-from app.models import Message, SimData
+from app.models import Message, SimData, seasonRunResponse,Pastrun
 from app.generateModelInputFiles_helper import *
 from app.dbsupport_helper import *
 from sqlalchemy.sql import text
 from dateutil.parser import parse
-
+import time
 # Create an instance of the FastAPI class
 router = APIRouter()
-
+last_read_row = 0
 # Initialize logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -48,7 +52,6 @@ remOutputFilesFlag = 1
 ## This should always be there
 if not os.path.exists(storeDir):
     print('RotationTab Error: Missing storeDir')
-
 
 def extract_date_time(date,time):
     '''
@@ -467,29 +470,34 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
     classimDir = os.getcwd()
     return insertion_id
 
-def prepare_and_execute( **kwargs):
+def prepare_and_execute( simulation_name, session: SessionDep):
     """
     This will create input files, and execute both exe's.
     """
-    field_path = os.path.join(runDir, str(kwargs['simulation_name']))
+    statement = (
+        select(Pastrun)
+        .where(Pastrun.id == simulation_name)
+    )
+    simulation = session.exec(statement).one()
+    if simulation:
+        simulation_name = simulation.id
+        field_name = simulation.site
+        lsoilname = simulation.soil
+        lstationtype = simulation.stationtype
+        lweather = simulation.weather
+        lcrop = simulation.treatment.split('/')[0]
+        lexperiment = simulation.treatment.split('/')[1]
+        ltreatmentname = simulation.treatment.split('/')[2]
+        waterStressFlag = simulation.waterstress
+        nitroStressFlag = simulation.nitrostress
+        ltempVar = simulation.tempVar
+        lrainVar = simulation.rainVar
+        lCO2Var = simulation.CO2Var
+        lstartyear = simulation.startyear
+        lendyear = simulation.endyear
+    field_path = os.path.join(runDir, str(simulation_name))
     if not os.path.exists(field_path):
         os.makedirs(field_path)
-    field_name = kwargs['field_name']
-    lsoilname = kwargs['lsoilname']
-    lstationtype = kwargs['lstationtype']
-    lweather = kwargs['lweather']
-    lcrop = kwargs['lcrop']
-    lexperiment = kwargs['lexperiment']
-    ltreatmentname = kwargs['ltreatmentname']
-    waterStressFlag = kwargs['waterStressFlag']
-    simulation_name = kwargs['simulation_name']
-    nitroStressFlag = kwargs['nitroStressFlag']
-    ltempVar = kwargs['ltempVar']
-    lrainVar = kwargs['lrainVar']
-    lCO2Var = kwargs['lCO2Var']
-    theyear = kwargs['theyear']
-    session = kwargs['session']
-    current_user = kwargs['current_user']
 
     # Copy water.dat file from store to runDir
     src_file = os.path.join(storeDir, 'Water.DAT')
@@ -525,7 +533,7 @@ def prepare_and_execute( **kwargs):
         dest_file = os.path.join(field_path, 'fallow.var')
         copyFile(src_file, dest_file)
     WriteDripIrrigationFile(field_name, field_path)
-    hourly_flag, edate = WriteWeather(current_user, lexperiment, ltreatmentname, lstationtype, lweather, field_path, ltempVar, lrainVar, lCO2Var, session)
+    hourly_flag, edate = WriteWeather(lexperiment, ltreatmentname, lstationtype, lweather, field_path, ltempVar, lrainVar, lCO2Var, session)
     WriteSoluteFile(lsoilname, field_path, session)
     WriteGasFile(field_path, session)
     hourlyFlag = 1
@@ -547,14 +555,9 @@ def prepare_and_execute( **kwargs):
     
     while pp.poll() is None:
         time.sleep(1)
-
-    runname = os.path.join(field_path, f"Run{field_name}.dat")
-    edate = edate + timedelta(days=22)
-    print(runname,"runname")
-    os.chdir(field_path)
+        runname = os.path.join(field_path, f"Run{field_name}.dat")
     try:
         if lcrop == "maize":
-            print("maize")
             p = subprocess.Popen([maizsimexe, runname], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
             file_ext = ["g01", "G03", "G04", "G05", "G07"]
         elif lcrop == "potato":
@@ -569,12 +572,11 @@ def prepare_and_execute( **kwargs):
         else:  # fallow
             p = subprocess.Popen([maizsimexe, runname], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
             file_ext = ["G03", "G05", "G07"]
-
+        
         for line in iter(p.stdout.readline, b''):
             if b'Progress' in line:
                 prog = re.findall(r"[-+]?\d*\.\d+|\d+", line.decode())
-                print("Simulation Progress  :", prog[0])
-            
+                print("Simulation Progress  :", prog[0])            
         (out, err) = p.communicate()
         if p.returncode == 0:
             print("twosoil stage completed. %s", str(out))
@@ -588,6 +590,7 @@ def prepare_and_execute( **kwargs):
     for ext in file_ext:
         g_name2 = os.path.join(field_path, f"{field_name}.{ext}")
         table_name = f"{ext.lower()}_{lcrop}"
+        print(table_name,"table_name++++++")
         missingRec += checkNaNInOutputFile(table_name, g_name2)
 
     if lcrop != "fallow":
@@ -616,15 +619,81 @@ def prepare_and_execute( **kwargs):
             ingestOutputFile(f"nitrogen_{lcrop}", os.path.join(field_path, "nitrogen.crp"), str(simulation_name), session)
             if remOutputFilesFlag:
                 os.remove(os.path.join(field_path, "nitrogen.crp"))
+    done_file = os.path.join(runDir, str(simulation_name), "done.txt")
+    with open(done_file, 'w') as f:
+        f.write("Simulation completed")
+    
+    return True
+
+
+@router.get("/simulationResp/{simulation_name}")
+async def execute_the_model(
+    *,simulation_name:int | str,
+) -> StreamingResponse:
+    """After creating the soil, execute the model."""
+    timeout = 10  # Maximum timeout in seconds
+    elapsed_time = 0
+    file_found = False
+
+    # Wait for the *.g01 file to appear
+    while elapsed_time < timeout:
+        print(f"Checking for simulation output file {simulation_name}...")
+        files = glob.glob(os.path.join(runDir, str(simulation_name), "*.g01"))
+        if files:
+            print(f"Simulation output file {simulation_name} found.")
+            file_found = True
+            break
+        await asyncio.sleep(1)  # Wait for 1 second
+        elapsed_time += 1
+
+    if not file_found:
+        raise HTTPException(status_code=404, detail="Simulation output file not found within the timeout period.")
+    async def simulation_stream():
+        """
+        Stream updates from the simulation output file until prepare_and_execute completes.
+        """
+        last_position = 0  # Track the last read position in the file
+        simulation_dir = os.path.join(runDir, str(simulation_name))
+        done_file = os.path.join(simulation_dir, "done.txt")  # File to signal completion
+
+        while True:
+            try:
+                # Check if the done file exists
+                if os.path.exists(done_file):
+                    yield f"data: {json.dumps({'message': 'Simulation completed'})} \n\n"
+                    break  # Stop streaming
+
+                # Read the CSV file from the last position
+                files = glob.glob(os.path.join(simulation_dir, "*.g01"))
+                if files:
+                    with open(files[0], 'r') as file:
+                        file.seek(last_position)  # Move to the last read position
+                        new_data = file.read()  # Read new data
+                        last_position = file.tell()  # Update the last position
+
+                        if new_data.strip():  # If there is new data
+                            df = pd.read_csv(files[0], usecols=["jday", "LAI"], skipinitialspace=True, index_col=False)
+                            grouped_df = df.groupby("jday", as_index=False).mean()
+                            for _, row in grouped_df.iterrows():
+                                data = json.dumps({"x": row["LAI"], "y": row["jday"]})
+                                yield f"data: {data} \n\n"
+                                await asyncio.sleep(0.1)
+            except Exception as e:
+                yield f"data: {json.dumps({'error': str(e)})} \n\n"
+
+            await asyncio.sleep(1)
+
+    return StreamingResponse(simulation_stream(), media_type="text/event-stream")
 
 # Modify the route to use asyncio.create_task
-@router.post("/seasonRun")
+@router.post("/seasonRun",response_model=seasonRunResponse)
 def create_soil(
     *, soil_data_list: list[SimData], session: SessionDep, current_user: CurrentUser
 ) -> Any:
     """
     Create new soil.
     """
+    simulationList=[]
     try:
         for simData in soil_data_list:
             lsitename = simData.site
@@ -654,12 +723,23 @@ def create_soil(
             cropTreatment = lcrop + "/" + lexperiment
             simulation_name = update_pastrunsDB(0, lsitename, cropTreatment, lstationtype, lweather, lsoilname, str(lstartyear), str(lendyear),
                                                 str(waterStressFlag), str(nitroStressFlag), str(ltempVar), str(lrainVar), str(lCO2Var), session, current_user.id)
-
-            prepare_and_execute(simulation_name=simulation_name, field_name=lsitename, lsoilname=lsoilname, lstationtype=lstationtype,
-                                                           lweather=lweather, lcrop=lcrop, lexperiment=lexperiment.split('/')[0], ltreatmentname=lexperiment.split('/')[1],
-                                                           waterStressFlag=waterStressFlag, nitroStressFlag=nitroStressFlag, ltempVar=ltempVar, lrainVar=lrainVar,
-                                                           lCO2Var=lCO2Var, theyear=lstartyear, session=session, current_user=current_user)
-        return Message(message="Simulation started")
+    
+            simulationList.append(simulation_name)
+        return seasonRunResponse(data=simulationList)
     except Exception as e:
         logger.error(f"Error during simulation: {e}")
         raise HTTPException(status_code=500, detail="An error occurred during the simulation process.")
+    
+@router.get("/seasonRun/{simulation_name}", status_code=202)
+async def get_simulation_results(background_tasks: BackgroundTasks,simulation_name: int, session: SessionDep,current_user: CurrentUser) -> Any:
+    """
+    Get simulation results.
+    """
+    try:
+        # simulation = read_pastrunsDB_id(simulation_name, session)
+        background_tasks.add_task(prepare_and_execute, simulation_name,session)
+
+        return {"id":simulation_name}
+    except Exception as e:
+        logger.error(f"Error fetching simulation results: {e}")
+        raise HTTPException(status_code=500, detail="An error occurred while fetching simulation results.")

@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.routes import items, login, users, utils, faq, site, soil, weather, gridratio, management, cultivar, seasonal, simoutput
+from app.api.routes import items, login, users, utils, faq, site, soil, weather, gridratio, management, cultivar, seasonal, simoutput,sse
 
 api_router = APIRouter()
 api_router.include_router(login.router, tags=["login"])
@@ -16,3 +16,4 @@ api_router.include_router(management.router, prefix="/management", tags=["manage
 api_router.include_router(cultivar.router, prefix="/cultivars", tags=["cultivar"])
 api_router.include_router(seasonal.router, prefix="/seasonalsim", tags=["seasonalsimmulation"])
 api_router.include_router(simoutput.router, prefix="/seasonaloutput", tags=["seasonalsimmulationoutput"])
+api_router.include_router(sse.router, prefix="/sse", tags=["sse"])

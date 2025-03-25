@@ -255,6 +255,11 @@ const Management: React.FC = () => {
 
   const showToast = useCustomToast();
 
+  // Removed unused handleRefresh function
+  const handleRefresh = () => {
+    fetchData(); // Refresh data or perform any necessary action
+  };
+
   const handleNewExperiment = (cropName: string) => {
     setCurrentCropName(cropName);
     setSelectedTitle(cropName);
@@ -336,8 +341,12 @@ const Management: React.FC = () => {
       },
     };
 
-    saveExperimentMutation.mutate(data);
-    setBool(false);
+    saveExperimentMutation.mutate(data, {
+      onSuccess: () => {
+        fetchData(); // Refresh data after saving
+        setBool(false);
+      },
+    });
   };
 
   const handleCopyTreatment = async (
@@ -350,9 +359,7 @@ const Management: React.FC = () => {
       ccropName +
         " " +
         currentTreatmentName +
-        " " +
         ctreatmentName +
-        " " +
         cexperimentName
     );
     const data: TDataCopy = {
@@ -363,7 +370,12 @@ const Management: React.FC = () => {
         newtreatmentname: ctreatmentName,
       },
     };
-    copyTreatmentMutation.mutate(data);
+    copyTreatmentMutation.mutate(data, {
+      onSuccess: () => {
+        fetchData(); // Refresh data after copying
+        setBool(false);
+      },
+    });
     setBool(false);
   };
   const handleExperimentDelete = async () => {
@@ -412,6 +424,7 @@ const Management: React.FC = () => {
     } finally {
       setSelectedTitle(null);
       setFormType(null);
+      fetchData();
     }
   };
 
@@ -449,8 +462,12 @@ const Management: React.FC = () => {
           expname: experiment.name,
         },
       };
-      saveTreatmentMutation.mutate(data);
-      setBool(false);
+      saveTreatmentMutation.mutate(data, {
+        onSuccess: () => {
+          fetchData(); // Refresh data after saving
+          setBool(false);
+        },
+      });
     }
   };
 
@@ -884,6 +901,7 @@ const Management: React.FC = () => {
               operationName={selectedTitle}
               operationId={selectedTitleId}
               opDateVal={opDate}
+              onSave={handleRefresh}
             />
           )}
           {selectedTitle && formType === "EditOperation" && (
@@ -895,6 +913,7 @@ const Management: React.FC = () => {
               operationName={selectedTitle}
               operationId={selectedTitleId}
               opDateVal={opDate}
+              onSave={handleRefresh}
             />
           )}
         </Box>

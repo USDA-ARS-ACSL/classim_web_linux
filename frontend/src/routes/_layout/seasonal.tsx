@@ -29,6 +29,7 @@ const SeasonalTab = () => {
       </Link>
       <Simulation />
       <NextPreviousButtons />
+      
       <FaqComponent tabname='seasonal' />
     </Container>
   );

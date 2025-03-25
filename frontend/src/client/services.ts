@@ -23,6 +23,7 @@ import type {
   SiteCreate,
   SiteUpdate,
   SitePublic,
+  Simulations,
   SoilsPublic,
   SoilPublic,
   SoilCreate,
@@ -282,7 +283,7 @@ export class UsersService {
           method: "GET",
           url: "/api/v1/users/me",
       }).catch((error:any) => {
-          if (error.status === 403) {
+          if (error.status === 403 || error.status === 401) {
               localStorage.removeItem("access_token");
               window.location.href = "/login"; // Redirect to the login page
           }
@@ -1120,38 +1121,150 @@ export type TDataExpTreatment = {
 }
 
 
+
+
 export class SeasonalRun{
   /**
    * To Run the sesonal Run
    */
-  public static RunSeasonalSim(
+  public static async RunSeasonalSim(
     data: TDataReadStation
-  ): CancelablePromise<DownloadMessage> {
+  ): Promise<Simulations> {
     let payload: any; // Replace `any` with the actual type if known
-  const simulationInput = localStorage.getItem('SimulationInput');
+    const simulationInput = localStorage.getItem('SimulationInput');
     console.log(data)
-  if (simulationInput) {
-    try {
-      payload = JSON.parse(simulationInput);
-    } catch (error) {
-      console.error('Error parsing SimulationInput from localStorage:', error);
-      payload = null; // Or handle the error appropriately
+    if (simulationInput) {
+      try {
+        payload = JSON.parse(simulationInput);
+      } catch (error) {
+        console.error('Error parsing SimulationInput from localStorage:', error);
+        payload = null; // Or handle the error appropriately
+      }
+    } else {
+      payload = null; // Handle the case where 'SimulationInput' does not exist
     }
-  } else {
-    payload = null; // Handle the case where 'SimulationInput' does not exist
+  
+    try {
+      const response: { data?: any[] } = await __request(OpenAPI, {
+        method: "POST",
+        url: "/api/v1/seasonalsim/seasonRun",
+        body: payload,
+        errors: {
+          422: `Validation Error`,
+        },
+      });
+  
+      // Check if the response is successful and contains the required data
+      if (Array.isArray(response?.data) && response.data.length > 0) {
+        const id = response.data[0]; // Extract the `11` value
+        console.log(`Success! Calling the next API with id: ${id}`);
+  
+        // Call the next API using the extracted `id`
+        const nextApiResponse = await __request(OpenAPI, {
+          method: "GET",
+          url: `/api/v1/seasonalsim/seasonRun/${id}`, 
+          errors: {
+            422: `Validation Error`,
+          },
+        });
+  
+        console.log('Next API Response:', nextApiResponse);
+        return nextApiResponse as Simulations; // Ensure the correct type is returned
+      } else {
+        console.error('Unexpected response format:', response);
+        throw new Error('Unexpected response format');
+      }
+    } catch (error) {
+      console.error('Error during API call:', error);
+      throw error; // Re-throw the error for further handling if needed
+    }
   }
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/seasonalsim/seasonRun",
-      body: payload,
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
+  //   /**
+  //  * Fetch chart data with streaming
+  //  */
+  //   public static async fetchChartData(
+  //     id: any,
+  //     onData: (chunk: any) => void,
+  //     onError: (error: any) => void
+  //   ): Promise<void> {
+  //     try {
+  //       const response = await __request(OpenAPI, {
+  //         method: "GET",
+  //         url: `/api/v1/seasonalsim/simulationResp/{id}`,
+  //         path: {
+  //           id: id,
+  //         },
+  //         errors: {
+  //           401: `Unauthorized`,
+  //           422: `Validation Error`,
+  //         },
+  //       });
+    
+  
+  //       if (!(response as Response).body) {
+  //         throw new Error("No response body");
+  //       }
+  
+  //       const reader = (response as Response).body?.getReader();
+  //       if (!reader) {
+  //         throw new Error("Reader is undefined");
+  //       }
+  //       const decoder = new TextDecoder("utf-8");
+  //       let done = false;
+
+  //       while (!done) {
+  //         const { value, done: readerDone } = await reader.read();
+  //         done = readerDone;
+  
+  //         if (value) {
+  //           const chunk = decoder.decode(value, { stream: true });
+  //           try {
+  //             const parsedChunk = JSON.parse(chunk);
+  //             onData(parsedChunk); // Pass the parsed chunk to the callback
+  //           } catch (parseError) {
+  //             console.error("Failed to parse chunk:", parseError);
+  //           }
+  //         }
+  //       }
+  //     } catch (error) {
+  //       console.error("Failed to fetch chart data:", error);
+  //       onError(error); // Pass the error to the callback
+  //     }
+  //   }
 }
 
 
+// export const fetchChartData = async (id: any, onData: (chunk: any) => void, onError: (error: any) => void) => {
+//   try {
+//     const response = await fetch(`/api/v1/seasonalsim/simulationResp/${id}`); // Replace with your actual API endpoint
+
+//     if (!response.body) {
+//       throw new Error("No response body");
+//     }
+
+//     const reader = response.body.getReader();
+//     const decoder = new TextDecoder("utf-8");
+//     let done = false;
+
+//     while (!done) {
+//       const { value, done: readerDone } = await reader.read();
+//       done = readerDone;
+
+//       if (value) {
+//         const chunk = decoder.decode(value, { stream: true });
+//         try {
+//           const parsedChunk = JSON.parse(chunk);
+//           onData(parsedChunk); // Pass the parsed chunk to the callback
+//         } catch (parseError) {
+//           console.error("Failed to parse chunk:", parseError);
+//         }
+//       }
+//     }
+//   } catch (error) {
+//     console.error("Failed to fetch chart data:", error);
+//     onError(error); // Pass the error to the callback
+//   }
+// };
 export class WeatherService {
   /**
    * Read Stations

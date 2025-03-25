@@ -40,6 +40,7 @@ interface NewOperationFormProps {
   operationName: string;
   operationId?: number | null;
   opDateVal?: string | null;
+  onSave?: (data: any) => void;
 }
 
 const OperationForm: React.FC<NewOperationFormProps> = ({
@@ -50,6 +51,7 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
   operationName,
   operationId,
   opDateVal,
+  onSave
 }) => {
   const [calendar, setCalendar] = useState(new Date());
   const [fertClass, setFertClass] = useState<FertilizerClass[]>([]);
@@ -192,6 +194,9 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
       };
 
       response = await ManagementService.submitOperation(opData);
+      if (onSave) {
+        onSave(response);
+      }
       if (response) {
         showToast("Successfully", "Operation created successfully.", "success");
       } else {
@@ -231,6 +236,9 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
       };
 
       response = await ManagementService.submitOperation(opData);
+      if (onSave) {
+        onSave(response);
+      }
       if (response) {
         showToast("Successfully", "Operation created successfully.", "success");
       } else {
@@ -268,6 +276,9 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
       };
 
       response = await ManagementService.submitOperation(opData);
+      if (onSave) {
+        onSave(response);
+      }
       if (response) {
         showToast("Successfully", "Operation created successfully.", "success");
       } else {
@@ -301,6 +312,9 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
       };
 
       response = await ManagementService.submitOperation(opData);
+      if (onSave) {
+        onSave(response);
+      }
       if (response) {
         showToast("Successfully", "Operation created successfully.", "success");
       } else {
@@ -344,6 +358,9 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
       };
 
       response = await ManagementService.submitOperation(opData);
+      if (onSave) {
+        onSave(response);
+      }
       if (response) {
         showToast("Successfully", "Operation created successfully.", "success");
       } else {
@@ -377,6 +394,9 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
         },
       };
       response = await ManagementService.submitOperation(opData);
+      if (onSave) {
+        onSave(response);
+      }
       if (response) {
         showToast("Successfully", "Operation created successfully.", "success");
       } else {
@@ -411,6 +431,9 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
       };
 
       response = await ManagementService.submitOperation(opData);
+      if (onSave) {
+        onSave(response);
+      }
       if (response) {
         
         showToast("Successfully", "Operation created successfully.", "success");

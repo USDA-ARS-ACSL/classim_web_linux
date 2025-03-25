@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -20,9 +20,11 @@ import {
   Thead,
   Tr,
   TableContainer,
+ 
   Progress
 } from '@chakra-ui/react';
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
+import GraphComponent from "./GraphComponent";
 import { SiteService, SoilService, WeatherService, SeasonalRun } from '../client';
 import { useQueries } from "@tanstack/react-query";
 import { CROP_DATA } from '../constants';
@@ -77,6 +79,8 @@ const Simulation: React.FC = () => {
 
   const [outputInterval, setOutputInterval] = useState<string>('Hourly');
   const [progress, setProgress] = useState<number>(0);
+  const [simulationID, setSimulationId] = useState<number>(0);
+  const [showGraph, setShowGraph] = useState(false);
   const showToast = useCustomToast();
   const results = useQueries({
     queries: [
@@ -95,8 +99,7 @@ const Simulation: React.FC = () => {
   const sites = sitesResult?.data;
   const soils = soilsResult?.data;
   const crops = CROP_DATA.map(c => c.value);
-  const websocketRef = useRef<WebSocket | null>(null);
-
+  // const [chartData, setChartData] = useState<any[]>([]); // State for chart data
   const handleRun = async () => {
     try {
       setIsLoad(true); // Start loading
@@ -110,6 +113,10 @@ const Simulation: React.FC = () => {
       const response = await SeasonalRun.RunSeasonalSim(data);
 
       if (response) {
+        setSimulationId(response.id);
+        console.log(simulationID)
+        showToast("Success", "Simulation Started", "success");
+        setShowGraph(true);
         // Handle response if needed (e.g., showing a success message)
       }
 
@@ -117,12 +124,9 @@ const Simulation: React.FC = () => {
       showToast("Error!", "Failed to download data", "error");
     } finally {
       setIsLoad(false); // End loading
-      // Close WebSocket after the operation completes
-      if (websocketRef.current) {
-        websocketRef.current.close();
-      }
     }
   };
+
 
   const handleSiteChange = async (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedSite = event.target.value;
@@ -294,7 +298,6 @@ const Simulation: React.FC = () => {
   useEffect(() => {
 
     localStorage.setItem('SimulationInput', JSON.stringify(rows));
-    // Open the WebSocket connection
 
   }, [rows, treatmentData]);
 
@@ -472,8 +475,10 @@ const Simulation: React.FC = () => {
           <Button colorScheme="red" onClick={handleReset}>Reset</Button>
         </HStack>
       </Flex>
+      {showGraph && <GraphComponent simulationID={simulationID} />}
     </Box>
   );
+  
 };
 
 export default Simulation;

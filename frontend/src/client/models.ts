@@ -149,6 +149,10 @@ export type SitesPublic = {
   count: number;
 };
 
+export type Simulations = {
+  id: any;
+}
+
 export type SoilWithLatLon = {
   data: Array<{
     [key: string]: number | string | string[];

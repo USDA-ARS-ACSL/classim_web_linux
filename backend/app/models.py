@@ -1408,3 +1408,9 @@ class Pastrun(Pastrunbase, table=True):
 class PastrunsPublic(SQLModel):
     data: list[Pastrun]
 ####### Site model End############
+
+
+
+
+class seasonRunResponse(SQLModel):
+    data: list[Any]
