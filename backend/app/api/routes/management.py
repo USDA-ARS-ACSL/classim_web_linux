@@ -354,7 +354,15 @@ def read_operation_by_treatmentId(
 ) -> Any:
     count_statement = select(func.count()).select_from(Operation).filter(Operation.o_t_exid == o_t_exid)
     count = session.exec(count_statement).one()
-    statement = select(Operation).filter(Operation.o_t_exid == o_t_exid)
+    
+    # Add order_by clause to sort by operation id in ascending order
+    statement = (
+        select(Operation)
+        .filter(Operation.o_t_exid == o_t_exid)
+        .order_by(Operation.opID.asc())  # Order by operation id ascending
+        .offset(skip)
+        .limit(limit)
+    )
     operations = session.exec(statement).all()
     return OperationsPublic(data=operations, count=count)
 
