@@ -503,6 +503,7 @@ def read_soilhydroDB(soilname, session: SessionDep) -> Any:
             FROM soil_long 
             WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname)
         """)
+        print(query, soilname)
         result = session.execute(query, {'soilname': soilname})
         rlist = result.fetchall()
     return rlist

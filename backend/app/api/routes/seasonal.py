@@ -7,11 +7,15 @@ from fastapi.responses import StreamingResponse
 import os
 import sys
 import re
+import csv
 import pandas as pd
 import glob
 import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, BackgroundTasks
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+from typing import AsyncGenerator
 
 from app.api.deps import SessionDep, CurrentUser
 from app.models import Message, SimData, seasonRunResponse,Pastrun
@@ -571,12 +575,7 @@ def prepare_and_execute( simulation_name, session: SessionDep):
             file_ext = ["g01", "G03", "G04", "G05", "G07"]
         else:  # fallow
             p = subprocess.Popen([maizsimexe, runname], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-            file_ext = ["G03", "G05", "G07"]
-        
-        for line in iter(p.stdout.readline, b''):
-            if b'Progress' in line:
-                prog = re.findall(r"[-+]?\d*\.\d+|\d+", line.decode())
-                print("Simulation Progress  :", prog[0])            
+            file_ext = ["G03", "G05", "G07"]         
         (out, err) = p.communicate()
         if p.returncode == 0:
             print("twosoil stage completed. %s", str(out))
@@ -672,59 +671,73 @@ async def execute_the_model(
                         last_position = file.tell()  # Update the last position
 
                         if new_data.strip():  # If there is new data
-                            df = pd.read_csv(files[0], usecols=["jday", "LAI"], skipinitialspace=True, index_col=False)
-                            grouped_df = df.groupby("jday", as_index=False).mean()
-                            for _, row in grouped_df.iterrows():
+                            df = pd.read_csv(files[0],  skipinitialspace=True, index_col=False)
+                            for _, row in df.terrows():
                                 data = json.dumps({"x": row["LAI"], "y": row["jday"]})
                                 yield f"data: {data} \n\n"
-                                await asyncio.sleep(0.1)
             except Exception as e:
                 yield f"data: {json.dumps({'error': str(e)})} \n\n"
 
-            await asyncio.sleep(1)
+            await asyncio.sleep(0.001)
 
     return StreamingResponse(simulation_stream(), media_type="text/event-stream")
 
+
+
+
 # Modify the route to use asyncio.create_task
-@router.post("/seasonRun",response_model=seasonRunResponse)
+@router.post("/seasonRun", response_model=seasonRunResponse)
 def create_soil(
-    *, soil_data_list: list[SimData], session: SessionDep, current_user: CurrentUser
+    *, payload: dict, session: SessionDep, current_user: CurrentUser
 ) -> Any:
     """
-    Create new soil.
+    Create new soil based on the updated payload structure.
     """
-    simulationList=[]
+    simulationList = []
     try:
-        for simData in soil_data_list:
-            lsitename = simData.site
-            lsoilname = simData.soil
-            lstationtype = simData.station
-            lweather = simData.weather
-            lcrop = simData.crop
-            lexperiment = simData.experiment
-            lwaterstress = simData.waterStress
-            if lwaterstress == "Yes":
-                waterStressFlag = 0
-            else:
-                waterStressFlag = 1
-            lnitrostress = "Yes"
-            if lnitrostress == "Yes":
-                nitroStressFlag = 0
-            else:
-                nitroStressFlag = 1
-            ltempVar = simData.tempVariance
-            lrainVar = simData.rainVariance
-            lCO2Var = simData.co2Variance
-            if lCO2Var == "None":
-                lCO2Var = 0
+        site = payload["site"]
+        weather = payload["weather"]
+        soil = payload["soil"]
+        station = payload["station"]
+        expert_system = payload["expertSystem"]
+        selected_date = payload["selectedDate"]
 
-            lstartyear = simData.startDate
-            lendyear = simData.endDate
-            cropTreatment = lcrop + "/" + lexperiment
-            simulation_name = update_pastrunsDB(0, lsitename, cropTreatment, lstationtype, lweather, lsoilname, str(lstartyear), str(lendyear),
-                                                str(waterStressFlag), str(nitroStressFlag), str(ltempVar), str(lrainVar), str(lCO2Var), session, current_user.id)
-    
+        for row in payload["rows"]:
+            crop = row["crop"]
+            experiment = row["experiment"]
+            start_date = row["startDate"]
+            end_date = row["endDate"]
+            water_stress = row["waterStress"]
+            nitrogen_stress = row["nitrogenStress"]
+            temp_variance = row["tempVariance"]
+            rain_variance = row["rainVariance"]
+            co2_variance = row["co2Variance"]
+
+            waterStressFlag = 0 if water_stress == "Yes" else 1
+            nitroStressFlag = 0 if nitrogen_stress == "Yes" else 1
+            co2_variance = 0 if co2_variance == "None" else co2_variance
+
+            crop_treatment = f"{crop}/{experiment}"
+            simulation_name = update_pastrunsDB(
+                0,
+                site,
+                crop_treatment,
+                station,
+                weather,
+                soil,
+                str(start_date),
+                str(end_date),
+                str(waterStressFlag),
+                str(nitroStressFlag),
+                str(temp_variance),
+                str(rain_variance),
+                str(co2_variance),
+                session,
+                current_user.id,
+            )
+
             simulationList.append(simulation_name)
+
         return seasonRunResponse(data=simulationList)
     except Exception as e:
         logger.error(f"Error during simulation: {e}")

@@ -16,7 +16,8 @@ const items = [
   // { icon: FiBriefcase, title: "Rotation Builder", path: "/rotationBuilder" },
   { icon: FiSettings, title: "Seasonal Output", path: "/seasonalOutput" },
   // { icon: FiSettings, title: "Rotation Output", path: "/rotationBuilderOutput" },
-  { icon: FiSettings, title: "About", path: "/about" }
+  { icon: FiSettings, title: "About", path: "/about" },
+  { icon: FiSettings, title: "Expert System", path: "/expertsystem" } // Added Expert System
 ]
 
 interface SidebarItemsProps {

@@ -44,6 +44,7 @@ const SoilTab = () => {
   const [siteName, setSiteName] = useState("");
   const [selectedSoilData, setSelectedSoilData] = useState<any>(null);
   const [soilDeleted, setSoilDeleted] = useState<Message>({ message: "" });
+  console.log(soilDeleted)
   const { data: soils, isLoading: soilsLoading } = useQuery({
     queryKey: ["readSite"],
     queryFn: () => SoilService.readSoils(),
@@ -272,105 +273,54 @@ const SoilTab = () => {
         const deleted = await SoilService.deleteSoilTable(siteIdTable);
         setSoilDeleted(deleted);
       }
-      for (const data of updatedData) {
-        if (existingEntry.data.length > 0) {
-          // Update existing entry
-          // const existingId = existingEntry.data[0].o_sid;
 
-          if ((soilDeleted.message = "deleted")) {
-            const updatedSoilTableData: TDataCreateSoilTable = {
-              requestBody: {
-                o_sid: Number(selectedSiteOption),
-                initType: Number(data.initType),
-                Bottom_depth: Number(data.Bottom_depth),
-                OM_pct: Number(data.OM_pct),
-                NO3: Number(data.NO3),
-                NH4: Number(data.NH4),
-                HnNew: Number(data.HnNew),
-                Tmpr: data.Tmpr ? Number(data.Tmpr) : 1,
-                Sand: Number(data.Sand),
-                Silt: Number(data.Silt),
-                Clay: Number(data.Clay),
-                TH33: Number(data.TH33),
-                TH1500: Number(data.TH1500),
-                kh: Number(data.kh),
-                kl: Number(data.kl),
-                km: Number(data.km),
-                kn: Number(data.kn),
-                kd: Number(data.kd),
-                fe: Number(data.fe),
-                fh: Number(data.fh),
-                r0: Number(data.r0),
-                rL: Number(data.rL),
-                rm: Number(data.rm),
-                fa: Number(data.fa),
-                nq: Number(data.nq),
-                cs: Number(data.cs),
-                thr: Number(data.thr),
-                th: Number(data.thr),
-                ths: Number(data.ths),
-                tha: Number(data.tha),
-                Alfa: Number(data.Alfa),
-                n: Number(data.n),
-                Ks: Number(data.Ks),
-                Kk: Number(data.Kk),
-                thk: Number(data.thk),
-                BD: parseFloat(data.BD),
-                CO2: parseFloat(data.CO2),
-                O2: parseFloat(data.O2),
-                N2O: parseFloat(data.N2O),
-              },
-            };
-            await SoilService.createSoilTable(updatedSoilTableData);
-          }
-        } else {
-          // Create new entry
-          const updatedSoilTableData: TDataCreateSoilTable = {
-            requestBody: {
-              o_sid: Number(selectedSiteOption),
-              initType: Number(data.initType),
-              Bottom_depth: Number(data.Bottom_depth),
-              OM_pct: Number(data.OM_pct),
-              NO3: Number(data.NO3),
-              NH4: Number(data.NH4),
-              HnNew: Number(data.HnNew),
-              Tmpr: data.Tmpr ? Number(data.Tmpr) : 1,
-              Sand: Number(data.Sand),
-              Silt: Number(data.Silt),
-              Clay: Number(data.Clay),
-              TH33: Number(data.TH33),
-              TH1500: Number(data.TH1500),
-              kh: Number(data.kh),
-              kl: Number(data.kl),
-              km: Number(data.km),
-              kn: Number(data.kn),
-              kd: Number(data.kd),
-              fe: Number(data.fe),
-              fh: Number(data.fh),
-              r0: Number(data.r0),
-              rL: Number(data.rL),
-              rm: Number(data.rm),
-              fa: Number(data.fa),
-              nq: Number(data.nq),
-              cs: Number(data.cs),
-              thr: Number(data.thr),
-              th: Number(data.thr),
-              ths: Number(data.ths),
-              tha: Number(data.tha),
-              Alfa: Number(data.Alfa),
-              n: Number(data.n),
-              Ks: Number(data.Ks),
-              Kk: Number(data.Kk),
-              thk: Number(data.thk),
-              BD: parseFloat(data.BD),
-              CO2: parseFloat(data.CO2),
-              O2: parseFloat(data.O2),
-              N2O: parseFloat(data.N2O),
-            },
-          };
-          await SoilService.createSoilTable(updatedSoilTableData);
-        }
+      for (const data of updatedData) {
+        const updatedSoilTableData: TDataCreateSoilTable = {
+          requestBody: {
+            o_sid: Number(selectedSiteOption),
+            initType: Number(data.initType),
+            Bottom_depth: Number(data.Bottom_depth),
+            OM_pct: Number(data.OM_pct),
+            NO3: Number(data.NO3),
+            NH4: Number(data.NH4),
+            HnNew: Number(data.HnNew),
+            Tmpr: data.Tmpr ? Number(data.Tmpr) : 1,
+            Sand: Number(data.Sand),
+            Silt: Number(data.Silt),
+            Clay: Number(data.Clay),
+            TH33: Number(data.TH33),
+            TH1500: Number(data.TH1500),
+            kh: Number(data.kh),
+            kl: Number(data.kl),
+            km: Number(data.km),
+            kn: Number(data.kn),
+            kd: Number(data.kd),
+            fe: Number(data.fe),
+            fh: Number(data.fh),
+            r0: Number(data.r0),
+            rL: Number(data.rL),
+            rm: Number(data.rm),
+            fa: Number(data.fa),
+            nq: Number(data.nq),
+            cs: Number(data.cs),
+            thr: Number(data.thr),
+            th: Number(data.thr),
+            ths: Number(data.ths),
+            tha: Number(data.tha),
+            Alfa: Number(data.Alfa),
+            n: Number(data.n),
+            Ks: Number(data.Ks),
+            Kk: Number(data.Kk),
+            thk: Number(data.thk),
+            BD: parseFloat(data.BD),
+            CO2: parseFloat(data.CO2),
+            O2: parseFloat(data.O2),
+            N2O: parseFloat(data.N2O),
+          },
+        };
+        await SoilService.createSoilTable(updatedSoilTableData);
       }
+
       showToast("Success", "Data saved successfully", "success");
     } catch (error) {
       console.error("Error saving data:", error);
@@ -383,38 +333,25 @@ const SoilTab = () => {
     if (soilName.trim() === "") {
       errMess += "- Please enter a soil name.<br/>";
     }
-    if (selectedSoilOption === "0") {
-      // Check for duplicate station names against database values
-      const selectedSoilData = soils?.data.find(
-        (soil) => soil.id === Number(selectedSoilOption)
-      );
-      if (selectedSoilData) {
-        errMess += "- The soil name is already in use.<br/>";
-      }
-    }
-
     if (selectedSiteOption === null) {
-      errMess += "- Please select a site option.\n";
+      errMess += "- Please select a site option.<br/>";
     }
-
     if (oGridratioId === null) {
-      errMess += "- Please select a soil boundary condition option.\n";
+      errMess += "- Please select a soil boundary condition option.<br/>";
     }
-
-    // Replace newlines with <br/> for HTML display
-    errMess = errMess.replace(/\n/g, "<br/>");
 
     if (errMess !== "") {
       showToast(
-        "You might want to check the following information:",
-        `${errMess}`,
+        "Validation Error",
+        `You might want to check the following information:<br/>${errMess}`,
         "error"
       );
-      return; // Exit the function if there are validation errors
+      return;
     }
 
     try {
       if (selectedSoilOption === "0") {
+        // Create new soil
         const gridRationData: TDataCreateGridRatio = {
           requestBody: {
             gridratio_id: null,
@@ -431,8 +368,8 @@ const SoilTab = () => {
         };
         const createGridRatioResponse =
           await GridRatioService.createGridRatio(gridRationData);
+
         if (createGridRatioResponse) {
-          // Extract the gridratio_id from the response
           const gridratioId = createGridRatioResponse.gridratio_id;
           const soilData: TDataCreateSoil = {
             requestBody: {
@@ -443,11 +380,10 @@ const SoilTab = () => {
           };
           await SoilService.createSoil(soilData);
           showToast("Success", "Soil profile saved successfully", "success");
-          queryClient.invalidateQueries({
-            queryKey: ["readSoil"],
-          });
+          queryClient.invalidateQueries({ queryKey: ["readSoil"] });
         }
       } else {
+        // Update existing soil
         const gridRationData: TDataUpdateGridRatio = {
           requestBody: {
             gridratio_id: Number(gridRatio),
@@ -478,59 +414,16 @@ const SoilTab = () => {
         showToast("Success", "Soil profile updated successfully", "success");
       }
     } catch (error) {
-      showToast("Error", "Failed to update soil profile", "error");
+      console.error("Error saving soil profile:", error);
+      showToast("Error", "Failed to save soil profile", "error");
     }
+
     const storedData = localStorage.getItem("soil_table");
     if (storedData) {
       try {
         const parsedData = JSON.parse(storedData);
         if (Array.isArray(parsedData)) {
-          var result: SoilFetchPublicTable[] = [];
-          parsedData.forEach((data: any) => {
-            const mapData = {
-              Bottom_depth: Number(data.Bottom_depth) ?? Number(data.one),
-              OM_pct: Number(data.OM_pct) ,
-              NO3: Number(data.NO3) ?? Number(data.three),
-              NH4: Number(data.NH4) ?? Number(data.four),
-              HnNew: Number(data.HnNew) ?? Number(data.five),
-              initType: Number(data.initType),
-              Tmpr: Number(data.Tmpr),
-              Sand: Number(data.Sand),
-              Silt: Number(data.Silt),
-              Clay: Number(data.Clay),
-              TH33: Number(data.TH33),
-              TH1500: Number(data.TH1500) ?? Number(data.eleven),
-              kh: Number(data.kh) ?? Number(data.twelve),
-              kl: Number(data.kl) ?? Number(data.default),
-              km: Number(data.km) ?? Number(data.default),
-              kn: Number(data.kn) ?? Number(data.default),
-              kd: Number(data.kd) ?? Number(data.default),
-              fe: Number(data.fe) ?? Number(data.default),
-              fh: Number(data.fh) ?? Number(data.default),
-              r0: Number(data.r0) ?? Number(data.default),
-              rL: Number(data.rL) ?? Number(data.default),
-              rm: Number(data.rm) ?? Number(data.default),
-              fa: Number(data.fa) ?? Number(data.default),
-              nq: Number(data.nq) ?? Number(data.default),
-              cs: Number(data.cs) ?? Number(data.default),
-              thr: Number(data.thr) ?? Number(data.default),
-              th: Number(data.thr) ?? Number(data.default),
-              ths: Number(data.ths) ?? Number(data.default),
-              tha: Number(data.tha) ?? Number(data.default),
-              Alfa: Number(data.Alfa) ?? Number(data.default),
-              n: Number(data.n) ?? Number(data.default),
-              Ks: Number(data.Ks) ?? Number(data.default),
-              Kk: Number(data.Kk) ?? Number(data.default),
-              thk: Number(data.thk) ?? Number(data.default),
-              BD: parseFloat(data.BD) ?? parseFloat(data.default),
-              CO2: parseFloat(data.CO2) ?? parseFloat(data.default),
-              O2: parseFloat(data.O2) ?? parseFloat(data.default),
-              N2O: parseFloat(data.N2O) ?? parseFloat(data.default),
-            };
-
-            result.push(mapData);
-          });
-          handleSaveData(result);
+          handleSaveData(parsedData);
         } else {
           console.error("Stored data is not an array");
         }

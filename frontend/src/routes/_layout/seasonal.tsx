@@ -3,7 +3,7 @@ import {
   Container,
   Text,
   Link,
-  Heading
+  Heading,
 } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import FaqComponent from "../../components/Faqs/FaqComponent";
@@ -24,7 +24,7 @@ const SeasonalTab = () => {
        This data is from NLDAS and MRMS databases (NASA and NOAA administrations respectively).      
        </Text>
 
-      <Link color='blue' href='https://youtu.be/m22yAianoFw/' isExternal>
+      <Link color='blue' href='https://youtu.be/eL-0s_qccuQ' isExternal>
         Click here to watch the Seasonal Tab video tutorial.
       </Link>
       <Simulation />

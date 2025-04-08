@@ -570,7 +570,8 @@ def WriteNitData(soilname, field_name, field_path, rowSpacing,session):
 def WriteSoiData(soilname, field_name, field_path,session):
     # Writes Soil data into *.soi FILE
     soil_hydrology_list = read_soilhydroDB(soilname,session)
-    NCount = len(soil_hydrology_list)               
+    NCount = len(soil_hydrology_list)   
+    print(NCount,"jhdjhs vs ")            
     CODEC = "UTF-8"        
     filename = os.path.join(field_path, f"{soilname}.soi")
 

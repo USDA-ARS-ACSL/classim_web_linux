@@ -1,8 +1,6 @@
-# Steps
-- Install docker desktop https://docs.docker.com/desktop/install/windows-install/
-- Open command prompt and navigate to the repo path
-- confirm docker installation with `docker --version`
-- give the command `docker compose up -d`. it will take time to complete the process
-- You will see all 5 processes running 
-- go to chrome and http://locahost use this URl
-- login with ``admin@example.com`` and pwd: `changethis`. 
+This Repo has code for linux version of web model interface. 
+To run this application locally
+1. Clone this repo
+2. install Docker desktop
+3. CD to clone repo and enter "docker compose up --build"
+4. After that go to browser and enter localhos:8085

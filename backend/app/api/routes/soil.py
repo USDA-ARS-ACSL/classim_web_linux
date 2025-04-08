@@ -220,12 +220,14 @@ def fetch_soil_profile(session: SessionDep, siteId: int) -> Any:
                 new_dict['N2O']=0
             new_dict_list.append(new_dict)
     except:
-        # data = [0, 0, 25, 4, -200, "m", 25, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1]
-        data = [0, 0, 25, 4, -200, "m", 25, 0, 0, 0, 0, -1]
-        keys = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"]
+        data = [0, 0, 25, 4, -200, "m", 25, 0, 0, 0, 0, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1, -1,-1,-1,-1,-1,-1]
+        # data = [0, 0, 25, 4, -200, "m", 25, 0, 0, 0, 0, -1]
+        keys=["Bottom_depth", "OM_pct", "NO3", "NH4", "HnNew", "initType", "Tmpr", "Sand", "Silt", "Clay", "BD", "TH33","TH1500","kl", "kh", "km", "kn", "kd", "fe", "fh", "r0", "rL", "rm", "fa", "nq", "cs", "CO2", "O2", "N2O","default"]
         # keys = ["one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve", "default", "default", "default", "default", "default", "default", "default", "default", "default", "default", "default", "default", "default"]
 
         new_dict_list = [dict(zip(keys, data))]
+
+        print(len(data),len(keys))
 
         # new_dict_list = [{0,0,25,4,-200,"m",25,0,0,0,0,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1}]
    

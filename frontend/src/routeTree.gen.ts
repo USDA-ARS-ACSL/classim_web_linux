@@ -28,6 +28,7 @@ import { Route as LayoutRotationBuilderOutputImport } from './routes/_layout/rot
 import { Route as LayoutRotationBuilderImport } from './routes/_layout/rotationBuilder'
 import { Route as LayoutManagementImport } from './routes/_layout/management'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
+import { Route as LayoutExpertsystemImport } from './routes/_layout/expertsystem'
 import { Route as LayoutCultivarImport } from './routes/_layout/cultivar'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
 import { Route as LayoutAboutImport } from './routes/_layout/about'
@@ -121,6 +122,11 @@ const LayoutItemsRoute = LayoutItemsImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutExpertsystemRoute = LayoutExpertsystemImport.update({
+  path: '/expertsystem',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 const LayoutCultivarRoute = LayoutCultivarImport.update({
   path: '/cultivar',
   getParentRoute: () => LayoutRoute,
@@ -179,6 +185,10 @@ declare module '@tanstack/react-router' {
     }
     '/_layout/cultivar': {
       preLoaderRoute: typeof LayoutCultivarImport
+      parentRoute: typeof LayoutImport
+    }
+    '/_layout/expertsystem': {
+      preLoaderRoute: typeof LayoutExpertsystemImport
       parentRoute: typeof LayoutImport
     }
     '/_layout/items': {
@@ -240,6 +250,7 @@ export const routeTree = rootRoute.addChildren([
     LayoutAboutRoute,
     LayoutAdminRoute,
     LayoutCultivarRoute,
+    LayoutExpertsystemRoute,
     LayoutItemsRoute,
     LayoutManagementRoute,
     LayoutRotationBuilderRoute,
