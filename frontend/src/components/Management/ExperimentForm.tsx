@@ -13,7 +13,7 @@ import {
 import useCustomToast from "../../hooks/useCustomToast";
 
 interface ExperimentFormProps {
-  formType: "NewExperiment" | "DeleteExperiment" | null;
+  formType: "NewExperiment" | "DeleteExperiment" | '';
   cropName: string;
   expName: string;
   onSave: (experimentName: string) => void;
@@ -23,7 +23,7 @@ interface ExperimentFormProps {
 
 const ExperimentForm: React.FC<ExperimentFormProps> = ({
   formType,
-  // cropName,
+  cropName,
   expName,
   onSave,
   onDelete,
@@ -38,6 +38,8 @@ const ExperimentForm: React.FC<ExperimentFormProps> = ({
       showToast("Error", "Experiment name field is empty!", "error");
       return;
     }
+    console.log(cropName)
+    console.log("Saving experiment:", experimentName);
     onSave(experimentName);
     setExperimentName("");
   };

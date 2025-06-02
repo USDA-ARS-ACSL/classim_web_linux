@@ -15,14 +15,14 @@ import {
   TDataOperationForms,
 } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
-
+// @ts-ignore
+import CustomDatePicker from "../Common/CustomDatePicker";
 interface FertilizerFormProps {
   fertilizationOpt: string;
   fertClass: FertilizerClass[];
   onSave: (data: any) => void;
   operationId?: number | null;
-  fertilizerCalendar: Date;
-  fertilizerDate: string;
+  fertilizerDate: string | null | undefined;
 }
 
 const FertilizerForm: React.FC<FertilizerFormProps> = ({
@@ -30,18 +30,23 @@ const FertilizerForm: React.FC<FertilizerFormProps> = ({
   fertClass,
   onSave,
   operationId,
-  fertilizerCalendar,
   fertilizerDate,
 }) => {
   const [fertClassOpt, setFertClassOpt] = useState<string>(fertilizationOpt);
-  const [date, setDate] = useState<string>("");
+  const [date, setDate] = useState<String | null>("");
   const [quantityC, setQuantityC] = useState<string>("");
   const [quantityN, setQuantityN] = useState<string>("");
   const [fertilizerDepth, setFertilizerDepth] = useState<string>("");
   const [showCarbon, setShowCarbon] = useState<boolean>(false);
-  const [calendar, setCalendar] = useState<Date>();
   const showToast = useCustomToast();
 
+  const handleDateChange = (newDate: String | null) => {
+    if (newDate) {
+      setDate(newDate);
+    } else {
+      setDate(null);
+    }
+  };
   useEffect(() => {
     if (fertClassOpt === "Manure" || fertClassOpt === "Litter") {
       setShowCarbon(true);
@@ -116,9 +121,7 @@ const FertilizerForm: React.FC<FertilizerFormProps> = ({
           fertilization_response.nutrients[0]?.nutrientQuantity?.toString() ||
             ""
         );
-        console.log([fertilizerDate, fertilizerCalendar]);
-        setDate(fertilizerDate);
-        setCalendar(fertilizerCalendar);
+        setDate(fertilizerDate || null);
         if (fertilization_response.nutrients.length > 1) {
           setQuantityC(
             fertilization_response.nutrients[1]?.nutrientQuantity?.toString() ||
@@ -132,7 +135,6 @@ const FertilizerForm: React.FC<FertilizerFormProps> = ({
   };
 
   useEffect(() => {
-    console.log(operationId);
     if (operationId) {
       fetchOperationFertilization(operationId);
     } else {
@@ -170,19 +172,7 @@ const FertilizerForm: React.FC<FertilizerFormProps> = ({
 
         <FormControl>
           <FormLabel>Date</FormLabel>
-          <Input
-            type='date'
-            value={
-              calendar instanceof Date
-                ? calendar.toISOString().split("T")[0]
-                : date
-            }
-            onChange={(e) => {
-              const newDate = e.target.value;
-              setDate(newDate);
-              setCalendar(new Date(newDate)); // Update the calendar state as well
-            }}
-          />
+          <CustomDatePicker date={date} onDateChange={handleDateChange} />
         </FormControl>
 
         <FormControl>

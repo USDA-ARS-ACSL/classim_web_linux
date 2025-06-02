@@ -7,7 +7,7 @@ from app.models import (
     TreatmentCreate, OperationCreate, InitCondOp, TillageOp, FertilizationOp, 
     FertNutOp, PGROp, SR_Op, IrrigPivotOp, OperationsPublic, OperationDateResponse,
     FertilizationClass, PGRChemical, SurfResType, FertilizationWithNutrients, PGRApplType,
-    PGRUnit, SurfResApplType, IrrigationClass, CultivarCottondata ,CultivarMaizedata,
+    PGRUnit, SurfResApplType, IrrigationClass, TreatmentPublic ,CultivarMaizedata,
     CultivarPotatodata, CultivarSoybeandata, TillageType, TreatmentCopy
 )
 from sqlmodel import func, select
@@ -40,6 +40,21 @@ def create_experiment(
     current_user: CurrentUser,
     experiment_in: ExperimentCreate
 ) -> Any:
+    # Check if an experiment with the same name and crop already exists
+    existing_experiment = session.exec(
+        select(Experiment).where(
+            Experiment.name == experiment_in.name,
+            Experiment.crop == experiment_in.crop
+        )
+    ).one_or_none()
+
+    if existing_experiment:
+        raise HTTPException(
+            status_code=409, 
+            detail="An experiment with the same name already exists for the same crop"
+        )
+
+    # Create and save the new experiment
     exp = Experiment.model_validate(experiment_in, update={"owner_id": current_user.id})
     session.add(exp)
     session.commit()
@@ -78,12 +93,24 @@ def read_experiment_by_cropname_and_experimentname(
 def read_treatment_by_experimentId(
     session: SessionDep, exid: int, skip: int = 0, limit: int = 100
 ) -> Any:
+    """To get treatments based on experiment ID.. """
     count_statement = select(func.count()).select_from(Treatment).filter(Treatment.t_exid == exid)
     count = session.exec(count_statement).one()
     statement = select(Treatment).filter(Treatment.t_exid == exid)
     treatments = session.exec(statement).all()
     return TreatmentsPublic(data=treatments, count=count)
 
+
+@router.get("/treatmentbyid/{tid}", response_model=TreatmentsPublic)
+def read_treatment_by_experimentId(
+    session: SessionDep, tid: int, skip: int = 0, limit: int = 100
+) -> Any:
+    """To get treatments based on experiment ID.. """
+    count_statement = select(func.count()).select_from(Treatment).filter(Treatment.tid == tid)
+    count = session.exec(count_statement).one()
+    statement = select(Treatment).filter(Treatment.tid == tid)
+    treatments = session.exec(statement).all()
+    return TreatmentsPublic(data=treatments, count=count)
 
 @router.delete("/treatment/{tid}")
 def delete_treatment(session: SessionDep, current_user: CurrentUser, tid: int) -> Message:
@@ -94,70 +121,55 @@ def delete_treatment(session: SessionDep, current_user: CurrentUser, tid: int) -
     session.commit()
     return Message(message="Treatment deleted successfully")
 
-@router.post("/treatment", response_model=bool)
+@router.post("/treatment", response_model=TreatmentPublic)
 def create_treatment(
     treatment_in: TreatmentCreate,
     session: SessionDep,
     current_user: CurrentUser
 ) -> Any:
+    """Creare a new treatment."""
+    treatment = Treatment.model_validate(treatment_in, update={"owner_id": current_user.id})
+    stmnt=( select(Treatment.tid).where(Treatment.name == treatment.name, Treatment.t_exid == treatment.t_exid) )
+    treatmentid = session.exec(stmnt).one_or_none()
+    if treatmentid:
+        raise HTTPException(status_code=400, detail="Treatment with this name already exists")
+    session.add(treatment)
+    session.commit()
     treatmentname = treatment_in.name
     expname = treatment_in.expname
     cropname = treatment_in.crop
-    t_exid = treatment_in.t_exid
-    
-    treatmentID = get_treatment_id(session, treatmentname, expname, cropname)
-    
-    if treatmentID:
-        raise HTTPException(status_code=400, detail="Treatment with this name already exists")
-
-    insert_treatment(session,current_user, t_exid, treatmentname, cropname)
     insert_default_operations(session,current_user, treatmentname, expname, cropname)
-    return True
+    session.refresh(treatment)
+    return treatment
 
-def get_treatment_id(session: Session, treatmentname: str, expname: str, cropname: str) -> Optional[int]:
-    query = text("""
-        SELECT t.tid
-    FROM treatment t
-    JOIN experiment e ON t.t_exid = e.exid
-    WHERE t.name = :treatmentname
-    AND e.name = CAST(:expname AS VARCHAR)
-    AND e.crop = CAST(:cropname AS VARCHAR)
-    """)
-    
-    result = session.execute(query, {
-        'treatmentname': treatmentname,
-        'expname': expname,
-        'cropname': cropname,
-    }).scalar_one_or_none()
-    
-    return result
 
-def insert_treatment(session: Session, current_user: CurrentUser, exid: int, treatmentname: str, cropname: str) -> None:
-    query = text("""
-        INSERT INTO treatment (t_exid, name, owner_id) VALUES (:expid, :treatmentname, :owner_id)
-    """)
-    
-    session.execute(query, {
-        'expid': exid,
-        'treatmentname': treatmentname,
-        'owner_id': current_user.id
-    })
-    session.commit()
+@router.get("/experiment/experiment/id/{exid}", response_model=ExperimentsPublic)
+def get_treatment(session: SessionDep, current_user: CurrentUser, exid: int) -> Message:
+    statement = select(Experiment).where(Experiment.exid == exid)
+    experiment = session.exec(statement).all()
+
+    if not experiment:
+        raise HTTPException(status_code=404, detail="Experiment not found")
+
+    return ExperimentsPublic(data=experiment,count=1)
+
 
 def insert_default_operations(session: SessionDep, current_user: CurrentUser, treatmentname: str, expname: str, cropname: str) -> None:
     now = datetime.now()
-    yesterday_date = (now - timedelta(1)).strftime('%m/%d/%Y')
-    in5days_date = (now + timedelta(5)).strftime('%m/%d/%Y')
-    in7days_date = (now + timedelta(7)).strftime('%m/%d/%Y')
-    in60days_date = (now + timedelta(60)).strftime('%m/%d/%Y')
-    in65days_date = (now + timedelta(65)).strftime('%m/%d/%Y')
+    simstartdate = now.strftime('%m/%d/%Y')
+    simstartdate_dt = datetime.strptime(simstartdate, '%m/%d/%Y')  # Convert back to datetime
+
+    sowingdate = (simstartdate_dt + timedelta(7)).strftime('%m/%d/%Y')
+    in7days_date = (simstartdate_dt + timedelta(14)).strftime('%m/%d/%Y')  # 7 days after sowingdate
+    harvestdate = (simstartdate_dt + timedelta(120)).strftime('%m/%d/%Y')
+    simenddate = (simstartdate_dt + timedelta(127)).strftime('%m/%d/%Y')
 
     operations = [
-        ('Simulation Start', yesterday_date),
+        ('Simulation Start', simstartdate),
         ('Tillage', ''),
-        ('Sowing', in5days_date if cropname not in ["fallow", "cotton"] else ''),
-        ('Harvest', in60days_date if cropname != "fallow" else ''),
-        ('Simulation End', in65days_date),
+        ('Sowing', sowingdate if cropname not in ["fallow", "cotton"] else ''),
+        ('Harvest', harvestdate if cropname != "fallow" else ''),
+        ('Simulation End', simenddate),
         ('Emergence', in7days_date if cropname not in ["maize", "fallow"] else '')
     ]
 
@@ -179,7 +191,29 @@ def insert_default_operations(session: SessionDep, current_user: CurrentUser, tr
             irrAmt_record=[],
             owner_id = current_user.id
         )
+        if cropname=="maize" and op_name=="Emergence":
+            continue
         create_or_update_operation(operation_in, session, current_user)
+
+
+def get_treatment_id(session: Session, treatmentname: str, expname: str, cropname: str) -> Optional[int]:
+    query = text("""
+        SELECT t.tid
+    FROM treatment t
+    JOIN experiment e ON t.t_exid = e.exid
+    WHERE t.name = :treatmentname
+    AND e.name = CAST(:expname AS VARCHAR)
+    AND e.crop = CAST(:cropname AS VARCHAR)
+    """)
+    
+    result = session.execute(query, {
+        'treatmentname': treatmentname,
+        'expname': expname,
+        'cropname': cropname,
+    }).scalar_one_or_none()
+    
+    return result
+
 
 @router.post("/operation", response_model=bool)
 def create_or_update_operation(
@@ -575,15 +609,14 @@ def read_operation_by_irrigation(
 def read_operation_by_initcondop(
     session: SessionDep, opid: int, skip: int = 0, limit: int = 100
 ) -> Any:
-    # Fetch PGROp data
-    statement = select(InitCondOp).filter(InitCondOp.opID == opid)
-    sr = session.execute(statement).scalars().first()
+    # Fetch InitCondOp data using SQLAlchemy ORM query
+    sr = session.query(InitCondOp).filter(InitCondOp.opID == opid).first()
     
-    # Handle case where no fertilization data is found
+    # Handle case where no simulation start data is found
     if not sr:
         raise HTTPException(status_code=404, detail="No Simulation Start found")
     
-    # Return combined result
+    # Return the ORM object directly (FastAPI will serialize it)
     return sr
 
 @router.get("/operation/tillage/{opid}", response_model=TillageOp)

@@ -3,7 +3,6 @@ import {
   Box,
   FormControl,
   FormLabel,
-  Input,
   Select,
   Button,
   VStack,
@@ -16,14 +15,16 @@ import {
   TillageType,
 } from "../../client";
 // import useCustomToast from "../../hooks/useCustomToast";
-
+// @ts-ignore
+import CustomDatePicker from "../Common/CustomDatePicker";
+// @ts-ignore
+import { customFormatDate } from "../Utils/dateUtil";
 interface TillageProps {
   cropName: string;
   onSave: (data: any) => void;
   operationId?: number | null;
   tillageList: TillageType[];
-  tillageCalendar: Date;
-  tillageDate: string;
+  tillageDate: string | null | undefined;
 }
 
 const Tillage: React.FC<TillageProps> = ({
@@ -31,22 +32,27 @@ const Tillage: React.FC<TillageProps> = ({
   onSave,
   operationId,
   tillageList,
-  tillageCalendar,
   tillageDate,
 }) => {
   const [tillage, setTillage] = useState<string>();
-  const [calendar, setCalendar] = useState(new Date());
-  const [date, setDate] = useState<string>("");
+  const [date, setDate] = useState<String | null>("");
   const [dateVisible, setDateVisible] = useState<boolean>(false);
-
+  console.log('tillageDate', tillageDate)
+  const handleDateChange = (newDate: String | null) => {
+    if (newDate) {
+      setDate(newDate);
+    } else {
+      setDate(null);
+    }
+  };
   // const showToast = useCustomToast();
 
   const handleTillage = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;
     setTillage(value);
-    console.log(value);
     if (value == "No tillage") {
       setDateVisible(false);
+      setDate(null);
     } else {
       setDateVisible(true);
     }
@@ -60,9 +66,6 @@ const Tillage: React.FC<TillageProps> = ({
       const tillage_response = await ManagementService.getTillage(opObj);
 
       if (tillage_response) {
-        console.log(tillage_response);
-        setDate(tillageDate);
-        setCalendar(tillageCalendar);
         setTillage(tillage_response.tillage);
         if (tillage_response.tillage == "No tillage") {
           setDateVisible(false);
@@ -87,31 +90,21 @@ const Tillage: React.FC<TillageProps> = ({
   useEffect(() => {
     if (operationId) {
       fetchTillage(operationId);
+      setDate(date || tillageDate?.toString() || null);
     } else {
       setTillage("");
-      setDate("");
-      setCalendar(new Date());
+      setDate(date|| tillageDate?.toString() || null);
     }
-  }, [cropName]);
+    if(!dateVisible)
+        setDate('');
+  }, [cropName, tillageDate, date, dateVisible]);
   return (
     <Box p={4} borderWidth={1} borderRadius='lg' boxShadow='md'>
       <VStack spacing={4} align='stretch'>
         {dateVisible && (
           <FormControl>
             <FormLabel>Date</FormLabel>
-            <Input
-              type='date'
-              value={
-                calendar instanceof Date
-                  ? calendar.toISOString().split("T")[0]
-                  : date
-              }
-              onChange={(e) => {
-                const newDate = e.target.value;
-                setDate(newDate);
-                setCalendar(new Date(newDate)); // Update the calendar state as well
-              }}
-            />
+            <CustomDatePicker date={date} onDateChange={handleDateChange} />
           </FormControl>
         )}
         <FormControl>

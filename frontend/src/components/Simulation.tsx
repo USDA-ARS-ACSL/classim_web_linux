@@ -32,7 +32,7 @@ import {
   FormErrorMessage
 } from '@chakra-ui/react';
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
-import GraphComponent from "./GraphComponent";
+import GraphComponent from "./GraphComponentmaize";
 import { SiteService, SoilService, WeatherService, SeasonalRun } from '../client';
 import { useQueries } from "@tanstack/react-query";
 import { CROP_DATA } from '../constants';

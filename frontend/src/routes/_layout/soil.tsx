@@ -44,11 +44,11 @@ const SoilTab = () => {
   const [siteName, setSiteName] = useState("");
   const [selectedSoilData, setSelectedSoilData] = useState<any>(null);
   const [soilDeleted, setSoilDeleted] = useState<Message>({ message: "" });
-  console.log(soilDeleted)
   const { data: soils, isLoading: soilsLoading } = useQuery({
     queryKey: ["readSite"],
     queryFn: () => SoilService.readSoils(),
   });
+  console.log(soilDeleted)
   const { data: sites, isLoading: sitesLoading } = useQuery({
     queryKey: ["readSoil"],
     queryFn: () => SiteService.readSites(),
@@ -320,11 +320,9 @@ const SoilTab = () => {
         };
         await SoilService.createSoilTable(updatedSoilTableData);
       }
-
-      showToast("Success", "Data saved successfully", "success");
     } catch (error) {
       console.error("Error saving data:", error);
-      showToast("Error", "Failed to save data", "error");
+      showToast("Error", "Failed to save soil properties", "error");
     }
   };
 
@@ -413,9 +411,9 @@ const SoilTab = () => {
         await SoilService.updateSoil(updatedSoil);
         showToast("Success", "Soil profile updated successfully", "success");
       }
-    } catch (error) {
-      console.error("Error saving soil profile:", error);
-      showToast("Error", "Failed to save soil profile", "error");
+    } catch (error:any) {
+      const errDetail = (error as any).body?.detail
+      showToast("Something went wrong.", `${errDetail}`, "error")
     }
 
     const storedData = localStorage.getItem("soil_table");

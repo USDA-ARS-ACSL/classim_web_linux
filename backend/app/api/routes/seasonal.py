@@ -45,7 +45,7 @@ maizsimexe = os.path.join(classimDir, 'maizsim')
 spudsimexe = os.path.join(classimDir, '2dspudsim.exe')
 
 # Soybean model executable
-glycimexe = os.path.join(classimDir, '2dglycim.exe')
+glycimexe = os.path.join(classimDir, 'glycim')
 
 # Cotton model executable
 gossymexe = os.path.join(classimDir, '2dgossym.exe')
@@ -474,7 +474,7 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
     classimDir = os.getcwd()
     return insertion_id
 
-def prepare_and_execute( simulation_name, session: SessionDep):
+def prepare_and_execute( simulation_name, session: SessionDep, current_user_id):
     """
     This will create input files, and execute both exe's.
     """
@@ -512,7 +512,7 @@ def prepare_and_execute( simulation_name, session: SessionDep):
     with open(dest_file, 'r') as read_file:
         waterfilecontent = read_file.readlines()
 
-    sandcontent = WriteSoiData(lsoilname, field_name, field_path, session)
+    sandcontent = WriteSoiData(lsoilname, field_name, field_path, session,current_user_id)
     if sandcontent > 75:
         with open(dest_file, 'w') as write_file:
             for line in waterfilecontent:
@@ -834,7 +834,7 @@ async def get_simulation_results(background_tasks: BackgroundTasks,simulation_na
     """
     try:
         # simulation = read_pastrunsDB_id(simulation_name, session)
-        background_tasks.add_task(prepare_and_execute, simulation_name,session)
+        background_tasks.add_task(prepare_and_execute, simulation_name,session, current_user.id)
 
         return {"id":simulation_name}
     except Exception as e:

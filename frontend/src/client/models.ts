@@ -524,7 +524,6 @@ export type WeatherAggrigateData = {
 export type CropsMetaPublic = {
   id: number;
   cropname: string | null;
-  experiments: Experiment[];
 };
 
 export type CropsMetasPublic = {
@@ -560,9 +559,9 @@ export type Treatment = {
 }
 
 export type ExperimentPublic = {
-  exid: number | null;
-  name: string | null;
-  crop: string | null;
+  exid: number;
+  name: string;
+  crop: string;
   treatments: Treatment[];
 };
 
@@ -578,9 +577,9 @@ export type ExperimentsPublic = {
 };
 
 export type TreatmentPublic = {
-  tid: number | null;
-  t_exid: number | null;
-  name: string | null;  
+  tid: number;
+  t_exid: number;
+  name: string;  
 };
 
 export type TreatmentsPublic = {

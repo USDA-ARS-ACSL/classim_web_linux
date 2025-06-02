@@ -221,7 +221,6 @@ interface LevelData {
   treatmentName: any;
   operationName: any;
   titleId: number[];
-  dates: any
 }
 
 interface Operation {
@@ -237,7 +236,7 @@ const Management: React.FC = () => {
   const [currentExperimentName, setCurrentExperimentName] =
     useState<string>("");
   const [currentTreatmentName, setCurrentTreatmentName] = useState<string>("");
-  const [opDate ,setOpDate] = useState<string>("")
+
   const [formType, setFormType] = useState<
     | "NewExperiment"
     | "DeleteExperiment"
@@ -254,11 +253,6 @@ const Management: React.FC = () => {
   const [fertilizationForm, setFertilizationForm] = useState(false);
 
   const showToast = useCustomToast();
-
-  // Removed unused handleRefresh function
-  const handleRefresh = () => {
-    fetchData(); // Refresh data or perform any necessary action
-  };
 
   const handleNewExperiment = (cropName: string) => {
     setCurrentCropName(cropName);
@@ -341,12 +335,8 @@ const Management: React.FC = () => {
       },
     };
 
-    saveExperimentMutation.mutate(data, {
-      onSuccess: () => {
-        fetchData(); // Refresh data after saving
-        setBool(false);
-      },
-    });
+    saveExperimentMutation.mutate(data);
+    setBool(false);
   };
 
   const handleCopyTreatment = async (
@@ -359,7 +349,9 @@ const Management: React.FC = () => {
       ccropName +
         " " +
         currentTreatmentName +
+        " " +
         ctreatmentName +
+        " " +
         cexperimentName
     );
     const data: TDataCopy = {
@@ -370,12 +362,7 @@ const Management: React.FC = () => {
         newtreatmentname: ctreatmentName,
       },
     };
-    copyTreatmentMutation.mutate(data, {
-      onSuccess: () => {
-        fetchData(); // Refresh data after copying
-        setBool(false);
-      },
-    });
+    copyTreatmentMutation.mutate(data);
     setBool(false);
   };
   const handleExperimentDelete = async () => {
@@ -424,7 +411,6 @@ const Management: React.FC = () => {
     } finally {
       setSelectedTitle(null);
       setFormType(null);
-      fetchData();
     }
   };
 
@@ -462,12 +448,8 @@ const Management: React.FC = () => {
           expname: experiment.name,
         },
       };
-      saveTreatmentMutation.mutate(data, {
-        onSuccess: () => {
-          fetchData(); // Refresh data after saving
-          setBool(false);
-        },
-      });
+      saveTreatmentMutation.mutate(data);
+      setBool(false);
     }
   };
 
@@ -647,9 +629,6 @@ const Management: React.FC = () => {
                   titleId: operations.map(
                     (op) => op.opID ?? "Unknown Operation"
                   ),
-                  dates: operations.map(
-                    (op) => op.date ?? "Unknown Operation"
-                  ),
                   cropName: crop.cropname,
                   experimentName: experimentName,
                   treatmentName: treatmentTitle,
@@ -767,7 +746,7 @@ const Management: React.FC = () => {
                   setSelectedTitle(title);
                   setSelectedTitleId(currentLevelData.titleId[idx]);
                   setCurrentCropName(currentLevelData.cropName);
-                  setOpDate(currentLevelData.dates[idx]);
+
                   setFormType(actionType); // Show delete form on title click
                 }}
               >
@@ -892,7 +871,7 @@ const Management: React.FC = () => {
             />
           )}
 
-          {selectedTitle && formType === "NewOperation" && (
+          {selectedTitle && (formType === "NewOperation" || formType === "EditOperation")&& (
             <OperationForm
               formType={formType}
               treatmentName={currentTreatmentName}
@@ -900,20 +879,6 @@ const Management: React.FC = () => {
               cropName={currentCropName}
               operationName={selectedTitle}
               operationId={selectedTitleId}
-              opDateVal={opDate}
-              onSave={handleRefresh}
-            />
-          )}
-          {selectedTitle && formType === "EditOperation" && (
-            <OperationForm
-              formType={formType}
-              cropName={currentCropName}
-              treatmentName={currentTreatmentName}
-              experimentName={currentExperimentName}
-              operationName={selectedTitle}
-              operationId={selectedTitleId}
-              opDateVal={opDate}
-              onSave={handleRefresh}
             />
           )}
         </Box>

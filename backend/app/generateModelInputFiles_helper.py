@@ -181,7 +181,6 @@ def WriteCropVariety(crop, cultivar, field_name, field_path,session):
             fout.write("[SoilRoot]\n")
             fout.write("*** WATER UPTAKE PARAMETER INFORMATION **************************\n")
             fout.write("RRRM       RRRY    RVRL\n")
-            print(type(hybridparameters[15]),"sdfsgsdgsgsdg", int(hybridparameters[15]))
             upw_int=int(hybridparameters[15])
             insink_int=int(hybridparameters[20])
             if crop == "maize":
@@ -466,18 +465,17 @@ def WriteSoluteFile(soilname, field_path, session):
             fout.write("1\n")
             fout.write("Computational parameters\n")
             fout.write("EPSI        lUpW             CourMax\n")
-            fout.write(f'{solute_tuple[1]:-14.6f}{int(solute_tuple[2]):-14d}{solute_tuple[3]:-14.6f}\n')
+            fout.write(f'{solute_tuple[1]:.6f}'.rstrip('0').rstrip('.') + f'{int(solute_tuple[2]):-14d}{solute_tuple[3]:-14.6f}\n')
             fout.write("Material Information\n")
             fout.write("Solute#, Ionic/molecular diffusion coefficients of solutes\n")
             fout.write(f'{1:-14.6f}{solute_tuple[4]:-14.6f}\n')
             fout.write("Solute#, Layer#, Longitudinal Dispersivity, Transversal Dispersivity (units are cm)\n")
 
             # Write dispersivity data for each texture
-            for counter in range(len(TextureCl)):
-                dispersivity = read_dispersivityDB(TextureCl[counter], session)
-                fout.write(f'{1:-14.6f}{counter:-14d}{dispersivity[0]:-14.6f}{dispersivity[0]/2:-14.6f}\n')
+            for counter, texture in enumerate(TextureCl, start=1):
+                dispersivity = read_dispersivityDB(texture, session)
+                fout.write(f'{1:-9d}{counter:-14d}{dispersivity[0]:-14.6f}{dispersivity[0]/2:-14.6f}\n')
             fout.write("\n")
-
     except IOError:
         print(f"Could not open file: {filename}")
 
@@ -526,8 +524,7 @@ def WriteTimeFileData(treatmentname, experimentname, cropname, stationtype,
         with open(filename, 'w', encoding=CODEC) as fout:
             # Retrieve start and end dates
             startdate = read_operation_timeDB2('Simulation Start', treatmentname, experimentname, cropname,session)                 
-            enddate = read_operation_timeDB2('Simulation End', treatmentname, experimentname, cropname,session)   
-
+            enddate = read_operation_timeDB2('Simulation End', treatmentname, experimentname, cropname,session)              
             fout.write("*** SYNCHRONIZER INFORMATION *****************************\n")
             fout.write("Initial time       dt       dtMin     DMul1    DMul2    tFin\n")
             fout.write(f"'{startdate:<10s}'  {dt:<14.4f}{dtMin:<14.10f}{DMul1:<14.4f}{DMul2:<14.4f}'{enddate:<10s}'\n")
@@ -567,11 +564,10 @@ def WriteNitData(soilname, field_name, field_path, rowSpacing,session):
         print(f"Could not open file: {filename}")
 
 
-def WriteSoiData(soilname, field_name, field_path,session):
+def WriteSoiData(soilname, field_name, field_path,session,current_user_id):
     # Writes Soil data into *.soi FILE
-    soil_hydrology_list = read_soilhydroDB(soilname,session)
-    NCount = len(soil_hydrology_list)   
-    print(NCount,"jhdjhs vs ")            
+    soil_hydrology_list = read_soilhydroDB(soilname,session,current_user_id)
+    NCount = len(soil_hydrology_list)               
     CODEC = "UTF-8"        
     filename = os.path.join(field_path, f"{soilname}.soi")
 
@@ -644,36 +640,52 @@ def WriteMulchGeo(field_path, nutrient,session):
             fout.write("*** Mulch Material information ****  based on g, m^3, J and oC\n")
             fout.write("[Basic_Mulch_Configuration]\n")
             fout.write("********The mulch grid configuration********\n")
-            fout.write(f"Minimal Grid Size for Horizontal Element\n{mulchGeoList[0]:<10.2f}\n")
+            fout.write(f"Minimal Grid Size for Horizontal Element\n")
+            fout.write(f"{int(mulchGeoList[0]) if mulchGeoList[0].is_integer() else mulchGeoList[0]:<10}\n")
             fout.write("********Simulation Specifications (1=Yes; 0=No)********\n")
             fout.write(f"Only_Diffusive_Flux     Neglect_LongWave_Radiation      Include_Mulch_Decomputions\n")
-            fout.write(f"{mulchGeoList[1]:<10.2f}{mulchGeoList[2]:<10.2f}{mulchGeoList[3]:<10.2f}\n")
+            fout.write(f"{int(mulchGeoList[1]) if mulchGeoList[1].is_integer() else mulchGeoList[1]:<10}"
+                    f"{int(mulchGeoList[2]) if mulchGeoList[2].is_integer() else mulchGeoList[2]:<10}"
+                    f"{int(mulchGeoList[3]) if mulchGeoList[3].is_integer() else mulchGeoList[3]:<10}\n")
             fout.write("[Mulch_Radiation]\n")
             fout.write("********Mulch Radiation Properties********\n")
             fout.write("DeltaRshort DeltaRlong  Omega   epsilon_mulch   alpha_mulch\n")
-            fout.write(f"{mulchGeoList[4]:<10.2f}{mulchGeoList[5]:<10.2f}{mulchGeoList[6]:<10.2f}{mulchGeoList[7]:<10.2f}{mulchGeoList[8]:<10.2f}\n")
+            fout.write(f"{int(mulchGeoList[4]) if mulchGeoList[4].is_integer() else mulchGeoList[4]:<10}"
+                    f"{int(mulchGeoList[5]) if mulchGeoList[5].is_integer() else mulchGeoList[5]:<10}"
+                    f"{int(mulchGeoList[6]) if mulchGeoList[6].is_integer() else mulchGeoList[6]:<10}"
+                    f"{int(mulchGeoList[7]) if mulchGeoList[7].is_integer() else mulchGeoList[7]:<10}"
+                    f"{int(mulchGeoList[8]) if mulchGeoList[8].is_integer() else mulchGeoList[8]:<10}\n")
             fout.write("[Numerical_Controls]\n")
             fout.write("********Picard Iteration COntrol********\n")
             fout.write("Max Iteration Step (before time step shrinkage) Tolerence for Convergence (%)\n")
-            fout.write(f"{mulchGeoList[9]:<10.2f}{mulchGeoList[10]:<10.2f}\n")
+            fout.write(f"{int(mulchGeoList[9]) if mulchGeoList[9].is_integer() else mulchGeoList[9]:<10}"
+                    f"{int(mulchGeoList[10]) if mulchGeoList[10].is_integer() else mulchGeoList[10]:<10}\n")
             fout.write("[Mulch_Mass_Properties]\n")
             fout.write("********Some Basic Information such as density, porosity and empirical parameters********\n")
             fout.write("VRho_Mulch g/m3  Pore_Space  Max Held Ponding Depth\n")
-            fout.write(f"{mulchGeoList[11]:<10.2f}{mulchGeoList[12]:<10.2f}{mulchGeoList[13]:<10.2f}\n")
+            fout.write(f"{int(mulchGeoList[11]) if mulchGeoList[11].is_integer() else mulchGeoList[11]:<10}"
+                    f"{int(mulchGeoList[12]) if mulchGeoList[12].is_integer() else mulchGeoList[12]:<10}"
+                    f"{int(mulchGeoList[13]) if mulchGeoList[13].is_integer() else mulchGeoList[13]:<10}\n")
             fout.write("[Mulch_Decomposition]\n")
             fout.write("********Overall Factors********\n")
             fout.write("Contacting_Fraction Feeding_Coef\n")
-            fout.write(f"{mulchDecompList[0]:<10.4f}{mulchDecompList[1]:<10.4f}\n")
+            fout.write(f"{int(mulchDecompList[0]) if mulchDecompList[0].is_integer() else f'{mulchDecompList[0]:.4f}'.rstrip('0').rstrip('.'): <10}"
+                    f"{int(mulchDecompList[1]) if mulchDecompList[1].is_integer() else f'{mulchDecompList[1]:.4f}'.rstrip('0').rstrip('.'): <10}\n")
             fout.write("The Fraction of Three Carbon Formats (Initial Value)\n")
             fout.write("Carbonhydrate(CARB)    Holo-Cellulose (CEL)   Lignin (LIG)\n")
-            fout.write(f"{mulchDecompList[2]:<10.4f}{mulchDecompList[3]:<10.4f}{mulchDecompList[4]:<10.4f}\n")
+            fout.write(f"{int(mulchDecompList[2]) if mulchDecompList[2].is_integer() else f'{mulchDecompList[2]:.4f}'.rstrip('0').rstrip('.'): <10}"
+                    f"{int(mulchDecompList[3]) if mulchDecompList[3].is_integer() else f'{mulchDecompList[3]:.4f}'.rstrip('0').rstrip('.'): <10}"
+                    f"{int(mulchDecompList[4]) if mulchDecompList[4].is_integer() else f'{mulchDecompList[4]:.4f}'.rstrip('0').rstrip('.'): <10}\n")
             fout.write("The Fraction of N in Three Carbon Formats (Initial Value)\n")
             fout.write(" Carbonhydrate(CARB)    Holo-Cellulose (CEL)   Lignin (LIG)\n")
-            fout.write(f"{mulchDecompList[5]:<10.4f}{mulchDecompList[6]:<10.4f}{mulchDecompList[7]:<10.4f}\n")
+            fout.write(f"{int(mulchDecompList[5]) if mulchDecompList[5].is_integer() else f'{mulchDecompList[5]:.4f}'.rstrip('0').rstrip('.'): <10}"
+                    f"{int(mulchDecompList[6]) if mulchDecompList[6].is_integer() else f'{mulchDecompList[6]:.4f}'.rstrip('0').rstrip('.'): <10}"
+                    f"{int(mulchDecompList[7]) if mulchDecompList[7].is_integer() else f'{mulchDecompList[7]:.4f}'.rstrip('0').rstrip('.'): <10}\n")
             fout.write("The Intrinsic Decomposition Speed of Three Carbon Formats (day^-1)\n")
             fout.write(" Carbonhydrate(CARB)    Holo-Cellulose (CEL)   Lignin (LIG)\n")
-            fout.write(f"{mulchDecompList[8]:<10.4f}{mulchDecompList[9]:<10.4f}{mulchDecompList[10]:<10.4f}\n")
-
+            fout.write(f"{int(mulchDecompList[8]) if mulchDecompList[8].is_integer() else f'{mulchDecompList[8]:.4f}'.rstrip('0').rstrip('.'): <10}"
+                    f"{int(mulchDecompList[9]) if mulchDecompList[9].is_integer() else f'{mulchDecompList[9]:.4f}'.rstrip('0').rstrip('.'): <10}"
+                    f"{int(mulchDecompList[10]) if mulchDecompList[10].is_integer() else f'{mulchDecompList[10]:.4f}'.rstrip('0').rstrip('.'): <10}\n")
     except IOError:
         print(f"Could not open file: {filename}")
 
@@ -947,7 +959,15 @@ def WriteManagement(cropname, experiment, treatmentname, field_name, field_path,
             fout.write("mAppl is manure, lAppl is litter. Apply as mg/cm2 of slab same units as N\n")
             fout.write("tAppl(i)  AmtAppl(i) depth(i) lAppl_C(i) lAppl_N(i)  mAppl_C(i) mAppl_N(i)  (repeat these 3 lines for the number of fertilizer applications)\n")
             for j in range(len(date)):
-                fout.write(f"'{date[j]}' '{ammtT[j]: <14.6f}{fDepth[j]: <14.6f}{lammtC[j]: <14.6f}{lammtN[j]: <14.6f}{mammtC[j]: <14.6f}{mammtN[j]: <14.6f}'\n")
+                try:
+                    fout.write(
+                        f"'{date[j]}' "
+                        f"{float(ammtT[j]): <14.6f}{float(fDepth[j]): <14.6f}"
+                        f"{float(lammtC[j]): <14.6f}{float(lammtN[j]): <14.6f}"
+                        f"{float(mammtC[j]): <14.6f}{float(mammtN[j]): <14.6f}\n"
+                    )
+                except ValueError as e:
+                    print(f"Error formatting values: {e}. Check the input data.")
             if cropname == "cotton":
                 fout.write("[PGR]\n")
                 fout.write("Number of PGR applications; 0: No PGR\n")

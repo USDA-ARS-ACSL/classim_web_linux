@@ -8,8 +8,6 @@ from sqlalchemy.sql import text
 from datetime import datetime as dt
 from app.api.deps import SessionDep
 from datetime import datetime, timedelta
-
-
 currentDir = os.getcwd()
 dbDir=os.path.join(currentDir,'executables')
 
@@ -102,7 +100,7 @@ def readOpDetails(operationid: int, operationName: str, session: SessionDep) -> 
         columns = "tillage"
         join_clause = """JOIN "tillageOp" t ON o."opID" = t."opID" """
     elif operationName == 'Fertilizer':
-        columns = "fertilizationClass, depth, nutrient, nutrientQuantity"
+        columns = """ "fertilizationClass", depth, nutrient, "nutrientQuantity" """
         join_clause = """JOIN "fertilizationOp" fo ON o."opID" = fo."opID" JOIN "fertNutOp" fno ON o."opID" = fno."opID" """
     elif operationName == 'Plant Growth Regulator':
         columns = """ "PGRChemical", po."applicationType", bandwidth, "applicationRate", po."PGRUnit", pat.code as appTypeCode, pu.code as appUnitCode"""
@@ -337,7 +335,7 @@ def read_cultivar_DB_detailed(hybridname: str, cropname: str, session: SessionDe
     elif cropname == "potato":
         query = text("""
         SELECT "A1","A6","A8","A9","A10","G1","G2","G3","G4","RRRM","RRRY","RVRL","ALPM","ALPY","RTWL","RTMinWTperArea",
-               "EPSI","IUPW","CourMax","Diffx","Diffz","Velz","lsink","Rroot","Constl_M","ConstK_M","Cmin0_M","ConstI_Y",
+               "EPSI","IUPW","CourMax","Diffx","Diffz","VelZ","lsink","Rroot","Constl_M","ConstK_M","Cmin0_M","ConstI_Y",
                "ConstK_Y","Cmin0_Y"
         FROM cultivar_potato
         WHERE hybridname = :hybridname
@@ -346,7 +344,7 @@ def read_cultivar_DB_detailed(hybridname: str, cropname: str, session: SessionDe
         query = text("""
         SELECT "matGrp","seedLb","fill","v1","v2","v3","r1","r2","r3","r4","r5","r6","r7","r8","r9","r10","r11","r12","g1",
               "g2","g3","g4","g5","g6","g7","g8","g9","RRRM","RRRY","RVRL","ALPM","ALPY","RTWL","RTMinWTperArea","EPSI",
-              "IUPW","CourMax","Diffx","Diffz","Velz","lsink","Rroot","Constl_M","ConstK_M","Cmin0_M","ConstI_Y","ConstK_Y","Cmin0_Y"
+              "IUPW","CourMax","Diffx","Diffz","VelZ","lsink","Rroot","Constl_M","ConstK_M","Cmin0_M","ConstI_Y","ConstK_Y","Cmin0_Y"
         FROM cultivar_soybean
         WHERE hybridname = :hybridname
         """)
@@ -488,7 +486,7 @@ def read_soilnitrogenDB(soilname, session: SessionDep) -> Any:
         rlist = result.fetchall()
     return rlist
 
-def read_soilhydroDB(soilname, session: SessionDep) -> Any:
+def read_soilhydroDB(soilname, session: SessionDep,current_user_id) -> Any:
     '''
     Returns soil hydro information from soil_long table based on soilname.
     Input:
@@ -501,10 +499,10 @@ def read_soilhydroDB(soilname, session: SessionDep) -> Any:
         query = text("""
             SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname)
+            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id= :owner)
         """)
         print(query, soilname)
-        result = session.execute(query, {'soilname': soilname})
+        result = session.execute(query, {'soilname': soilname, 'owner':current_user_id})
         rlist = result.fetchall()
     return rlist
 

@@ -184,7 +184,7 @@ function Weather() {
           const processedRow: WeatherDataCreate = {
             id: 0, // Assign appropriate value for 'id'
             stationtype: selectedStationData?.stationtype ?? "", // Assign appropriate value for 'stationtype'
-            weather_id: selectedStationData?.stationtype ?? "", // Assign appropriate value for 'weather_id'
+            weather_id: selectedStation, // Assign appropriate value for 'weather_id'
             date: dateString,
             jday: jday ?? 0, // Assign a default value for 'jday' if it's null
             // Assign values for other properties

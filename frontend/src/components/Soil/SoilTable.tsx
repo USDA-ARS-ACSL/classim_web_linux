@@ -21,7 +21,30 @@ type EditableTableProps = {
   initialData: SoilFetchPublicTable[];
   // onSave: (updatedData: SoilFetchPublicTable[]) => void;
 };
-
+const visibleColumns = [
+  "Bottom_depth",
+  "OM_pct",
+  "NO3",
+  "NH4",
+  "HnNew",
+  "initType",
+  "Tmpr",
+  "Sand",
+  "Silt",
+  "Clay",
+  "BD",
+  "TH33",
+  "TH1500",
+  "th",
+  "thr",
+  "ths",
+  "tha",
+  "Alfa",
+  "n",
+  "Ks",
+  "Kk",
+  "thk"
+];
 const EditableTable: React.FC<EditableTableProps> = ({
   initialData,
   // onSave,
@@ -110,11 +133,11 @@ const EditableTable: React.FC<EditableTableProps> = ({
           <Table size={{ base: "sm", md: "md" }} id='soilProfile'>
             <Thead>
               <Tr>
-                <Th>Bottom depth (cm)</Th>
+                <Th>Bottom depth(cm)</Th>
                 <Th>OM (%)</Th>
                 <Th>NO3 (ppm)</Th>
                 <Th>NH4 (ppm)</Th>
-                <Th>HNew</Th>
+                <Th>HNew  </Th>
                 <Th>Unit Type</Th>
                 <Th>Tmpr (C)</Th>
                 <Th>Sand (%)</Th>
@@ -123,19 +146,6 @@ const EditableTable: React.FC<EditableTableProps> = ({
                 <Th>BD (g/cm3)</Th>
                 <Th>TH33 (cm3/cm3)</Th>
                 <Th>TH1500 (cm3/cm3)</Th>
-                <Th>kh</Th>
-                <Th>kl</Th>
-                <Th>km</Th>
-                <Th>kn</Th>
-                <Th>kd</Th>
-                <Th>fe</Th>
-                <Th>fh</Th>
-                <Th>r0</Th>
-                <Th>rL</Th>
-                <Th>rm</Th>
-                <Th>fa</Th>
-                <Th>nq</Th>
-                <Th>cs</Th> 
                 <Th>th</Th>
                 <Th>thr</Th>
                 <Th>ths</Th>
@@ -154,7 +164,7 @@ const EditableTable: React.FC<EditableTableProps> = ({
                   onContextMenu={(event) => handleContextMenu(event, rowIndex)}
                   bg={selectedRow === rowIndex ? "gray.200" : "white"}
                 >
-                  {Object.keys(item).map((key) => (
+                  {visibleColumns.map((key) => (
                     <Td
                       key={key}
                       onClick={() =>
@@ -198,6 +208,10 @@ const EditableTable: React.FC<EditableTableProps> = ({
                           }
                           onBlur={handleBlur}
                           autoFocus
+                          width={`${Math.max(
+                            (item[key as keyof SoilFetchPublicTable]?.toString().length || 1) * 10,
+                            100
+                          )}px`} 
                         />
                       ) : (
                         item[key as keyof SoilFetchPublicTable]

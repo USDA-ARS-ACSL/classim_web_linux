@@ -203,30 +203,54 @@ const SimpleMap = () => {
     setSaveOption('delete')
   }
   const handleLatitudeChange = (event: any) => {
-    const newLatitude = parseFloat(event.target.value);
-    if (!isNaN(newLatitude)) { // Check for valid number
-      setLat(newLatitude.toString());
-      setPosition({
-        lat: newLatitude,
-        lng: parseFloat(long)
-      })
-    } else {
-      showToast("Please enter Valid Value", "", "error")
-    }
-  };
+    let newLatitude = event.target.value;
 
-  const handleLongitudeChange = (event: any) => {
-    const newLongitude = parseFloat(event.target.value);
-    if (!isNaN(newLongitude)) {
-      setLong(newLongitude.toString());
-      setPosition({
-        lat: parseFloat(lat),
-        lng: newLongitude
-      })
-    } else {
-      showToast("Please enter Valid Value", "", "error")
+    // Allow empty input or "-" for intermediate states
+    if (newLatitude === '' || newLatitude === '-') {
+        setLat(newLatitude);
+        return;
     }
-  };
+
+    // Allow valid numeric inputs, including intermediate states like "12."
+    if (/^-?\d*\.?\d*$/.test(newLatitude)) {
+        setLat(newLatitude);
+
+        // Update position only if the input is a valid number
+        if (!isNaN(parseFloat(newLatitude))) {
+            setPosition({
+                lat: parseFloat(newLatitude),
+                lng: parseFloat(long), // `long` should already be validated
+            });
+        }
+    } else {
+        showToast("Please enter a valid latitude value", "", "error");
+    }
+};
+
+const handleLongitudeChange = (event: any) => {
+    let newLongitude = event.target.value;
+
+    // Allow empty input or "-" for intermediate states
+    if (newLongitude === '' || newLongitude === '-') {
+        setLong(newLongitude);
+        return;
+    }
+
+    // Allow valid numeric inputs, including intermediate states like "12."
+    if (/^-?\d*\.?\d*$/.test(newLongitude)) {
+        setLong(newLongitude);
+
+        // Update position only if the input is a valid number
+        if (!isNaN(parseFloat(newLongitude))) {
+            setPosition({
+                lat: parseFloat(lat), // `lat` should already be validated
+                lng: parseFloat(newLongitude),
+            });
+        }
+    } else {
+        showToast("Please enter a valid longitude value", "", "error");
+    }
+};
 
 
   return (
@@ -257,22 +281,19 @@ const SimpleMap = () => {
           </Select>
         ))}
 
-      <MapContainer 
-      key={JSON.stringify([lat, long])}
-      center={position} zoom={5} style={{ height: "55vh", width: "75vw" }}>
-        <TileLayer
-          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        <Marker
-          draggable={draggable}
-          eventHandlers={eventHandlers}
-          position={position}
-          icon={iconmarker}
-          ref={markerRef}>
-
-        </Marker>
-      </MapContainer>
+    <MapContainer center={position} zoom={5} style={{ height: "55vh", width: "75vw" }}>
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+      <Marker
+        draggable={draggable}
+        eventHandlers={eventHandlers}
+        position={position}
+        icon={iconmarker}
+        ref={markerRef}
+      />
+    </MapContainer>
 
       {selectedOption != 'None' && (
         <Grid templateColumns='repeat(5, 1fr)' gap={6} as="form" onSubmit={handleSubmit(onSubmit)}>

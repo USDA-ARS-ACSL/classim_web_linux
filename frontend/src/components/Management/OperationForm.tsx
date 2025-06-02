@@ -4,7 +4,6 @@ import {
   Button,
   FormControl,
   FormLabel,
-  Input,
   // Input,
   Select,
   VStack,
@@ -29,8 +28,10 @@ import PGROperation from "./PGROperation";
 import SurfaceResidueForm from "./SurfaceResidueForm";
 import IrrigationForm from "./IrrigationForm";
 import useCustomToast from "../../hooks/useCustomToast";
-import Simulation from "./Simulation";
+// import Simulation from "./SimulationStart";
 import Tillage from "./Tillage";
+// @ts-ignore
+import CustomDatePicker from "../Common/CustomDatePicker";
 
 interface NewOperationFormProps {
   formType: string;
@@ -39,7 +40,7 @@ interface NewOperationFormProps {
   treatmentName: string;
   operationName: string;
   operationId?: number | null;
-  opDateVal?: string | null;
+  opDateVal?: string | null | undefined;
   onSave?: (data: any) => void;
 }
 
@@ -51,9 +52,10 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
   operationName,
   operationId,
   opDateVal,
-  onSave
+  onSave,
 }) => {
-  const [calendar, setCalendar] = useState(new Date());
+
+  const [calendar, setCalendar] = useState<Date | null>(null);
   const [fertClass, setFertClass] = useState<FertilizerClass[]>([]);
   const [selectedFertClass, setSelectedFertClass] = useState("");
   const [tillageTypeList, setTillageTypeList] = useState<TillageType[]>([]);
@@ -77,9 +79,22 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
   const [pGRChemicalForm, setPGRChemicalForm] = useState(false);
   const [surfaceResidue, setSurfaceResidue] = useState(false);
   const [irrigationForm, setIrrigationForm] = useState(false);
-  const [date, setDate] = useState<string>("");
+  const [date, setDate] = useState<String | null>(null);
   const showToast = useCustomToast();
-
+  const handleDateChange = (newDate: String | null) => {
+    if (newDate) {
+      setDate(newDate);
+    } else {
+      setDate(null);
+    }
+  };
+console.log(calendar, "calendar")
+  useEffect(() => {
+    if (opDateVal) {
+      setDate(opDateVal);
+    }
+    console.log("opDateVal", opDateVal);
+  }, [opDateVal]);
   useEffect(() => {
     // Fetch initial data
     const fetchFirstOperationDate = async () => {
@@ -104,11 +119,7 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
           operations.odate &&
           typeof operations.odate === "string"
         ) {
-          const [month, day, year] = operations.odate.split("/");          
-          console.log([month, day, year])
-          setCalendar(
-            new Date(parseInt(year), parseInt(month) - 1, parseInt(day) + 1)
-          );
+          setCalendar(new Date(operations.odate));
         }
       }
 
@@ -156,16 +167,6 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
     return `${month}/${day}/${year}`;
   };
 
-  function formatDate(dateString: string) {
-    const [year, month, day] = dateString.split("-");
-    return `${month}/${day}/${year}`;
-  }
-
-  const convertDateMDY = (dateStr:string) => {
-    if (!dateStr) return "";  
-    const [month, day, year] = dateStr.split("/");
-    return `${year}-${month}-${day}`;
-  };
   const handleFertilizationSave = async (data: any) => {
     try {
       let response;
@@ -174,7 +175,7 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
         data.quantityN,
         ...(data.quantityC ? ["Carbon (C)", data.quantityC] : []),
       ];
-      // const formatedDate = formatDate(data.date);
+
       const opData: TDataCreateOperation = {
         requestBody: {
           opID: operationId ? operationId : -10,
@@ -325,51 +326,51 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
     }
   };
 
-  const handleSimulationStartSave = async (data: any) => {
-    try {
-      let response;
+  // const handleSimulationStartSave = async (data: any) => {
+  //   try {
+  //     let response;
 
-      const opData: TDataCreateOperation = {
-        requestBody: {
-          opID: operationId ? operationId : -10,
-          name: "Simulation Start",
-          exid: experimentName,
-          cropname: cropName,
-          treatmentname: treatmentName,
-          operation_record: ["Simulation Start", data.formatedDate],
-          initCond_record: [
-            parseFloat(data.plantDensity),
-            parseFloat(data.autoIrrigation),
-            0.0,
-            parseFloat(data.seedDepth),
-            0.65,
-            parseFloat(data.plantingGrid),
-            parseFloat(data.rowSpacing),
-            data.cultivar.toString(),
-            0,
-          ],
-          tillage_record: [],
-          fert_record: [],
-          fertNut_record: [],
-          PGR_record: [],
-          SR_record: [],
-          irrAmt_record: [],
-        },
-      };
+  //     const opData: TDataCreateOperation = {
+  //       requestBody: {
+  //         opID: operationId ? operationId : -10,
+  //         name: "Simulation Start",
+  //         exid: experimentName,
+  //         cropname: cropName,
+  //         treatmentname: treatmentName,
+  //         operation_record: ["Simulation Start", data.formatedDate],
+  //         initCond_record: [
+  //           parseFloat(data.plantDensity),
+  //           parseFloat(data.autoIrrigation),
+  //           0.0,
+  //           parseFloat(data.seedDepth),
+  //           0.65,
+  //           parseFloat(data.plantingGrid),
+  //           parseFloat(data.rowSpacing),
+  //           data.cultivar.toString(),
+  //           0,
+  //         ],
+  //         tillage_record: [],
+  //         fert_record: [],
+  //         fertNut_record: [],
+  //         PGR_record: [],
+  //         SR_record: [],
+  //         irrAmt_record: [],
+  //       },
+  //     };
 
-      response = await ManagementService.submitOperation(opData);
-      if (onSave) {
-        onSave(response);
-      }
-      if (response) {
-        showToast("Successfully", "Operation created successfully.", "success");
-      } else {
-        showToast("Failed", "Operation creation failed.", "error");
-      }
-    } catch (error) {
-      showToast("Failed", "Operation creation failed.", "error");
-    }
-  };
+  //     response = await ManagementService.submitOperation(opData);
+  //     if (onSave) {
+  //       onSave(response);
+  //     }
+  //     if (response) {
+  //       showToast("Successfully", "Operation created successfully.", "success");
+  //     } else {
+  //       showToast("Failed", "Operation creation failed.", "error");
+  //     }
+  //   } catch (error) {
+  //     showToast("Failed", "Operation creation failed.", "error");
+  //   }
+  // };
 
   const handleTillageSave = async (data: any) => {
     try {
@@ -411,7 +412,6 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
     try {
       let response;
 
-      const formatedDate = formatDate(date);
       const opData: TDataCreateOperation = {
         requestBody: {
           opID: operationId ? operationId : -10,
@@ -419,7 +419,7 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
           exid: experimentName,
           cropname: cropName,
           treatmentname: treatmentName,
-          operation_record: [operationName, formatedDate ?? ""],
+          operation_record: [operationName, date?.toString() || ''],
           initCond_record: [],
           tillage_record: [],
           fert_record: [],
@@ -446,14 +446,8 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
   };  
 
   useEffect(() => {
-    if (opDateVal) {
-      const formattedDate = convertDateMDY(opDateVal);
-      setCalendar(new Date(formattedDate));
-      setDate(formattedDate);
-    } else {
-      const today = new Date().toISOString().split("T")[0];
-      setCalendar(new Date(today));
-      setDate(today);
+    if (opDateVal !== undefined && opDateVal !== null) {
+      setDate(opDateVal);
     }
   }, [opDateVal]);
 
@@ -464,9 +458,7 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
         fertClass={fertClass}
         onSave={handleFertilizationSave}
         operationId={operationId}
-        fertilizerCalendar= {calendar}
-        fertilizerDate= {date}
-
+        fertilizerDate= {opDateVal}
       />
     );
   } else if (pGRChemicalForm || operationName == "Plant Growth Regulator") {
@@ -501,28 +493,30 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
         operationId={operationId}
       />
     );
-  } else if (operationName == "Simulation Start") {
-    return (
-      <Simulation
-        cropName={cropName}
-        onSave={handleSimulationStartSave}
-        operationId={operationId}
-      />
-    );
-  } else if (operationName == "Tillage") {
+  }
+  //  else if (operationName == "Simulation Start") {
+  //   return (
+  //     <Simulation
+  //       cropName={cropName}
+  //       onSave={handleSimulationStartSave}
+  //       opDateVal={opDateVal}
+  //       operationId={operationId}
+  //     />
+  //   );
+  // } 
+  else if (operationName == "Tillage") {
     return (
       <Tillage
         cropName={cropName}
         onSave={handleTillageSave}
         operationId={operationId}
         tillageList={tillageTypeList}
-        tillageDate={date}
-        tillageCalendar={calendar}
+        tillageDate={opDateVal}
       />
     );
   } else {
-    console.log([operationId, operationName, opDateVal]);
-    console.log(typeof opDateVal)
+    // console.log([operationId, operationName, opDateVal]);
+    // console.log(typeof opDateVal)
     
     return (
       <Box p={4} borderWidth={1} borderRadius='lg' boxShadow='md'>
@@ -533,17 +527,7 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
             operationName === "Emergence") && (
             <FormControl>
               <FormLabel>Date</FormLabel>
-              <Input
-      type="date"
-      value={date} // Ensure the input field reflects the correct date
-      onChange={(e) => {
-        const newDate = e.target.value;
-        setDate(newDate);
-        setCalendar(new Date(newDate)); // Ensure `calendar` updates properly
-      }}
-    />
-
-
+              <CustomDatePicker date={date} onDateChange={handleDateChange} />
             </FormControl>
           )}
 

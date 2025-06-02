@@ -1636,6 +1636,38 @@ export class ManagementService {
     });
   }
 
+  public static getTreatmentById(
+    data: {tid :number}
+  ):CancelablePromise<TreatmentsPublic> {
+  const { tid } = data;
+  return __request(OpenAPI, {
+    method: "GET",
+    url: "/api/v1/management/treatmentbyid/{tid}",
+    path: {
+      tid,
+    },
+    errors: {
+      422: `Validation Error`,
+    },
+  });
+  }
+
+  public static getExperimentById(
+    data: {exid :number}
+  ):CancelablePromise<ExperimentsPublic> {
+  const { exid } = data;
+  return __request(OpenAPI, {
+    method: "GET",
+    url: "/api/v1/management/experiment/experiment/id/{exid}",
+    path: {
+      exid,
+    },
+    errors: {
+      422: `Validation Error`,
+    },
+  });
+  }
+
   public static getTreatmentByExperimentId(
     data: TDataTreatment
   ): CancelablePromise<TreatmentsPublic> {
