@@ -844,6 +844,9 @@ class OperationRecord(BaseModel):
     name: str
     odate: str
 
+# class Simulation
+
+
 class InitCondOp(SQLModel, table=True):
     __tablename__ = "initCondOp"    
     opID: int | None = Field(default=None, primary_key=True)
@@ -857,10 +860,29 @@ class InitCondOp(SQLModel, table=True):
     cultivar: str | None = None
     seedpieceMass: float | None = None
 
+class InitCondOpUpdateRequest(BaseModel):
+    pop: Optional[float] = None
+    autoirrigation: Optional[float] = None
+    xseed: Optional[float] = None
+    yseed: Optional[float] = None
+    cec: Optional[float] = None
+    eomult: Optional[float] = None
+    rowSpacing: Optional[float] = None
+    cultivar: Optional[str] = None
+    seedpieceMass: Optional[float] = None
+    odate: Optional[str] = None
+
+
 class TillageOp(SQLModel, table=True):  
     __tablename__ = 'tillageOp'        
     opID : int | None = Field(default=None, primary_key=True)
     tillage: str | None = None
+
+class OperationData(BaseModel):
+    op_id: Optional[int]
+    opName: Optional[str]
+    treatmentid: Optional[int]
+    opDate: Optional[str]
 
 class TillageType(SQLModel, table=True):
     __tablename__ = 'tillageType'    

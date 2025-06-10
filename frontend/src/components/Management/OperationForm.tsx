@@ -79,9 +79,9 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
   const [pGRChemicalForm, setPGRChemicalForm] = useState(false);
   const [surfaceResidue, setSurfaceResidue] = useState(false);
   const [irrigationForm, setIrrigationForm] = useState(false);
-  const [date, setDate] = useState<String | null>(null);
+  const [date, setDate] = useState<string | null>(null);
   const showToast = useCustomToast();
-  const handleDateChange = (newDate: String | null) => {
+  const handleDateChange = (newDate: string | null) => {
     if (newDate) {
       setDate(newDate);
     } else {

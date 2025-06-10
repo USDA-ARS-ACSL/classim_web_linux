@@ -3,18 +3,20 @@ from fastapi import APIRouter, HTTPException, Query, Depends
 from app.api.deps import SessionDep, CurrentUser
 from app.models import (
     CropsMetasPublic, CropsMeta, ExperimentCreate, Experiment, 
-    ExperimentsPublic, Message, TreatmentsPublic, Treatment, Operation, 
+    ExperimentsPublic, IrrigationType, Message, TreatmentsPublic, Treatment, Operation, 
     TreatmentCreate, OperationCreate, InitCondOp, TillageOp, FertilizationOp, 
     FertNutOp, PGROp, SR_Op, IrrigPivotOp, OperationsPublic, OperationDateResponse,
     FertilizationClass, PGRChemical, SurfResType, FertilizationWithNutrients, PGRApplType,
     PGRUnit, SurfResApplType, IrrigationClass, TreatmentPublic ,CultivarMaizedata,
-    CultivarPotatodata, CultivarSoybeandata, TillageType, TreatmentCopy
+    CultivarPotatodata, CultivarSoybeandata, TillageType, TreatmentCopy, InitCondOpUpdateRequest,
+    OperationData
 )
 from sqlmodel import func, select
 from datetime import datetime, timedelta
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
+from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -32,6 +34,27 @@ def read_crops(
     )
     crops = session.exec(statement).all()
     return CropsMetasPublic(data=crops, count=count)
+
+@router.get("/farm-setup-options")
+def get_farm_setup_options(session: SessionDep) -> Any:
+    # Get fertilization options
+    # Fetch fertilization options
+    fert_query = select(FertilizationClass.fertilizationClass)
+    fert_result = session.exec(fert_query).all()
+
+    # Fetch unique residue types
+    residue_query = select(SurfResType.residueType)
+    residue_result = session.exec(residue_query).all()
+
+    # Fetch irrigation types
+    irrigation_query = select(IrrigationType.irrigation).where(IrrigationType.irrigation.is_not(None))
+    irrigation_result = session.exec(irrigation_query).all()
+
+    return {
+        "fertilization": fert_result,
+        "s_residue": residue_result,
+        "irrgationType": irrigation_result
+    }
 
 @router.post("/experiment", response_model=ExperimentCreate)
 def create_experiment(
@@ -214,6 +237,45 @@ def get_treatment_id(session: Session, treatmentname: str, expname: str, cropnam
     
     return result
 
+
+@router.post("/initCondOp/update/{trearmentId}", response_model=Message)
+def update_simulation_start(
+    trearmentId: int,
+    initCond_op: InitCondOpUpdateRequest,
+    session: SessionDep,
+    current_user: CurrentUser
+) -> Message:
+    """Update the simulation start operation, including odate from API."""
+    # Find the operation for this treatment with name 'Simulation Start'
+    operation = session.exec(
+        select(Operation).where(Operation.o_t_exid == trearmentId, Operation.name == "Simulation Start")
+    ).first()
+    if not operation:
+        raise HTTPException(status_code=404, detail="Simulation Start operation not found for this treatment")
+
+    # Update the operation date if provided in the payload
+    if hasattr(initCond_op, 'odate') and initCond_op.odate:
+        operation.odate = initCond_op.odate
+        session.add(operation)
+
+    # Update the InitCondOp record
+    db_initcond = session.exec(select(InitCondOp).where(InitCondOp.opID == operation.opID)).first()
+    if not db_initcond:
+        raise HTTPException(status_code=404, detail="InitCondOp not found for this operation")
+
+    # Update all fields from the payload
+    db_initcond.pop = initCond_op.pop
+    db_initcond.autoirrigation = initCond_op.autoirrigation
+    db_initcond.xseed = initCond_op.xseed
+    db_initcond.yseed = initCond_op.yseed
+    db_initcond.cec = initCond_op.cec
+    db_initcond.eomult = initCond_op.eomult
+    db_initcond.rowSpacing = initCond_op.rowSpacing
+    db_initcond.cultivar = initCond_op.cultivar
+    db_initcond.seedpieceMass = initCond_op.seedpieceMass
+    session.add(db_initcond)
+    session.commit()
+    return Message(message=f"Simulation start updated successfully for treatment {trearmentId}")
 
 @router.post("/operation", response_model=bool)
 def create_or_update_operation(
@@ -797,3 +859,36 @@ def copy_treatment(
     except Exception as e:
         session.rollback()
         raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/operations/update_date", response_model=OperationData)
+def update_operation_date(
+    data: OperationData,
+    session: SessionDep,
+    current_user: CurrentUser
+) -> Any:
+    """Update the date of an operation by op_id."""
+    op_id = data.op_id
+    op_name = data.opName
+    treatmentid = data.treatmentid
+    op_date = data.opDate
+
+    if op_id is None:
+        raise HTTPException(status_code=400, detail="Operation ID is required")
+    operation = session.get(Operation, op_id)
+    if not operation:
+        raise HTTPException(status_code=404, detail="Operation not found")
+    if treatmentid is not None:
+        operation.o_t_exid = treatmentid
+    if op_name is not None:
+        operation.name = op_name
+    if op_date is not None:
+        operation.odate = op_date
+    session.add(operation)
+    session.commit()
+    session.refresh(operation)
+    return OperationData(
+        op_id=operation.opID,
+        opName=operation.name,
+        treatmentid=operation.o_t_exid,
+        opDate=operation.odate
+    )

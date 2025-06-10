@@ -65,12 +65,15 @@ import type {
   IrrigationOp,
   CultivarCropPublic,
   InitCondOp,
+  InitCondOpDataUpdate,//this is used to update (creation will heppen when treatment is created) the simulation start operation
   TillageType,
   DownloadMessage,
   TillageOp,
   TreatmentDataCopy,
   OperationPublic,
   ExpOtData,
+  OperationDataUpdate,
+  OperationData,
   SimulationApiResponse,
 } from "./models";
 
@@ -93,6 +96,12 @@ export type TDataSiteNameHtmlContent = {
   siteid: number;
 };
 
+export type InitCondOpDataUpdateBody = Omit<InitCondOpDataUpdate, 'treatmentid'>;
+
+export type TDataInitCondOpDataUpdate = {
+  treatmentid: number;
+  requestBody: Omit<InitCondOpDataUpdate, 'treatmentid'>;
+};
 export class LoginService {
   /**
    * Login Access Token
@@ -970,7 +979,6 @@ export class SoilService {
     data: TDataDeleteSoilTable
   ): CancelablePromise<Message> {
     const { o_sid } = data;
-    console.log(o_sid);
     return __request(OpenAPI, {
       method: "DELETE",
       url: "/api/v1/soil/data/{o_sid}",
@@ -1130,9 +1138,9 @@ export class SeasonalRun{
   public static async RunSeasonalSim(
     data: TDataReadStation
   ): Promise<Simulations> {
+    console.log(data)
     let payload: any; // Replace `any` with the actual type if known
     const simulationInput = localStorage.getItem('SimulationInput');
-    console.log(data)
     if (simulationInput) {
       try {
         payload = JSON.parse(simulationInput);
@@ -1157,7 +1165,6 @@ export class SeasonalRun{
       // Check if the response is successful and contains the required data
       if (Array.isArray(response?.data) && response.data.length > 0) {
         const id = response.data[0]; // Extract the `11` value
-        console.log(`Success! Calling the next API with id: ${id}`);
   
         // Call the next API using the extracted `id`
         const nextApiResponse = await __request(OpenAPI, {
@@ -1167,8 +1174,6 @@ export class SeasonalRun{
             422: `Validation Error`,
           },
         });
-  
-        console.log('Next API Response:', nextApiResponse);
         return nextApiResponse as Simulations; // Ensure the correct type is returned
       } else {
         console.error('Unexpected response format:', response);
@@ -1534,6 +1539,22 @@ export class ManagementService {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/management/",
+      errors: {
+        422: `Validation Error`,
+      },
+    });
+  }
+
+  /**
+   * Get Operation Types To Add
+   * Calls /farm-setup-options endpoint
+   * @returns object Successful Response
+   * @throws ApiError
+   */
+  public static getOperationTypesToAdd(): CancelablePromise<any> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/management/farm-setup-options",
       errors: {
         422: `Validation Error`,
       },
@@ -1984,6 +2005,39 @@ export class ManagementService {
     })
   }
 
+
+    public static updateInitCondOpData(
+      data: TDataInitCondOpDataUpdate
+    ): CancelablePromise<Message> {
+      const { treatmentid, requestBody } = data;
+      return __request(OpenAPI, {
+        method: "POST",
+        url: "/api/v1/management/initCondOp/update/{treatmentid}",
+        path: {
+          treatmentid,
+        },
+        body: requestBody,
+        mediaType: "application/json",
+        errors: {
+          422: `Validation Error`,
+        },
+      });
+    }
+
+    public static updateOperationsDate(
+      data: OperationDataUpdate
+    ): CancelablePromise<OperationData> {
+      const {  requestBody } = data;
+      return __request(OpenAPI, {
+        method: "POST",
+        url: "/api/v1/management/operations/update_date",
+        body: requestBody,
+        mediaType: "application/json",
+        errors: {
+          422: `Validation Error`,
+        },
+      });
+    }
   
   public static copyTreatment(
     data: TDataCopy
@@ -1997,6 +2051,17 @@ export class ManagementService {
       errors: {
         422: `Validation Error`,
       },
+    });
+  }
+
+  public static createOrUpdateOperation(payload: any): Promise<any> {
+    return fetch("/api/v1/management/operation/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }).then(res => {
+      if (!res.ok) throw new Error("Failed to save operation");
+      return res.json();
     });
   }
 
@@ -2099,6 +2164,8 @@ export class CultivarTabApis {
     });
   }
 }
+
+
 
 
 

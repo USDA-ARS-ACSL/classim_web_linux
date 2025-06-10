@@ -1,794 +1,516 @@
-import { Fragment, useEffect, useState } from "react";
 import {
-  Button,
-  Container,  
   Box,
+  Button,
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  Text,
   VStack,
   HStack,
-  Text,
-  Icon,
-  SimpleGrid,  
+  Input,
+  useToast,
   Link,
-} from "@chakra-ui/react";
-import { createFileRoute } from "@tanstack/react-router";
-import { ChevronRightIcon, ChevronDownIcon } from "@chakra-ui/icons";
-import ExperimentForm from "../../components/Management/ExperimentForm";
-import TreatmentForm from "../../components/Management/TreatmentForm";
-import OperationForm from "../../components/Management/OperationForm";
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalCloseButton,
+  Flex,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Icon,
+  IconButton,
+  ModalBody,
+  ModalFooter
+  // useBreakpointValue
+} from "@chakra-ui/react"
+import { HiDotsVertical } from "react-icons/hi";
+import { FiTrash2, FiCopy, FiEdit } from "react-icons/fi";
 import {
   ApiError,
-  ExperimentsPublic,
+  // ExperimentsPublic,
   ManagementService,
-  TDataCopy,
-  TDataCreateExperiment,
-  TDataCreateTreatment,
-  TDataDeleteExperiment,
-  TDataDeleteTreatment,
-  TDataExperimentByCropName,
-  TDataExperimentByName,
-  TDataOperation,
-  TDataTreatment,
+  // TDataCopy,
+  // TDataCreateExperiment,
+  // TDataCreateTreatment,
+  // TDataDeleteExperiment,
+  // TDataDeleteTreatment,
+  // TDataExperimentByCropName,
+  // TDataExperimentByName,
+  // TDataOperation,
+  // TDataTreatment,
 } from "../../client";
-import {
-  useMutation,
-  useQueries,
-  useQuery,
-  useQueryClient,
-} from "@tanstack/react-query";
-import useCustomToast from "../../hooks/useCustomToast";
-import { Outlet } from "react-router-dom";
-import NextPreviousButtons from "../../components/Common/NextPreviousButtons";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+// import { FaPen } from "react-icons/fa"
+import { useState, useEffect } from "react"
+import { createFileRoute } from "@tanstack/react-router"
 import FaqComponent from "../../components/Faqs/FaqComponent";
-// import OperationEditForm from "../../components/Management/OperationEditFrom";
+import SimulationStart from "../../components/Management/SimulationStart";
+import { useDisclosure } from "@chakra-ui/react"; // For modal control
+import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
+import CustomDatePicker from "../../components/Common/CustomDatePicker";
+import OperationUI from "../../components/Common/OperationCreateForm";
 
-interface TreeMenuProps {
-  level: number;
-  title: string;
-  parentTitle?: string;
-  children?: React.ReactNode;
-  onTitleClick: (title: string, tid: number) => void;
-  tid: number;
-}
-
-interface CropsPublic {
-  id: number;
-  cropname: string;
-}
-
-const TreeMenu: React.FC<TreeMenuProps> = ({
-  level,
-  title,
-  children,
-  onTitleClick,
-  tid,
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  return (
-    <Box>
-      <HStack>
-        <Icon
-          as={isOpen ? ChevronDownIcon : ChevronRightIcon}
-          onClick={() => setIsOpen(!isOpen)}
-          cursor='pointer'
-        />
-        <Text
-          fontWeight={isOpen ? "bold" : "normal"}
-          cursor='pointer'
-          onClick={() => level !== 0 && onTitleClick(title, tid)}
-        >
-          {title}
-        </Text>
-      </HStack>
-
-      {isOpen && <Box pl={4}>{children}</Box>}
-    </Box>
-  );
-};
-
-// Mutation for saving an experiment
-const useSaveExperimentMutation = () => {
-  const showToast = useCustomToast();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (experimentData: TDataCreateExperiment) => {
-      await ManagementService.submitExperiment(experimentData);
-    },
-    onSuccess: (data, variables) => {
-      console.log(data)
-      const crop = variables.requestBody.crop; // Extract the crop name
-      if (crop) {
-        // Ensure the query key matches the structure used elsewhere
-        queryClient.invalidateQueries({
-          queryKey: ["getExperimentList", { cropName: crop } as const], // Ensure this matches your query definition
-        });
-      }
-      showToast("Experiment saved successfully!", "", "success");
-    },
-    onError: (err: ApiError) => {
-      const errDetail = (err.body as any)?.detail;
-      showToast("Something went wrong.", `${errDetail}`, "error");
-    },
-  });
-};
-
-// Mutation for deleting an experiment
-const useDeleteExperimentMutation = (currentCropName: string) => {
-  const showToast = useCustomToast();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (exid: TDataDeleteExperiment) => {
-      await ManagementService.deleteExperiment(exid);
-    },
-    onSuccess: (_, cropName) => {
-      console.log(cropName)
-      // Invalidate queries using a single query key string
-      if (currentCropName) {
-        queryClient.invalidateQueries({
-          queryKey: [
-            "getExperimentList",
-            { cropName: currentCropName } as const,
-          ], // Ensure this matches your query definition
-        });
-      }
-      showToast("Experiment deleted successfully!", "", "success");
-    },
-    onError: (err: ApiError) => {
-      const errDetail = (err.body as any)?.detail;
-      showToast("Something went wrong.", `${errDetail}`, "error");
-    },
-  });
-};
-
-const useDeleteTreatmentMutation = () => {
-  const showToast = useCustomToast();
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (tid: TDataDeleteTreatment) => {
-      await ManagementService.deleteTreatment(tid);
-    },
-    onSuccess: (_, expId) => {
-      if (expId) {
-        // Ensure correct invalidation of queries
-        queryClient.invalidateQueries({
-          queryKey: ["getTreatmentList", expId],
-          exact: false,
-        });
-      }
-      showToast("Treatment deleted successfully!", "", "success");
-    },
-    onError: (err: ApiError) => {
-      const errDetail = (err.body as any)?.detail;
-      showToast("Something went wrong.", `${errDetail}`, "error");
-    },
-  });
-};
-
-// Add this function in your React component
-const useSaveTreatment = () => {
-  const showToast = useCustomToast();
-
-  const mutation = useMutation({
-    mutationFn: async (treatmentData: TDataCreateTreatment) => {
-      // Replace this with the actual API call to save/update the treatment
-      await ManagementService.checkUpdateTreatment(treatmentData);
-    },
-    onSuccess: (data) => {
-      console.log(data);
-      showToast("Treatment saved successfully!", "", "success");
-      // Invalidate and refetch the queries or data as needed
-    },
-    onError: (err: ApiError) => {
-      const errDetail = (err.body as any)?.detail;
-      showToast("Something went wrong.", `${errDetail}`, "error");
-    },
-  });
-
-  return mutation;
-};
-
-const userCopyTreatment = () => {
-  const showToast = useCustomToast();
-
-  const mutation = useMutation({
-    mutationFn: async (treatmentData: TDataCopy) => {
-      // Replace this with the actual API call to save/update the treatment
-      await ManagementService.copyTreatment(treatmentData);
-    },
-    onSuccess: (data) => {
-      console.log(data);
-      showToast("Treatment Copied successfully!", "", "success");
-      // Invalidate and refetch the queries or data as needed
-    },
-    onError: (error) => {
-      showToast(
-        "Treatment name exists. Please, use a different name!",
-        error.message,
-        "error"
-      );
-    },
-  });
-
-  return mutation;
-};
-
-interface LevelData {
-  experimentName: any;
-  level: number;
-  titles: string[]; // Assuming titles is an array of strings
-  cropName: string;
-  treatmentName: any;
-  operationName: any;
-  titleId: number[];
-}
-
-interface Operation {
-  opID: number;
-  name: string | null; // or string if it should not be null
-  date: string | null; // or string if it should not be null
-}
-
-const Management: React.FC = () => {
-  const [selectedTitle, setSelectedTitle] = useState<string | null>(null);
-  const [selectedTitleId, setSelectedTitleId] = useState<number | null>(null);
-  const [currentCropName, setCurrentCropName] = useState<string>("");
-  const [currentExperimentName, setCurrentExperimentName] =
-    useState<string>("");
-  const [currentTreatmentName, setCurrentTreatmentName] = useState<string>("");
-
-  const [formType, setFormType] = useState<
-    | "NewExperiment"
-    | "DeleteExperiment"
-    | "NewTreatment"
-    | "ViewTreatmentSummary"
-    | "DeleteTreatment"
-    | "NewOperation"
-    | "EditOperation"
-    | null
-  >(null);
-  const [treeLevels, setTreeLevels] = useState<LevelData[]>([]);
-  const [Bool, setBool] = useState(false);
-
-  const [fertilizationForm, setFertilizationForm] = useState(false);
-
-  const showToast = useCustomToast();
-
-  const handleNewExperiment = (cropName: string) => {
-    setCurrentCropName(cropName);
-    setSelectedTitle(cropName);
-    setFormType("NewExperiment");
-  };
-
-  const handleNewTreatment = (cropName: string, title: string) => {
-    setCurrentCropName(cropName);
-    setFormType("NewTreatment");
-    setSelectedTitle(title);
-    setCurrentTreatmentName(title);
-  };
-
-  const handleNewOperation = (
-    cropName: string,
-    title: string,
-    expName: string,
-    trtName: string
-  ) => {
-    setCurrentCropName(cropName);
-    setFormType("NewOperation");
-    setSelectedTitle(title);
-    setCurrentExperimentName(expName);
-    setCurrentTreatmentName(trtName);
-    setFertilizationForm(fertilizationForm);
-  };
-
-  const saveExperimentMutation = useSaveExperimentMutation();
-  const deleteExperimentMutation = useDeleteExperimentMutation(currentCropName);
-  const deleteTreatmentMutation = useDeleteTreatmentMutation();
-  const saveTreatmentMutation = useSaveTreatment();
-  const copyTreatmentMutation = userCopyTreatment();
-
-  const fetchExperimentByName = async (
-    cropName: string,
-    experimentName: string
-  ) => {
-    const data: TDataExperimentByName = {
-      cropName: cropName,
-      experimentName: experimentName,
-    };
-
-    const response = await ManagementService.getExperimentByName(data);
-    return response.data.length > 0 ? response.data[0] : null;
-  };
-
-  const fetchTreatmentByExpId = async (expId: number) => {
-    const data: TDataTreatment = {
-      exid: expId,
-    };
-
-    const response = await ManagementService.getTreatmentSummary(data);
-    return response.data.length > 0 ? response.data[0] : null;
-  };
-
-  const handleSaveExperiment = async (experimentName: string) => {
-    if (!selectedTitle || !currentCropName) {
-      return;
-    }
-
-    const experiment = await fetchExperimentByName(
-      currentCropName,
-      experimentName
-    );
-    console.log(experiment);
-    if (experiment?.name == experimentName) {
-      showToast(
-        "Experiment already exist in " + currentCropName,
-        "Try different name",
-        "error"
-      );
-      return;
-    }
-    const data: TDataCreateExperiment = {
-      requestBody: {
-        exid: null,
-        name: experimentName,
-        crop: currentCropName,
-      },
-    };
-
-    saveExperimentMutation.mutate(data);
-    setBool(false);
-  };
-
-  const handleCopyTreatment = async (
-    ccropName: any,
-    currentTreatmentName: any,
-    ctreatmentName: any,
-    cexperimentName: any
-  ) => {
-    console.log(
-      ccropName +
-        " " +
-        currentTreatmentName +
-        " " +
-        ctreatmentName +
-        " " +
-        cexperimentName
-    );
-    const data: TDataCopy = {
-      requestBody: {
-        treatmentname: currentTreatmentName,
-        experimentname: cexperimentName,
-        cropname: ccropName,
-        newtreatmentname: ctreatmentName,
-      },
-    };
-    copyTreatmentMutation.mutate(data);
-    setBool(false);
-  };
-  const handleExperimentDelete = async () => {
-    if (!selectedTitle || !currentCropName) {
-      return;
-    }
-
-    const experiment = await fetchExperimentByName(
-      currentCropName,
-      selectedTitle
-    );
-
-    if (experiment && experiment.exid) {
-      deleteExperimentMutation.mutate({ exid: experiment.exid });
-    } else {
-      console.error("Experiment not found or exid is null");
-    }
-
-    setSelectedTitle(null);
-    setFormType(null);
-    setBool(false);
-  };
-
-  const handleTreatmentDelete = async () => {
-    if (!selectedTitle || !currentCropName) {
-      return;
-    }
-
+const managementApi = {
+  getCrops: async () => {
     try {
-      const experiment = await fetchExperimentByName(
-        currentCropName,
-        currentExperimentName
-      );
-
-      if (experiment && experiment.exid) {
-        const treatmentId = await fetchTreatmentByExpId(experiment.exid);
-        if (treatmentId && treatmentId.tid) {
-          await deleteTreatmentMutation.mutateAsync({ tid: treatmentId.tid });
-          setBool(false);
-        }
-      } else {
-        console.error("Experiment not found or exid is null");
-      }
-    } catch (error) {
-      console.error("Error during treatment deletion", error);
-    } finally {
-      setSelectedTitle(null);
-      setFormType(null);
-    }
-  };
-
-  const handleCancelDelete = () => {
-    setSelectedTitle(null);
-    setFormType(null);
-  };
-
-  const handleSaveTreatment = async (treatmentName: string) => {
-    if (treatmentName.trim().length === 0) {
-      showToast(
-        "Empty string. Please, provide a valid treatment name.",
-        "",
-        "error"
-      );
-      return;
-    }
-
-    if (!selectedTitle || !currentCropName) {
-      return;
-    }
-
-    const experiment = await fetchExperimentByName(
-      currentCropName,
-      selectedTitle
-    );
-
-    if (experiment && experiment.exid) {
-      const data: TDataCreateTreatment = {
-        requestBody: {
-          tid: null,
-          t_exid: experiment.exid,
-          name: treatmentName,
-          crop: currentCropName,
-          expname: experiment.name,
-        },
-      };
-      saveTreatmentMutation.mutate(data);
-      setBool(false);
-    }
-  };
-
-  const handleCancelTreatment = () => {
-    setSelectedTitle(null);
-    setFormType(null);
-  };
-
-  const handleForms = (
-    parentTitle: string,
-    level: number,
-    title: string,
-    expName: string,
-    trtName: string
-  ) => {
-    if (level === 1) {
-      handleNewExperiment(parentTitle);
-    } else if (level === 2) {
-      handleNewTreatment(parentTitle, title);
-    } else if (level === 3) {
-      handleNewOperation(parentTitle, title, expName, trtName);
-    }
-  };
-
-  const { data: cropList } = useQuery({
-    queryKey: ["readCrop"],
-    queryFn: () => ManagementService.readCrop(),
-  });
-
-  const validCrops =
-    cropList?.data.filter((crop) => crop.cropname != null) || [];
-
-  const queries = validCrops.map((crop) => {
-    const cropNameObject: TDataExperimentByCropName = {
-      cropName: crop.cropname,
-    };
-
-    return {
-      queryKey: ["getExperimentList", cropNameObject] as const, // Use a consistent and well-typed structure
-      queryFn: () => ManagementService.getExperimentByCropName(cropNameObject),
-    };
-  });
-
-  const results = useQueries({ queries });
-
-  const allResultsLoaded = results.every((result) => result.isSuccess);
-
-  const fetchTreatmentsAndSetLevels = async (result: ExperimentsPublic) => {
-    const experimentTreatmentMap: Record<
-      string,
-      { treatmentTitles: string[]; operations: Record<string, Operation[]> }
-    > = {};
-
-    await Promise.all(
-      result.data?.map(async (exp) => {
-        const expObj: TDataTreatment = {
-          exid: exp.exid !== null ? exp.exid : 0,
-        };
-        try {
-          const treatments =
-            await ManagementService.getTreatmentByExperimentId(expObj);
-          const treatmentTitles = (treatments.data ?? [])
-            .map((treat) => treat.name?.toString())
-            .filter((name): name is string => name !== null);
-
-          // Initialize an object to store operations for each treatment
-          const operationsMap: Record<string, Operation[]> = {};
-
-          // Fetch operations for each treatment
-          await Promise.all(
-            (treatments.data ?? []).map(async (treat) => {
-              if (treat.tid !== null) {
-                try {
-                  const operations = (await fetchOperations(treat.tid)) ?? [];
-                  operationsMap[treat.name ?? "Unknown Treatment"] = operations;
-                } catch (operationError) {
-                  console.error(
-                    `Failed to fetch operations for treatment ID ${treat.tid}:`,
-                    operationError
-                  );
-                  operationsMap[treat.name ?? "Unknown Treatment"] = []; // Ensure it's an array even on error
-                }
-              }
-            })
-          );
-
-          const experimentName = exp.name ?? "Unknown Experiment";
-          experimentTreatmentMap[experimentName] = {
-            treatmentTitles,
-            operations: operationsMap,
-          };
-        } catch (error) {
-          console.error(
-            `Failed to fetch treatments for experiment ID ${expObj.exid}:`,
-            error
-          );
-        }
-      })
-    );
-
-    return experimentTreatmentMap;
-  };
-
-  const fetchOperations = async (treatmentId: number): Promise<Operation[]> => {
-    const treatObj: TDataOperation = {
-      o_t_exid: treatmentId !== null ? treatmentId : 0,
-    };
-
-    try {
-      const operations =
-        await ManagementService.getOperationsByTreatment(treatObj);
-      return operations.data.map((opt) => ({
-        name: opt.name ?? "Unknown Operation", // Provide default value if needed
-        date: opt.odate ?? "Unknown Date", // Provide default value if needed
-        opID: opt.opID ?? null,
+      const response = await ManagementService.readCrop();
+      // Return the full crop objects
+      return response.data.map((crop: { id: number; cropname: string | null }) => ({
+        id: crop.id,
+        cropname: crop.cropname,
       }));
     } catch (error) {
-      console.error(
-        `Failed to fetch operations for treatment ID ${treatObj.o_t_exid}:`,
-        error
-      );
-
-      // Return an empty array if there was an error
+      if (error instanceof ApiError) {
+        console.error("API Error:", error.message);
+      } else {
+        console.error("Unexpected Error:", error);
+      }
       return [];
     }
-  };
-
-  const getTreeLevels = async () => {
-    const response = await ManagementService.readCrop();
-    const cropData = response.data.filter(
-      (crop) => crop.cropname !== null
-    ) as CropsPublic[];
-
-    const levels: any[] = [];
-
-    await Promise.all(
-      cropData.map(async (crop, index) => {
-        const result = results[index];
-
-        if (result.isLoading || result.error) {
-          setBool(false);
-          levels.push({ level: 1, titles: [], cropName: crop.cropname });
-        } else {
-          const experiments = result.data?.data.map((exp) => exp.name) || [];
-          levels.push({
-            level: 1,
-            titles: experiments,
-            cropName: crop.cropname,
-            titleId: [],
-          });
-
-          if (result.isSuccess && result.data) {
-            const experimentTreatmentMap = await fetchTreatmentsAndSetLevels(
-              result.data
-            );
-
-            for (const [experimentName, details] of Object.entries(
-              experimentTreatmentMap
-            )) {
-              levels.push({
-                level: 2,
-                titles: details.treatmentTitles,
-                cropName: crop.cropname,
-                experimentName: experimentName,
-                titleId: [],
-              });
-
-              // Fetch operations for each treatment
-              for (const treatmentTitle of details.treatmentTitles) {
-                const operations = details.operations[treatmentTitle] ?? [];
-                console.log(operations);
-                levels.push({
-                  level: 3,
-                  titles: operations.map(
-                    (op) => op.name ?? "Unknown Operation"
-                  ),
-                  titleId: operations.map(
-                    (op) => op.opID ?? "Unknown Operation"
-                  ),
-                  cropName: crop.cropname,
-                  experimentName: experimentName,
-                  treatmentName: treatmentTitle,
-                });
-
-                // Extract and display date values for level 4
-                operations.forEach((op) => {
-                  levels.push({
-                    level: 4,
-                    titles: [op.date ?? "Unknown Date"],
-                    cropName: crop.cropname,
-                    experimentName: experimentName,
-                    treatmentName: treatmentTitle,
-                    operationName: op.name ?? "Unknown Operation",
-                    titleId: [],
-                  });
-                });
-              }
-            }
-          }
-        }
-      })
-    );
-    console.log("Final Levels:", levels);
-    return levels;
-  };
-  const fetchData = async () => {
+  },
+  getExperiments: async (crop: string) => {
     try {
-      const levels = await getTreeLevels();
-      setBool(true);
-      setTreeLevels(levels);
+      const response = await ManagementService.getExperimentByCropName({ cropName: crop });
+      // Extract experiment names from the response
+      return response.data.map((experiment: { exid: number; name: string; crop: string; }) => ({
+        id: experiment.exid,
+        name: experiment.name,
+        crop: experiment.crop,
+      }));
     } catch (error) {
-      console.error("Error fetching tree levels:", error);
+      if (error instanceof ApiError) {
+        console.error("API Error:", error.message);
+      } else {
+        console.error("Unexpected Error:", error);
+      }
+      return [];
+    }
+  },
+  getTreatments: async (exp: number) => {
+    try {
+      const response = await ManagementService.getTreatmentByExperimentId({ exid: exp });
+      return response.data.map((treatment: { tid: number; name: string }) => ({
+        id: treatment.tid, // Include the treatment ID
+        name: treatment.name, // Include the treatment name
+      }));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("API Error:", error.message);
+      } else {
+        console.error("Unexpected Error:", error);
+      }
+      return [];
+    }
+  },
+  getOperations: async (tmt: number) => {
+    try {
+      const response = await ManagementService.getOperationsByTreatment({ o_t_exid: tmt });
+      return response.data.map((operation: { name: string; odate: string, opID: number,}) => ({
+        name: operation.name, // Operation name
+        date: operation.odate, // Operation date
+        op_id: operation.opID, // Operation ID (if available)
+      }));
+    } catch (error) {
+      if (error instanceof ApiError) {
+        console.error("API Error:", error.message);
+      } else {
+        console.error("Unexpected Error:", error);
+      }
+      return [];
+    }
+  },
+  updateOperations: async (ops: any) => {
+    await new Promise((res) => setTimeout(res, 500)) // Simulate delay
+    return ops
+  },
+}
+const cropManager = () => {
+  // const currentBreakpoint = useBreakpointValue({
+  //   base: "base",
+  //   sm: "sm",
+  //   md: "md",
+  //   lg: "lg",
+  //   xl: "xl",
+  //   '2xl': "2xl"
+  // });
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const { isOpen, onOpen, onClose } = useDisclosure(); // For modal control
+
+  const [selectedCrop, setSelectedCrop] = useState<string | null>(null);
+  const [selectedExp, setSelectedExp] = useState<number | null>(null);
+  const [selectedTmt, setSelectedTmt] = useState<number | null>(null);
+  // const [selectedOperation, setSelectedOperation] = useState<string | null>(null);
+  const [selectedTmtName, setSelectedTmtName] = useState<string | null>(null);
+  const [selectedExpName, setSelectedExpName] = useState<string | null>(null);
+  const [newExperimentName, setNewExperimentName] = useState<string>("");
+  // const [editableOps, setEditableOps] = useState<Record<string, string>>({})
+  // const [addOpType, setAddOpType] = useState<string>("")
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [newTreatmentName, setNewTreatmentName] = useState<string>("");
+  const [simulationStartData, setSimulationStartData] = useState<{ name: string; date: string; id?: number } | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: number | 0, name: string | null, module: string | null }>({
+    id: 0,
+    name: '',
+    module: '',
+  });
+  const [isCopyModalOpen, setIsCopyModalOpen] = useState(false);
+  const [copyTreatmentName, setCopyTreatmentName] = useState<string>("");
+
+  // Add state for editing operation dates
+  const [editingOp, setEditingOp] = useState<string | null>(null);
+  const [editedDate, setEditedDate] = useState<string>("");
+  // const inputRef = useRef<HTMLInputElement>(null);
+
+  const { data: crops } = useQuery({ queryKey: ["crops"], queryFn: managementApi.getCrops })
+  const { data: experiments } = useQuery({
+    queryKey: ["experiments", selectedCrop],
+    queryFn: () => managementApi.getExperiments(selectedCrop!),
+    enabled: !!selectedCrop,
+  })
+  const { data: treatments } = useQuery({
+    queryKey: ["treatments", selectedExp],
+    queryFn: () => managementApi.getTreatments(selectedExp!),
+    enabled: !!selectedExp,
+  })
+  const { data: operations } = useQuery({
+    queryKey: ["operations", selectedTmt],
+    queryFn: () => managementApi.getOperations(selectedTmt!),
+    enabled: !!selectedTmt,
+  })
+  // const { data: operationDropdownData } = useQuery({
+	// queryKey: ["operationDropdownData"],
+	// queryFn: () => managementApi.getOperationDropDown(),
+	// // enabled: !!selectedOperation,
+  // })
+//   const { data: selectedOperationDropdownData } = useQuery({
+// 	queryKey: ["selectedOperationDropdownData", selectedOperation],
+// 	queryFn: () => managementApi.getOperationDropDown(selectedOperation as keyof typeof dropdownData),
+// 	// enabled: !!selectedOperation,
+//   })
+// console.log(editableOps)
+  // const mutation = useMutation({
+  //   mutationFn: (data: any[]) => managementApi.updateOperations(data),
+  //   onSuccess: () => {
+  //     toast({
+  //       title: "Success!",
+  //       description: "Operations updated.",
+  //       status: "success",
+  //     })
+  //     setEditableOps({})
+  //     setHasUnsavedChanges(false)
+  //     queryClient.invalidateQueries({ queryKey: ["operations", selectedTmt] })
+  //   },
+  //   onError: () => {
+  //     toast({
+  //       title: "Error",
+  //       description: "Could not update operations.",
+  //       status: "error",
+  //     })
+  //   },
+  // })
+
+  // const handleEdit = (opName: string, date: string) => {
+  //   setEditableOps((prev) => ({ ...prev, [opName]: date }))
+  //   setHasUnsavedChanges(true)
+  // }
+
+  const handleNavigation = (callback: () => void) => {
+    if (hasUnsavedChanges) {
+      const confirmLeave = window.confirm("You have unsaved changes. Do you want to leave?")
+      if (!confirmLeave) return
+      setHasUnsavedChanges(false)
+    }
+    callback()
+  }
+console.log(simulationStartData)
+  const handleCropSelection = (crop: string) => {
+    setSelectedCrop(crop)
+    setSelectedExp(null) // Reset experiment selection
+    setSelectedTmt(null) // Reset treatment selection
+    setSelectedTmtName("")
+  }
+
+  const handleExperimentSelection = (id: number, expName: string ) => {
+    setSelectedExp(id);
+    setSelectedExpName(expName); // Store the selected experiment name
+    setSelectedTmt(null); // Reset treatment selection
+    setSelectedTmtName("")
+  };
+
+  const handleTreatmentSelection = (tmt: number, name: string) => {
+    setSelectedTmt(tmt)
+    setSelectedTmtName(name) // Store the selected treatment name
+  }
+
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault()
+        e.returnValue = ""
+      }
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload)
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload)
+  }, [hasUnsavedChanges])
+
+  // Mutation for creating a new experiment
+  const createExperimentMutation = useMutation({
+    mutationFn: (experimentName: string) =>
+      ManagementService.submitExperiment({
+        requestBody: {
+          exid:selectedExp,
+          name: experimentName,
+          crop: selectedCrop!,
+        },
+      }),
+    onSuccess: (newExperiment) => {
+      // Update the experiments list immediately
+      queryClient.setQueryData(["experiments", selectedCrop], (old: any) => [
+        ...(old || []),
+        {
+          id: newExperiment.exid,
+          name: newExperiment.name,
+          crop: selectedCrop,
+        },
+      ]);
+
+      toast({
+        title: "Experiment Created",
+        description: `Experiment "${newExperiment.name}" has been created successfully.`,
+        status: "success",
+      });
+
+      setNewExperimentName(""); // Clear the input field
+    },
+    onError: (error: any) => {
+      if (error?.body?.detail) {
+        toast({
+          title: "Error",
+          description: error.body.detail || "Failed to create experiment.",
+          status: "error",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to create experiment.",
+          status: "error",
+        });
+      }
+    },
+  });
+
+  const handleCreateExperiment = () => {
+    if (!newExperimentName) {
+      toast({
+        title: "Error",
+        description: "Experiment name cannot be empty.",
+        status: "error",
+      });
+      return;
+    }
+    createExperimentMutation.mutate(newExperimentName);
+  };
+
+  const createTreatmentMutation = useMutation({
+    mutationFn: (treatmentName: string) =>
+      ManagementService.checkUpdateTreatment({
+        requestBody: {
+          tid: selectedTmt,
+          name: treatmentName,
+          t_exid: selectedExp!,
+          expname: selectedExpName!,
+          crop: selectedCrop!,
+        },
+      }),
+    onSuccess: (newTreatment) => {
+      // Update the treatments list immediately
+      queryClient.setQueryData(["treatments", selectedExp], (old: any) => {
+        if (Array.isArray(old)) {
+          return [
+            ...old,
+            {
+              id: newTreatment.tid, // Ensure the new treatment has an ID
+              name: newTreatment.name, // Ensure the new treatment has a name
+            },
+          ];
+        }
+        return [
+          {
+            id: newTreatment.tid,
+            name: newTreatment.name,
+          },
+        ];
+      });
+
+      toast({
+        title: "Treatment Created",
+        description: `Treatment "${newTreatment.name}" has been created successfully.`,
+        status: "success",
+      });
+
+      setNewTreatmentName(""); // Clear the input field
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create treatment.",
+        status: "error",
+      });
+    },
+  });
+  // const formatDateForInput = (dateString: string) => {
+  //   console.log("Formatting date:", dateString); // Debug the date string
+  //   if (!dateString || !dateString.includes("/")) {
+  //     console.error("Invalid date string:", dateString);
+  //     return ""; // Return an empty string if the date is invalid
+  //   }
+  
+  //   const [month, day, year] = dateString.split("/");
+  //   return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`; // Format as YYYY-MM-DD
+  // };
+  const handleCreateTreatment = () => {
+    if (!newTreatmentName) {
+      toast({
+        title: "Error",
+        description: "Treatment name cannot be empty.",
+        status: "error",
+      });
+      return;
+    }
+    createTreatmentMutation.mutate(newTreatmentName);
+  };
+
+  const handleDeleteExperiment = async () => {
+    try {
+      await ManagementService.deleteExperiment({ exid: deleteTarget.id });
+      queryClient.setQueryData(["experiments", selectedCrop], (old: any) =>
+        (old || []).filter((exp: any) => exp.id !== deleteTarget.id)
+      );
+      setIsDeleteModalOpen(false);
+      setSelectedExp(null);
+      toast({
+        title: "Experiment Deleted",
+        description: `Experiment "${deleteTarget.name}" has been deleted successfully.`,
+        status: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete experiment.",
+        status: "error",
+      });
     }
   };
-  useEffect(() => {
-    if (Bool == false && treeLevels && allResultsLoaded) {
-      console.log(allResultsLoaded);
-      fetchData();
-    }
-  }, [treeLevels, cropList, results, Bool, allResultsLoaded]);
 
-  const renderChildTree = (
-    index: number,
-    cropName?: string,
-    title?: string,
-    expName?: string
-  ) => {
-    console.log(expName);
-    if (!treeLevels.length) {
-      return <Text>Loading...</Text>; // Shows loading until treeLevels has data
+  // const handleCopyTreatment = (tmtId: number, tmtName: string) => {
+  //   // Create a copy of the treatment with a new name
+  //   const newTreatmentName = `${tmtName} (Copy)`;
+  //   console.log("Copying treatment:", tmtId, tmtName, "to", newTreatmentName);
+  //   // createTreatmentMutation.mutate(newTreatmentName);
+  // };
+  const handleDeleteTreatment = async () => {
+    try {
+      await ManagementService.deleteTreatment({ tid: deleteTarget.id });
+      queryClient.setQueryData(["treatments", selectedExp], (old: any) =>
+        (old || []).filter((treatment: any) => treatment.id !== deleteTarget.id)
+      );
+      setIsDeleteModalOpen(false);
+      setSelectedTmt(null);
+      toast({
+        title: "Treatment Deleted",
+        description: `Treatment "${deleteTarget.name}" has been deleted successfully.`,
+        status: "success",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete treatment.",
+        status: "error",
+      });
     }
+  };
 
-    if (index >= treeLevels.length) {
-      return <Text>Some text for the last child drop</Text>;
+  const handleConfirmCopyTreatment = () => {
+    if (!copyTreatmentName) {
+      toast({
+        title: "Error",
+        description: "Treatment name cannot be empty.",
+        status: "error",
+      });
+      return;
     }
+    createTreatmentMutation.mutate(copyTreatmentName);
+    setIsCopyModalOpen(false);
+    setCopyTreatmentName("");
+  };
 
-    // Find the current level data based on the level and cropName or experimentName
-    const currentLevelData = treeLevels.find((levelData) => {
-      if (levelData.level === 1) {
-        return levelData.level === index + 1 && levelData.cropName === cropName;
-      } else if (levelData.level === 2) {
-        return (
-          levelData.level === index + 1 &&
-          levelData.cropName === cropName &&
-          levelData.experimentName === title
-        );
-      } else if (levelData.level === 3) {
-        return (
-          levelData.level === index + 1 &&
-          levelData.cropName === cropName &&
-          levelData.experimentName === expName &&
-          levelData.treatmentName === title
-        );
-      } else if (levelData.level === 4) {
-        return (
-          levelData.level === index + 1 &&
-          levelData.cropName === cropName &&
-          levelData.operationName === title
-        );
-      }
-      return false;
+  // Helper to check if operation is editable
+  const isEditableOp = (name: string) => {
+    return ["Emergence", "Simulation End", "Sowing", "Harvest","Tillage"].includes(name);
+  };
+
+  // Format date as m/d/yyyy
+  const formatDate = (dateStr: string) => {
+    if (!dateStr) return "";
+    const d = new Date(dateStr);
+    if (!isNaN(d.getTime())) {
+      return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+    }
+    // fallback: try to parse m/d/yyyy
+    const parts = dateStr.split("/");
+    if (parts.length === 3) return dateStr;
+    return dateStr;
+  };
+
+  // Mutation for updating operation date
+  const updateOperationDateMutation = useMutation({
+    mutationFn: (data: { op_id: number; opName: string; treatmentid: number; opDate: string }) =>
+      ManagementService.updateOperationsDate({
+        requestBody: {
+          op_id: data.op_id,
+          opName: data.opName,
+          treatmentid: selectedTmt!,
+          opDate: data.opDate,
+        },
+      }),
+    onSuccess: () => {
+      toast({
+        title: "Success!",
+        description: "Operation date updated.",
+        status: "success",
+      });
+      queryClient.invalidateQueries({ queryKey: ["operations", selectedTmt] });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Could not update operation date.",
+        status: "error",
+      });
+    },
+  });
+
+  // Save edited date (for now, just update local state)  handleDateSave(op.name, editedDate, op.op_id)
+  const handleDateSave = (opName: string, opDate: string, op_id:number) => {
+    // Call mutation to update the backend
+    updateOperationDateMutation.mutate({
+      op_id,
+      opName,
+      treatmentid: selectedTmt!,
+      opDate,
     });
-
-    if (!currentLevelData) {
-      return null; // No data for this level and cropName or experimentName
-    }
-
-    return (
-      <>
-        {currentLevelData.titles.map((title: string, idx: number) => (
-          <Fragment key={`${index}-${title}-${idx}`}>
-            {currentLevelData.level !== 4 ? (
-              <TreeMenu
-                level={currentLevelData.level}
-                title={title || ""}
-                parentTitle={title}
-                tid={currentLevelData.titleId[idx]}
-                onTitleClick={(title) => {
-                  let actionType:
-                    | "DeleteExperiment"
-                    | "DeleteTreatment"
-                    | "EditOperation"
-                    | null = null;
-                  if (currentLevelData.level === 1) {
-                    actionType = "DeleteExperiment";
-                  } else if (currentLevelData.level === 2) {
-                    actionType = "DeleteTreatment";
-                  } else if (currentLevelData.level === 3) {
-                    actionType = "EditOperation";
-                  }
-                  console.log(currentLevelData);
-                  setCurrentTreatmentName(currentLevelData.treatmentName);
-                  setCurrentExperimentName(currentLevelData.experimentName);
-                  setSelectedTitle(title);
-                  setSelectedTitleId(currentLevelData.titleId[idx]);
-                  setCurrentCropName(currentLevelData.cropName);
-
-                  setFormType(actionType); // Show delete form on title click
-                }}
-              >
-                {renderChildTree(
-                  index + 1,
-                  cropName,
-                  title,
-                  currentLevelData.experimentName
-                )}
-              </TreeMenu>
-            ) : (
-              <Text ml={4}>{title}</Text> // Simply display the title as text for level 4
-            )}
-          </Fragment>
-        ))}
-        {currentLevelData.level < 4 && (
-          <Box>
-            <Button
-              size='sm'
-              ml={2}
-              onClick={() => {
-                handleForms(
-                  cropName || "",
-                  currentLevelData.level,
-                  title || "",
-                  currentLevelData.experimentName,
-                  currentLevelData.treatmentName
-                );
-              }}
-            >
-              {currentLevelData.level === 1 && "Add new experiment"}
-              {currentLevelData.level === 2 && "Add new treatment"}
-              {currentLevelData.level === 3 && "Add new operation"}
-            </Button>
-          </Box>
-        )}
-      </>
-    );
+    setEditingOp(null);
+    setEditedDate("");
   };
 
   return (
-    <Container maxW='full' mt={[4, 5]} width='80%'>
+
+    <Box p={6}>
       <Text>
         Crop management is a 4 step process and is implemented in a panel below.
         This panel occasionally opens up another panel on its right side to
@@ -804,96 +526,444 @@ const Management: React.FC = () => {
         CopyTo button to create copies of the treatment information so you do
         not need to fill in all of the management data multiple times.
       </Text>
-      <Link color='blue' href='https://www.ars.usda.gov/northeast-area/beltsville-md-barc/beltsville-agricultural-research-center/adaptive-cropping-systems-laboratory/' isExternal>
+      <Link
+        color="blue"
+        href="https://www.ars.usda.gov/northeast-area/beltsville-md-barc/beltsville-agricultural-research-center/adaptive-cropping-systems-laboratory/"
+        isExternal
+      >
         Click here to watch the Seasonal RunTab Video Tutorial
-      </Link><br/><br/>
-      <Button variant='primary'>Open Management Report</Button>
-      <SimpleGrid columns={2} spacing={10} mt={8}>
-        <Box>
-          <VStack align='start'>
-            {validCrops?.map((crop, index) => (
-              <TreeMenu
-                key={index}
-                level={0}
-                title={crop.cropname ?? "Unknown Crop"}
-                onTitleClick={(title) => setSelectedTitle(title)}
-                tid={crop.id}
+      </Link>
+      <br />
+      <br />
+
+      {/* Card Design */}
+      <Box
+        p={6}
+        borderWidth="1px"
+        borderRadius="md"
+        boxShadow="lg"
+        bg="white"
+        maxW="100%"
+        mx="auto"
+      >
+        <Breadcrumb fontSize={{ base: "sm", md: "md" }} isTruncated>
+          <BreadcrumbItem>
+            <BreadcrumbLink
+              fontWeight="bold"
+              color="blue.600"
+              _hover={{ textDecoration: "underline", color: "blue.800" }}
+              onClick={() => handleNavigation(() => {
+                setSelectedCrop(null);
+                setSelectedExp(null);
+                setSelectedTmt(null);
+              })}
+            >
+              Crops
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          {selectedCrop && (
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                fontWeight="bold"
+                color="blue.600"
+                _hover={{ textDecoration: "underline", color: "blue.800" }}
+                onClick={() => handleNavigation(() => {
+                  setSelectedExp(null);
+                  setSelectedTmt(null);
+                })}
               >
-                {renderChildTree(0, crop.cropname || "", selectedTitle || "")}
-              </TreeMenu>
-            ))}
-          </VStack>
-        </Box>
-        <Box>
-          {selectedTitle && formType === "NewExperiment" && (
-            <ExperimentForm
-              formType={formType}
-              cropName={currentCropName}
-              expName={selectedTitle}
-              onSave={handleSaveExperiment}
-              onDelete={handleExperimentDelete}
-              onCancel={handleCancelDelete}
-            />
+                Crop- {selectedCrop}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          )}
+          {selectedExp && (
+            <BreadcrumbItem>
+              <BreadcrumbLink
+                fontWeight="bold"
+                color="blue.600"
+                _hover={{ textDecoration: "underline", color: "blue.800" }}
+                onClick={() => handleNavigation(() => setSelectedTmt(null))}
+              >
+                Experiment- {selectedExpName}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          )}
+          {selectedTmt && (
+            <BreadcrumbItem isCurrentPage>
+              <BreadcrumbLink
+                fontWeight="bold"
+                color="blue.600"
+                _hover={{ textDecoration: "underline", color: "blue.800" }}
+              >
+                Treatment- {selectedTmtName}
+              </BreadcrumbLink>
+            </BreadcrumbItem>
+          )}
+        </Breadcrumb>
+
+        <VStack align="start" spacing={4} mt={6} width={{ base: "100%"}}>
+          {!selectedCrop && (
+            <VStack align="start" spacing={4}>
+              <Text fontSize="lg" mb={2}>
+                Select a Crop to Proceed:
+              </Text>
+              {crops?.map((crop: { id: number; cropname: string | null }) => (
+                <Box
+                  key={crop.id}
+                  p={4}
+                  borderWidth="0px" // No border outline
+                  borderRadius="md"
+                  boxShadow="sm"
+                  cursor="pointer"
+                  onClick={() => handleCropSelection(crop.cropname!)}
+                >
+                  <Text color="black">{crop.cropname}</Text>
+                </Box>
+              ))}
+            </VStack>
           )}
 
-          {selectedTitle && formType === "NewTreatment" && (
-            <TreatmentForm
-              formType={formType}
-              ccropName={currentCropName}
-              currentTreatmentName={selectedTitle}
-              cexperimentName={currentExperimentName}
-              onSave={handleSaveTreatment}
-              onCopyTo={handleCopyTreatment}
-              onCancel={handleCancelTreatment}
-              onDelete={handleTreatmentDelete}
-            />
-          )}
-          {selectedTitle && formType === "DeleteTreatment" && (
-            <TreatmentForm
-              formType={formType}
-              ccropName={currentCropName}
-              currentTreatmentName={selectedTitle}
-              cexperimentName={currentExperimentName}
-              onSave={handleSaveTreatment}
-              onCopyTo={handleCopyTreatment}
-              onCancel={handleCancelTreatment}
-              onDelete={handleTreatmentDelete}
-            />
-          )}
-          {selectedTitle && formType === "DeleteExperiment" && (
-            <ExperimentForm
-              formType={formType}
-              cropName={currentCropName}
-              expName={selectedTitle}
-              onSave={handleSaveExperiment}
-              onDelete={handleExperimentDelete}
-              onCancel={handleCancelDelete}
-            />
+          {selectedCrop && !selectedExp && (
+            <VStack align="start" spacing={4} width={{ base: "100%"}}>
+              <Text fontSize="lg" mb={2}>
+                Select an Experiment for Crop: {selectedCrop}
+              </Text>
+
+              {/* Input and Button to Create a New Experiment */}
+                <HStack
+                spacing={2}
+                mb={4}
+                width={{ base: "100%", sm: "100%", md: "100%", lg: "70%", "xl": "50%" }}
+                flexDirection={{ base: "column", md: "row" }}
+                align={{ base: "stretch", md: "center" }}
+                >
+                   {/* Current Breakpoint: <strong>{currentBreakpoint}</strong> */}
+                <Input
+                  placeholder="Enter new experiment name"
+                  value={newExperimentName}
+                  width="100%"
+                  onChange={(e) => setNewExperimentName(e.target.value)}
+                />
+                <Button
+                  colorScheme="blue"
+                  onClick={handleCreateExperiment}
+                  width={{ base: "100%", md: "50%" }}
+                >
+                  Create Experiment
+                </Button>
+                </HStack>
+
+              {experiments && experiments.length > 0 ? (
+                experiments.map((exp: { id: number; name: string; crop: string }) => (
+                  <Box p={6} width={"45%"} key={exp.id} borderWidth="0px" >
+                    <VStack align="stretch" >
+                        <Flex
+                          key={exp.id}
+                          justify="space-between"
+                          align="center"
+                          px={2}
+                          py={1}
+                          _hover={{ bg: "gray.50" }}
+                          borderRadius="md"
+                        >
+                          <Text fontSize="md" color="black" noOfLines={1} cursor={"pointer"} onClick={() => handleExperimentSelection(exp.id, exp.name)}>
+                            {exp.name}
+                          </Text>
+
+                          <Menu>
+                            <MenuButton
+                              as={IconButton}
+                              icon={<HiDotsVertical />}
+                              variant="ghost"
+                              size="sm"
+                              minW="auto"
+                              aria-label="Options"
+                            />
+                            <MenuList>
+                              <MenuItem
+                                icon={<Icon as={FiTrash2} color="red.500" />}
+                                color="red.600"
+                                onClick={() => {
+                                  setDeleteTarget({ id: exp.id, name: exp.name, module: 'experiment' });
+                                  setIsDeleteModalOpen(true);
+                                }}
+                              >
+                                Delete
+                              </MenuItem>
+                            </MenuList>
+                          </Menu>
+                        </Flex>
+                    </VStack>
+                  </Box>
+                ))
+              ) : (
+                <Text>No experiments available</Text>
+              )}
+            </VStack>
           )}
 
-          {selectedTitle && (formType === "NewOperation" || formType === "EditOperation")&& (
-            <OperationForm
-              formType={formType}
-              treatmentName={currentTreatmentName}
-              experimentName={currentExperimentName}
-              cropName={currentCropName}
-              operationName={selectedTitle}
-              operationId={selectedTitleId}
-            />
+          {selectedExp && !selectedTmt && (
+            <VStack align="start" spacing={4} width={{ base: "100%"}}>
+              <Text fontSize="lg" mb={2}>
+                Select a Treatment for Experiment: {selectedExpName}
+              </Text>
+
+              {/* Input and Button to Create a New Treatment */}
+              <HStack 
+                spacing={2}
+                mb={4}
+                width={{ base: "100%", sm: "100%", md: "100%", lg: "70%", "xl": "50%" }}
+                flexDirection={{ base: "column", md: "row" }}
+              >
+                <Input
+                  placeholder="Enter new treatment name"
+                  value={newTreatmentName}
+                  onChange={(e) => setNewTreatmentName(e.target.value)}
+                />
+                <Button colorScheme="blue" onClick={handleCreateTreatment} width={{ base: "100%", md: "50%" }}>
+                  Create Treatment
+                </Button>
+              </HStack>
+
+              {treatments && treatments.length > 0 ? (
+                treatments.map((tmt: { id: number; name: string }) => (
+                  <Box
+                    key={tmt.id}
+                    p={4}
+                    borderWidth="0px"
+                    borderRadius="md"
+                    boxShadow="sm"
+                    cursor="pointer"
+                    width={"45%"}
+                  >
+                    <Flex
+                      justify="space-between"
+                      align="center"
+                      px={2}
+                      py={1}
+                      _hover={{ bg: "gray.50" }}
+                      borderRadius="md"
+                    >
+                      <Text
+                        fontSize="md"
+                        color="black"
+                        noOfLines={1}
+                        cursor={"pointer"}
+                        onClick={() => handleTreatmentSelection(tmt.id, tmt.name)}
+                      >
+                        {tmt.name}
+                      </Text>
+
+                      <Menu>
+                        <MenuButton
+                          as={IconButton}
+                          icon={<HiDotsVertical />}
+                          variant="ghost"
+                          size="sm"
+                          minW="auto"
+                          aria-label="Options"
+                        />
+                        <MenuList>
+                          <MenuItem
+                            icon={<Icon as={FiTrash2} color="red.500" />}
+                            color="red.600"
+                            onClick={() => {
+                              setDeleteTarget({ id: tmt.id, name: tmt.name, module: 'treatment' });
+                              setIsDeleteModalOpen(true);
+                            }}
+                          >
+                            Delete
+                          </MenuItem>
+                          <MenuItem
+                            icon={<Icon as={FiCopy} color="blue.500" />}
+                            color="blue.600"
+                            onClick={() => {
+                              // setSelectedTmt(tmt.id);
+                              setCopyTreatmentName(`${tmt.name} (Copy)`); // Pre-fill with default name
+                              setIsCopyModalOpen(true);
+                            }}
+                          >
+                            Copy
+                          </MenuItem>
+                        </MenuList>
+                      </Menu>
+                    </Flex>
+                  </Box>
+                ))
+              ) : (
+                <Text>No treatments available</Text>
+              )}
+            </VStack>
           )}
-        </Box>
-      </SimpleGrid>
 
-      <Outlet />
-      <NextPreviousButtons />
+          {selectedTmt && operations && (
+            <VStack align="start" spacing={4}  width={"100%"}>
+              <Text fontSize="lg" mb={2}>
+                Operations for Treatment: {selectedTmtName}
+              </Text>
+      {/* Operation Creation Dropdown and Button */}
+            <HStack spacing={2} mb={4} width={"100%"}>
+              <OperationUI />
+            </HStack>
+              {operations.length > 0 ? (
+                operations.map((op) => (
+                  // Only show Tillage if it has a date, otherwise show all other ops
+                  op.name !== "" && (
+                    <Box
+                      key={op.name}
+                      p={4}
+                      borderWidth="0px"
+                      borderRadius="md"
+                      boxShadow="sm"
+                      cursor="pointer"
+                    >
+                      <HStack justify="space-between" width="100%">
+                        <Text color="black">{op.name}</Text>
+                        <HStack>
+                          {isEditableOp(op.name) ? (
+                            editingOp === op.name ? (
+                              <HStack>
+                                <CustomDatePicker
+                                  date={editedDate}
+                                  onDateChange={(val: string) => setEditedDate(val)}
+                                />
+                                <IconButton
+                                  aria-label="Save date"
+                                  icon={<CheckIcon color="white" />} 
+                                  size="xs"
+                                  colorScheme="green"
+                                  variant="solid"
+                                  onClick={() => {
+                                    handleDateSave(op.name, editedDate, op.op_id);
+                                    setEditingOp(null);
+                                  }}
+                                />
+                                <IconButton
+                                  aria-label="Cancel edit"
+                                  icon={<CloseIcon color="white" />} 
+                                  size="xs"
+                                  colorScheme="red"
+                                  variant="solid"
+                                  onClick={() => { setEditingOp(null); setEditedDate(""); }}
+                                />
+                              </HStack>
+                            ) : (
+                              <HStack>
+                                <Text color="black">{formatDate(op.date)}</Text>
+                                <IconButton
+                                  aria-label="Edit date"
+                                  icon={<FiEdit />}
+                                  size="xs"
+                                  variant="ghost"
+                                  onClick={() => {
+                                    setEditingOp(op.name);
+                                    setEditedDate(op.date);
+                                  }}
+                                />
+                              </HStack>
+                            )
+                          ) : (
+                            <Text color="black">{op.date}</Text>
+                          )}
+                          {op.name === "Simulation Start" && (
+                            <Button
+                              size="sm"
+                              colorScheme="blue"
+                              onClick={() => {
+                                setSimulationStartData(op);
+                                onOpen();
+                              }}
+                            >
+                              Update Data
+                            </Button>
+                          )}
+                        </HStack>
+                      </HStack>
+                    </Box>
+                  )
+                ))
+              ) : (
+                <Text>No operations available</Text>
+              )}
+              {/* Modal for SimulationStart */}
+              <Modal isOpen={isOpen} onClose={onClose} size="xl">
+                <ModalOverlay />
+                <ModalContent>
+                  <ModalHeader>Update Simulation Start</ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    <SimulationStart
+                      treatmentId={selectedTmt}
+                      onClose={onClose}
+                    />
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button onClick={onClose}>Close</Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+            </VStack>
+          )}
+        </VStack>
+      </Box>
+      <Modal isOpen={isDeleteModalOpen} onClose={() => setIsDeleteModalOpen(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Delete {deleteTarget.module}</ModalHeader>
+          <ModalBody>
+            <Text>
+              Are you sure you want to delete the {deleteTarget.module} <b>"{deleteTarget.name}"</b>? This action cannot be undone.
+            </Text>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="red" mr={3}   
+            onClick={() =>
+              deleteTarget.module === 'experiment'
+                ? handleDeleteExperiment()
+                : handleDeleteTreatment()
+            }>
+              Delete
+            </Button>
+            <Button variant="ghost" onClick={() => setIsDeleteModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
 
-      <FaqComponent tabname='management' />
-    </Container>
-  );
-};
+      <Modal isOpen={isCopyModalOpen} onClose={() => setIsCopyModalOpen(false)}>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Copy Treatment</ModalHeader>
+          <ModalBody>
+            <Text mb={4}>
+              Enter a name for the new treatment copied from <b>"{selectedTmtName}"</b>:
+            </Text>
+            <Input
+              placeholder="Enter new treatment name"
+              value={copyTreatmentName}
+              onChange={(e) => setCopyTreatmentName(e.target.value)}
+            />
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleConfirmCopyTreatment}>
+              Copy
+            </Button>
+            <Button variant="ghost" onClick={() => setIsCopyModalOpen(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+
+      <FaqComponent tabname="management" />
+
+    </Box>
+  )
+}
 
 export const Route = createFileRoute("/_layout/management")({
-  component: Management,
-});
+  component: cropManager,
+})
 
-export default Management;
+export default cropManager

@@ -736,6 +736,42 @@ export type InitCondOp = {
   cultivar: string;
   seedpieceMass: number;
 }
+export type InitCondOpPublic = {
+  pop: number;
+  autoirrigation: number;
+  xseed: number;
+  yseed: number;
+  cec: number;
+  eomult: number;
+  rowSpacing: number;
+  cultivar: string;
+  seedpieceMass: number;
+  odate: string;
+}
+
+export type OperationData = {
+  op_id: number | null;
+  opName: string | null;
+  treatmentid: number | null;
+  opDate: string | null;
+}
+export type OperationDataUpdate = {
+  requestBody: OperationData
+}
+export type InitCondOpDataUpdate = {
+  treatmentid: number;
+  pop: number | null;
+  autoirrigation: number | null;
+  xseed: number | null;
+  yseed: number | null;
+  cec: number | null;
+  eomult: number | null;
+  rowSpacing: number | null;
+  cultivar: string | null;
+  seedpieceMass: number | null;
+  odate?: string | null;
+};
+
 export type ExpOtData = {
   co2_variance: {
     options: string[];

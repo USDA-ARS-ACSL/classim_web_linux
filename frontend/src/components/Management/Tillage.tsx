@@ -35,10 +35,10 @@ const Tillage: React.FC<TillageProps> = ({
   tillageDate,
 }) => {
   const [tillage, setTillage] = useState<string>();
-  const [date, setDate] = useState<String | null>("");
+  const [date, setDate] = useState<string | null>("");
   const [dateVisible, setDateVisible] = useState<boolean>(false);
   console.log('tillageDate', tillageDate)
-  const handleDateChange = (newDate: String | null) => {
+  const handleDateChange = (newDate: string | null) => {
     if (newDate) {
       setDate(newDate);
     } else {

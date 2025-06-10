@@ -86,7 +86,6 @@ const IrrigationForm: React.FC<IrrigationFormProps> = ({
         await ManagementService.getIrrigationByOperation(opObj);
 
       if (sr_response) {
-        console.log(sr_response);
         setIrrigationOpt(sr_response.irrigationClass);
         setAmount(sr_response.numIrrAppl.toString());
         setDate(new Date().toISOString().split("T")[0]); // Assuming you want the current date to be set
@@ -97,7 +96,6 @@ const IrrigationForm: React.FC<IrrigationFormProps> = ({
   };
 
   useEffect(() => {
-    console.log(operationId);
     if (operationId) {
       fetchOperationIrrigation(operationId);
     } else {

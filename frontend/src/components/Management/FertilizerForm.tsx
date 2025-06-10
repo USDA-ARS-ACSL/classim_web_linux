@@ -33,14 +33,14 @@ const FertilizerForm: React.FC<FertilizerFormProps> = ({
   fertilizerDate,
 }) => {
   const [fertClassOpt, setFertClassOpt] = useState<string>(fertilizationOpt);
-  const [date, setDate] = useState<String | null>("");
+  const [date, setDate] = useState<string | null>("");
   const [quantityC, setQuantityC] = useState<string>("");
   const [quantityN, setQuantityN] = useState<string>("");
   const [fertilizerDepth, setFertilizerDepth] = useState<string>("");
   const [showCarbon, setShowCarbon] = useState<boolean>(false);
   const showToast = useCustomToast();
 
-  const handleDateChange = (newDate: String | null) => {
+  const handleDateChange = (newDate: string | null) => {
     if (newDate) {
       setDate(newDate);
     } else {
@@ -112,7 +112,6 @@ const FertilizerForm: React.FC<FertilizerFormProps> = ({
         await ManagementService.getFertilizationByOperation(opObj);
 
       if (fertilization_response) {
-        console.log(fertilization_response);
         setFertClassOpt(
           fertilization_response.fertilization.fertilizationClass
         );
