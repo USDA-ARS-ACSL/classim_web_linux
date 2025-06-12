@@ -34,6 +34,7 @@ import { Route as LayoutCultivarImport } from './routes/_layout/cultivar'
 import { Route as LayoutAdminImport } from './routes/_layout/admin'
 import { Route as LayoutAboutImport } from './routes/_layout/about'
 import { Route as LayoutWeatherTableImport } from './routes/_layout/WeatherTable'
+import { Route as LayoutFAQManagerImport } from './routes/_layout/FAQManager'
 
 // Create/Update Routes
 
@@ -153,6 +154,11 @@ const LayoutWeatherTableRoute = LayoutWeatherTableImport.update({
   getParentRoute: () => LayoutRoute,
 } as any)
 
+const LayoutFAQManagerRoute = LayoutFAQManagerImport.update({
+  path: '/FAQManager',
+  getParentRoute: () => LayoutRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -176,6 +182,10 @@ declare module '@tanstack/react-router' {
     '/reset-password': {
       preLoaderRoute: typeof ResetPasswordImport
       parentRoute: typeof rootRoute
+    }
+    '/_layout/FAQManager': {
+      preLoaderRoute: typeof LayoutFAQManagerImport
+      parentRoute: typeof LayoutImport
     }
     '/_layout/WeatherTable': {
       preLoaderRoute: typeof LayoutWeatherTableImport
@@ -256,6 +266,7 @@ declare module '@tanstack/react-router' {
 
 export const routeTree = rootRoute.addChildren([
   LayoutRoute.addChildren([
+    LayoutFAQManagerRoute,
     LayoutWeatherTableRoute,
     LayoutAboutRoute,
     LayoutAdminRoute,

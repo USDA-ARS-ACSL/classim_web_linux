@@ -20,7 +20,8 @@ def upgrade():
     # Create the surfResOp table
     op.create_table(
         'surfResOp',
-        sa.Column('opID', sa.Integer(), primary_key=True),
+        sa.Column('id', sa.Integer(), primary_key=True),
+        sa.Column('opID'),
         sa.Column('residueType', sa.String(40), nullable=False),
         sa.Column('applicationType', sa.Text(), nullable=False),
         sa.Column('applicationTypeValue', sa.Float(), nullable=False)

@@ -896,6 +896,28 @@ class FertNutOp(SQLModel, table=True):
     opID : int | None = Field(default=None, primary_key=True)
     nutrient: str | None = None
     nutrientQuantity:  float | None = None
+
+
+class IrrigFloodH(SQLModel, table=True):
+    __tablename__ = "irrig_floodH"
+    opID: int = Field(primary_key=True)
+    irrigationClass: str
+    pondDepth: float
+    irrStartD: str
+    startH: str
+    irrStopD: str
+    stopH: str
+
+class IrrigFloodR(SQLModel, table=True):
+    __tablename__ = "irrig_floodR"
+    opID: int = Field(primary_key=True)
+    irrigationClass: str
+    pondDepth: float
+    rate: int
+    irrStartD: str
+    startH: str
+    irrStopD: str
+    stopH: str
     
 class PGROp(SQLModel, table=True):
     __tablename__="PGROp"
@@ -913,10 +935,10 @@ class SR_Op(SQLModel, table=True):
     applicationTypeValue: float | None = None
     
 class IrrigPivotOp(SQLModel, table=True):
-    __tablename__="irrigationOp"
+    __tablename__="Irrig_pivotOp"
     opID : int | None = Field(default=None, primary_key=True)
     irrigationClass: str | None = None
-    numIrrAppl: int | None = None
+    AmtIrrAppl: int | None = None
 
 
 class SimData(BaseModel):

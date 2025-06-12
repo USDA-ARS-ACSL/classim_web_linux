@@ -35,7 +35,7 @@ const getOperationDropDown = async (opType?: string) => {
 // type OperationType = keyof typeof dropdownData;
 type OperationType = string;
 
-type FertilizationClass = "Fertilizer-N" | "Manure" | "litter";
+type FertilizationClass = "Fertilizer-N" | "Manure" | "Litter";
 type SurfaceResidue = "Rye";
 type IrrigationType = "Drip" | "FloodH" | "FloodR" | "Furrow" | "Sprinkler";
 
@@ -59,17 +59,43 @@ type OperationFormData = {
 interface OperationFormProps {
   operationType: OperationType;
   onClose: () => void;
+  treatmentId: number;
+  operationID?: number;
+  initialData?: OperationFormData;
+  hideDropdown?: boolean;
 }
 
-const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose }) => {
-  const [formData, setFormData] = useState<OperationFormData>({});
+const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, treatmentId, operationID = -10, initialData, hideDropdown }) => {
+  // Set default class to 'Manure' if isFert
+  const isFert = operationType === "fertilization";
+  const [formData, setFormData] = useState<OperationFormData>(
+    initialData ? initialData : (isFert ? { class: "Manure" } : {})
+  );
   const [dropdownData, setDropdownData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isRes = operationType === "s_residue";
+  const isIrr = operationType === "irrgationType";
 
   useEffect(() => {
     // Fetch dropdown data from backend
     getOperationDropDown().then(setDropdownData);
   }, []);
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData(initialData);
+    } else {
+      if (isFert) {
+        setFormData((prev) => ({ ...prev, class: "Manure" }));
+      }
+      if (isIrr && dropdownData.irrgationType && dropdownData.irrgationType.length > 0) {
+        // Set default irrType and class to first available option if present
+        const firstIrrType = dropdownData.irrgationType[0];
+        setFormData((prev) => ({ ...prev, irrType: firstIrrType, class: firstIrrType }));
+      }
+    }
+  }, [isFert, isIrr, dropdownData, initialData]);
 
   const handleChange = (field: keyof OperationFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -78,8 +104,42 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose })
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
-      const payload = { ...formData, operationType };
-      await ManagementService.createOrUpdateOperation(payload);
+      if (isFert && !formData.date) {
+        alert("Date is required for fertilization.");
+        setIsSubmitting(false);
+        return;
+      }
+      let classValue = formData.class || "";
+      if (isIrr) {
+        classValue = formData.irrType || "";
+      } else if (isRes) {
+        classValue = "Rye";
+      }
+      // Build payload with only relevant date fields
+      let dateFields: any = {};
+      if (isIrr) {
+        dateFields = {
+          startDate: formData.startDate || "",
+          endDate: formData.endDate || "",
+          startTime: formData.startTime || "",
+          endTime: formData.endTime || "",
+        };
+      } else {
+        dateFields = {
+          date: formData.date || "",
+        };
+      }
+      const payload = {
+        data: {
+          operationID, // Always send operationID, default -10
+          operationType,
+          treatmentId,
+          class: classValue,
+          ...formData,
+          ...dateFields,
+        }
+      };
+      await ManagementService.createOrUpdateOperation({ requestBody: payload });
       onClose();
     } catch (error) {
       console.error("Failed to save operation", error);
@@ -87,10 +147,6 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose })
       setIsSubmitting(false);
     }
   };
-
-  const isFert = operationType === "fertilization";
-  const isRes = operationType === "s_residue";
-  const isIrr = operationType === "irrgationType";
 
   return (
     <Modal isOpen onClose={onClose} size="lg">
@@ -100,11 +156,12 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose })
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={4} align="stretch">
-            {isFert && (
+            {!hideDropdown && isFert && (
               <>
                 <FormControl>
                   <FormLabel>Fertilization Class</FormLabel>
                   <Select
+                    value={formData.class || ""}
                     onChange={(e) => handleChange("class", e.target.value as FertilizationClass)}
                   >
                     {dropdownData.fertilization && dropdownData.fertilization.map((item: string) => (
@@ -113,30 +170,35 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose })
                       </option>
                     ))}
                   </Select>
-                <FormControl>
+                </FormControl>
+              </>
+            )}
+            {isFert && (
+              <>
+                <FormControl isRequired>
                   <FormLabel>Date</FormLabel>
                   <CustomDatePicker
                     date={formData.date || ""}
                     onDateChange={(value: string) => handleChange("date", value)}
                   />
                 </FormControl>
-                </FormControl>
                 <FormControl>
                   <FormLabel>Fertilizer Depth (CM)</FormLabel>
-                  <Input onChange={(e) => handleChange("depth", e.target.value)} />
+                  <Input value={formData.depth || ""} onChange={(e) => handleChange("depth", e.target.value)} />
                 </FormControl>
                 <FormControl>
                   <FormLabel>Nitrogen (N) (kg/ha)</FormLabel>
-                  <Input onChange={(e) => handleChange("n", e.target.value)} />
+                  <Input value={formData.n || ""} onChange={(e) => handleChange("n", e.target.value)} />
                 </FormControl>
-                {(formData.class === "Manure" || formData.class === "litter") && (
+                {(formData.class === "Manure" || formData.class === "Litter") ? (
                   <FormControl>
                     <FormLabel>Carbon (C) (kg/ha)</FormLabel>
                     <Input
+                      value={formData.carbon || ""}
                       onChange={(e) => handleChange("carbon", e.target.value)}
                     />
                   </FormControl>
-                )}
+                ) : null}
               </>
             )}
             {isRes && (
@@ -182,7 +244,11 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose })
                 <FormControl>
                   <FormLabel>Irrigation Type</FormLabel>
                   <Select
-                    onChange={(e) => handleChange("irrType", e.target.value as IrrigationType)}
+                    value={formData.irrType || ""}
+                    onChange={(e) => {
+                      handleChange("irrType", e.target.value as IrrigationType);
+                      handleChange("class", e.target.value as IrrigationType);
+                    }}
                   >
                     {dropdownData.irrgationType && dropdownData.irrgationType.map((item: string) => (
                       <option key={item} value={item}>
@@ -191,44 +257,126 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose })
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl>
-                  <FormLabel>Pond Depth (cm)</FormLabel>
-                  <Input
-                    onChange={(e) => handleChange("depth", e.target.value)}
-                  />
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Rate</FormLabel>
-                  <Input onChange={(e) => handleChange("rate", e.target.value)} />
-                <FormControl>
-                  <FormLabel>Start Date</FormLabel>
-                  <CustomDatePicker
-                    date={formData.startDate || ""}
-                    onDateChange={(value: string) => handleChange("startDate", value)}
-                  />
-                </FormControl>
-                </FormControl>
-                <FormControl>
-                  <FormLabel>Start Time</FormLabel>
-                  <Input
-                    type="time"
-                    onChange={(e) => handleChange("startTime", e.target.value)}
-                  />
-                <FormControl>
-                  <FormLabel>End Date</FormLabel>
-                  <CustomDatePicker
-                    date={formData.endDate || ""}
-                    onDateChange={(value: string) => handleChange("endDate", value)}
-                  />
-                </FormControl>
-                </FormControl>
-                <FormControl>
-                  <FormLabel>End Time</FormLabel>
-                  <Input
-                    type="time"
-                    onChange={(e) => handleChange("endTime", e.target.value)}
-                  />
-                </FormControl>
+                {/* Drip and Furrow: only Depth */}
+                {(formData.irrType === "Drip" || formData.irrType === "Furrow") && (
+                  <FormControl>
+                    <FormLabel>Pond Depth (cm)</FormLabel>
+                    <Input
+                      value={formData.depth || ""}
+                      onChange={(e) => handleChange("depth", e.target.value)}
+                    />
+                  </FormControl>
+                )}
+                {/* Sprinkler: Date and Amount of Irrigation */}
+                {formData.irrType === "Sprinkler" && (
+                  <>
+                    <FormControl>
+                      <FormLabel>Date</FormLabel>
+                      <CustomDatePicker
+                        date={formData.date || ""}
+                        onDateChange={(value: string) => handleChange("date", value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Amount of Irrigation</FormLabel>
+                      <Input
+                        value={formData.rate || ""}
+                        onChange={(e) => handleChange("rate", e.target.value)}
+                      />
+                    </FormControl>
+                  </>
+                )}
+                {/* FloodH: Pond Depth, Start Date, Start Time, End Date, End Time */}
+                {formData.irrType === "FloodH" && (
+                  <>
+                    <FormControl>
+                      <FormLabel>Pond Depth (cm)</FormLabel>
+                      <Input
+                        value={formData.depth || ""}
+                        onChange={(e) => handleChange("depth", e.target.value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Start Date</FormLabel>
+                      <CustomDatePicker
+                        date={formData.startDate || ""}
+                        onDateChange={(value: string) => handleChange("startDate", value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Start Time</FormLabel>
+                      <Input
+                        type="time"
+                        value={formData.startTime || ""}
+                        onChange={(e) => handleChange("startTime", e.target.value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>End Date</FormLabel>
+                      <CustomDatePicker
+                        date={formData.endDate || ""}
+                        onDateChange={(value: string) => handleChange("endDate", value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>End Time</FormLabel>
+                      <Input
+                        type="time"
+                        value={formData.endTime || ""}
+                        onChange={(e) => handleChange("endTime", e.target.value)}
+                      />
+                    </FormControl>
+                  </>
+                )}
+                {/* FloodR: All FloodH fields + Rate */}
+                {formData.irrType === "FloodR" && (
+                  <>
+                    <FormControl>
+                      <FormLabel>Pond Depth (cm)</FormLabel>
+                      <Input
+                        value={formData.depth || ""}
+                        onChange={(e) => handleChange("depth", e.target.value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Start Date</FormLabel>
+                      <CustomDatePicker
+                        date={formData.startDate || ""}
+                        onDateChange={(value: string) => handleChange("startDate", value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Start Time</FormLabel>
+                      <Input
+                        type="time"
+                        value={formData.startTime || ""}
+                        onChange={(e) => handleChange("startTime", e.target.value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>End Date</FormLabel>
+                      <CustomDatePicker
+                        date={formData.endDate || ""}
+                        onDateChange={(value: string) => handleChange("endDate", value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>End Time</FormLabel>
+                      <Input
+                        type="time"
+                        value={formData.endTime || ""}
+                        onChange={(e) => handleChange("endTime", e.target.value)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <FormLabel>Rate</FormLabel>
+                      <Input
+                        value={formData.rate || ""}
+                        onChange={(e) => handleChange("rate", e.target.value)}
+                      />
+                    </FormControl>
+                  </>
+                )}
               </>
             )}
           </VStack>
@@ -243,13 +391,11 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose })
   );
 };
 
-const OperationCreateForm = () => {
+const OperationCreateForm = ({ treatmentId, operationID = -10 }: { treatmentId: number; operationID?: number }) => {
   const [selectedType, setSelectedType] = useState<string>("");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [dropdownData, setDropdownData] = useState<any>({});
   const [operations, setOperations] = useState<any[]>([]); // Store all operations
-  // TODO: Replace with actual treatment id from props/context
-  const treatmentId = 1; // Hardcoded for now, replace as needed
 
   useEffect(() => {
     getOperationDropDown().then(setDropdownData);
@@ -300,14 +446,8 @@ const OperationCreateForm = () => {
         Create Operation
       </Button>
       {isOpen && selectedType && (
-        <OperationForm operationType={selectedType} onClose={handleOperationCreated} />
+        <OperationForm operationType={selectedType} onClose={handleOperationCreated} treatmentId={treatmentId} operationID={operationID} />
       )}
-      {/* Show all operations */}
-      <VStack align="start" mt={4} width="100%">
-        {operations.map((op) => (
-          <div key={op.opID}>{op.name} - {op.odate}</div>
-        ))}
-      </VStack>
     </HStack>
   );
 };

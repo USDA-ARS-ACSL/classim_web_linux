@@ -20,7 +20,8 @@ def upgrade():
     # Create the fertNutOp table
     op.create_table(
         'fertNutOp',
-        sa.Column('opID', sa.Integer(), primary_key=True, autoincrement=True),
+        sa.Column('id', sa.Integer(), primary_key=True, autoincrement=True),
+        sa.Column('opID', sa.Integer()),
         sa.Column('nutrient', sa.String(), nullable=False),
         sa.Column('nutrientQuantity', sa.REAL(), nullable=False)
     )

@@ -127,15 +127,18 @@ const managementApi = {
     return ops
   },
 }
+
+  const handleEditOperation = async (op: any) => {
+    try {
+      const data = await ManagementService.getFullOperationById(op);
+      console.log("Fetched operation data:", data);
+      // Add operationType for edit form
+    } catch (e) {
+      console.error("Error fetching operation data:", e);
+    }
+  };
 const cropManager = () => {
-  // const currentBreakpoint = useBreakpointValue({
-  //   base: "base",
-  //   sm: "sm",
-  //   md: "md",
-  //   lg: "lg",
-  //   xl: "xl",
-  //   '2xl': "2xl"
-  // });
+
   const toast = useToast();
   const queryClient = useQueryClient();
   const { isOpen, onOpen, onClose } = useDisclosure(); // For modal control
@@ -165,7 +168,6 @@ const cropManager = () => {
   const [editingOp, setEditingOp] = useState<string | null>(null);
   const [editedDate, setEditedDate] = useState<string>("");
   // const inputRef = useRef<HTMLInputElement>(null);
-
   const { data: crops } = useQuery({ queryKey: ["crops"], queryFn: managementApi.getCrops })
   const { data: experiments } = useQuery({
     queryKey: ["experiments", selectedCrop],
@@ -182,42 +184,6 @@ const cropManager = () => {
     queryFn: () => managementApi.getOperations(selectedTmt!),
     enabled: !!selectedTmt,
   })
-  // const { data: operationDropdownData } = useQuery({
-	// queryKey: ["operationDropdownData"],
-	// queryFn: () => managementApi.getOperationDropDown(),
-	// // enabled: !!selectedOperation,
-  // })
-//   const { data: selectedOperationDropdownData } = useQuery({
-// 	queryKey: ["selectedOperationDropdownData", selectedOperation],
-// 	queryFn: () => managementApi.getOperationDropDown(selectedOperation as keyof typeof dropdownData),
-// 	// enabled: !!selectedOperation,
-//   })
-// console.log(editableOps)
-  // const mutation = useMutation({
-  //   mutationFn: (data: any[]) => managementApi.updateOperations(data),
-  //   onSuccess: () => {
-  //     toast({
-  //       title: "Success!",
-  //       description: "Operations updated.",
-  //       status: "success",
-  //     })
-  //     setEditableOps({})
-  //     setHasUnsavedChanges(false)
-  //     queryClient.invalidateQueries({ queryKey: ["operations", selectedTmt] })
-  //   },
-  //   onError: () => {
-  //     toast({
-  //       title: "Error",
-  //       description: "Could not update operations.",
-  //       status: "error",
-  //     })
-  //   },
-  // })
-
-  // const handleEdit = (opName: string, date: string) => {
-  //   setEditableOps((prev) => ({ ...prev, [opName]: date }))
-  //   setHasUnsavedChanges(true)
-  // }
 
   const handleNavigation = (callback: () => void) => {
     if (hasUnsavedChanges) {
@@ -507,6 +473,8 @@ console.log(simulationStartData)
     setEditingOp(null);
     setEditedDate("");
   };
+
+
 
   return (
 
@@ -803,7 +771,7 @@ console.log(simulationStartData)
               </Text>
       {/* Operation Creation Dropdown and Button */}
             <HStack spacing={2} mb={4} width={"100%"}>
-              <OperationUI />
+              <OperationUI treatmentId={selectedTmt} operationID={-10}/>
             </HStack>
               {operations.length > 0 ? (
                 operations.map((op) => (
@@ -875,6 +843,15 @@ console.log(simulationStartData)
                               }}
                             >
                               Update Data
+                            </Button>
+                          )}
+                          {["Surface Residue", "Irrigation", "Fertilizer"].includes(op.name) && (
+                            <Button
+                              size="sm"
+                              colorScheme="blue"
+                              onClick={() => handleEditOperation(op.op_id)} 
+                            >
+                              Edit
                             </Button>
                           )}
                         </HStack>

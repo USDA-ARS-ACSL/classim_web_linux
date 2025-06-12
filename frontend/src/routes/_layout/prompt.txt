@@ -1,0 +1,35 @@
+I want to have new button called add new opration when use clicked on it it should open in popup window and show 3 dropdowns 
+api will be called /addnewOp (GET)
+my api response will be {"data": {"fertilization":["Fertilizer-N","Manure","Litter"]},{"s_residue":[Rye]},{"irrgationType":["Drip","FloodH","FloodR","Furrow","Sprinkler"]}}
+
+
+dropdown 1. Fertilizer Class -> dropdown with reponse from above api 
+dropdown 2. Surface Residue->dropdown with reponse from above api s_residue
+dropdown 3. irrgationType-> dropdown with response from above api irrgationType
+
+
+if select fertilization dropdown and select a. Fertilizer-N: everything should hide and show a newform with 3 input options: date, Fertilizer Depth, Nitragen and save button
+											b. litter : everything should go and show a  form with date, carbon, Nitrogen
+											c. Manure: Same like litter
+											I should be able change my selection from dropdown and form should change accordingly
+											
+if i select Sureface residue dropdown it should Rye and a form with date, and one dropdown with title "select surface residue application Type" with two options mass and thickness.. wheever user selects anythuing an inoput box should open to enter value
+
+if I select irrgationType a. Drip form should open and input box to enter depth
+							b. FloodH a form should open and with 5 input boxes Pnd depth, start date, start time, end Date, endTime
+							c. FloodR a form should open with all FloodH inputs and adding extra input rate
+							d. Furrow form should open and input box to enter depth
+							e. Sprinkler a form should open with date and Amount of Irrgation input field
+							
+							
+give me react code 
+
+
+drop down (create new ops)
+1.  Fertilizer Class 
+2. Surface Residue
+3. irrgationType
+
+
+modal will open and show dropdown to select ["Fertilizer-N","Manure","Litter"].. then this form 
+

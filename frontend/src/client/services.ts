@@ -1607,7 +1607,20 @@ export class ManagementService {
       },
     });
   }
+  public static getFullOperationById(opid: number): CancelablePromise<any> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/management/operation/full/{opid}",
+      path: {
+        opid,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    });
+  }
 
+  
   public static deleteTreatment(
     data: TDataDeleteTreatment
   ): CancelablePromise<Message> {
@@ -2054,14 +2067,21 @@ export class ManagementService {
     });
   }
 
-  public static createOrUpdateOperation(payload: any): Promise<any> {
-    return fetch("/api/v1/management/operation/create", {
+  /**
+   * Create or update Operation (calls /operation)
+   */
+  public static createOrUpdateOperation(
+    data: { requestBody: { data: any } }
+  ): CancelablePromise<any> {
+    const { requestBody } = data;
+    return __request(OpenAPI, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    }).then(res => {
-      if (!res.ok) throw new Error("Failed to save operation");
-      return res.json();
+      url: "/api/v1/management/operation/createorupdate",
+      body: requestBody,
+      mediaType: "application/json",
+      errors: {
+        422: `Validation Error`,
+      },
     });
   }
 
@@ -2165,6 +2185,59 @@ export class CultivarTabApis {
   }
 }
 
+export interface FAQCreate {
+  tabname: string;
+  question?: string | null;
+  answer?: string | null;
+}
+
+export interface FAQUpdate {
+  tabname?: string;
+  question?: string | null;
+  answer?: string | null;
+}
+
+export interface FAQOut {
+  id: number;
+  tabname: string;
+  question?: string | null;
+  answer?: string | null;
+  owner_id?: number | null;
+}
+
+export class FAQService {
+  public static createFAQ(requestBody: FAQCreate): CancelablePromise<FAQOut> {
+    return __request(OpenAPI, {
+      method: "POST",
+      url: "/api/faqs/",
+      body: requestBody,
+      mediaType: "application/json",
+    });
+  }
+
+  public static updateFAQ(faqId: number, requestBody: FAQUpdate): CancelablePromise<FAQOut> {
+    return __request(OpenAPI, {
+      method: "PUT",
+      url: `/api/v1/faq/${faqId}`,
+      body: requestBody,
+      mediaType: "application/json",
+    });
+  }
+
+  public static deleteFAQ(faqId: number): CancelablePromise<void> {
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: `/api/v1/faq/${faqId}`,
+    });
+  }
+
+  public static getAllFAQs(): CancelablePromise<FAQOut[]> {
+    return __request(OpenAPI, {
+      method: "GET",
+      url: "/api/v1/faq/",
+    });
+  }
+}
 
 
 

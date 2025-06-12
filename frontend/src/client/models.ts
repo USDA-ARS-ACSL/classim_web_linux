@@ -691,7 +691,7 @@ export type SrOp = {
 
 export type IrrigationOp = {
   irrigationClass: string;
-  numIrrAppl: number;
+  AmtIrrAppl: number;
 }
 
 export type PGRChemical = {
