@@ -396,7 +396,7 @@ const OperationCreateForm = ({ treatmentId, operationID = -10 }: { treatmentId: 
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [dropdownData, setDropdownData] = useState<any>({});
   const [operations, setOperations] = useState<any[]>([]); // Store all operations
-
+console.log(operations)
   useEffect(() => {
     getOperationDropDown().then(setDropdownData);
     // Fetch all operations for the current treatment
