@@ -21,7 +21,7 @@ def upgrade():
     op.create_table(
         'surfResOp',
         sa.Column('id', sa.Integer(), primary_key=True),
-        sa.Column('opID'),
+        sa.Column('opID',sa.Integer()),
         sa.Column('residueType', sa.String(40), nullable=False),
         sa.Column('applicationType', sa.Text(), nullable=False),
         sa.Column('applicationTypeValue', sa.Float(), nullable=False)
