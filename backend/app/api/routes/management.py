@@ -761,7 +761,7 @@ def create_or_update_operation(
             if data["n"] and int(data["n"])>0:
                 fertNut_op_nit = FertNutOp(opID=op_id, nutrient="Nitrogen (N)", nutrientQuantity=float(data["n"]))
                 session.add(fertNut_op_nit)            
-            if data["carbon"] and int(data["carbon"])>0:
+            if data.get("carbon") and int(data.get("carbon"))>0:
                 fertNut_op_nit = FertNutOp(opID=op_id, nutrient="Carbon (C)", nutrientQuantity=float(data["carbon"]))
                 session.add(fertNut_op_nit)
         elif data["operationType"] == "s_residue":
