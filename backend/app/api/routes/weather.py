@@ -6,7 +6,8 @@ from datetime import datetime
 from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 from io import BytesIO
-
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
 from app.api.deps import SessionDep, CurrentUser
 from app.models import WeatherDatasPublic, WeatherDataPublic, WeatherMeta, WeatherMetasPublic, WeatherMetaPublic, WeatherCreate, WeatherMetaBase, WeatherMetaCreate, WeatherUpdate, Message, WeatherMetaUpdate, WeatherData, SitesPublic, Site, Treatment, Experiment, Operation
 
@@ -202,24 +203,15 @@ def download(
     currentyear = datetime.now().year
     year = str(currentyear + 2)
     url = f"https://weather.covercrop-data.org/hourly?lat={rlat}&lon={rlon}&start=2018-1-1&end={year}-12-31&1attributes=air_temperature,relative_humidity,wind_speed,shortwave_radiation,precipitation&output=csv&options=predicted"
-    
     try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an exception for HTTP errors
-
-        # Check if the response contains an error key
-        try:
-            json_response = response.json()
-            if "error" in json_response:
-                return {"error": json_response["error"]}
-        except ValueError:
-            pass  # Not a JSON response, continue processing
-
-        csv_data = response.content
-        csv_file = BytesIO(csv_data)
-        data = pd.read_csv(csv_file)
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Request failed: {e}")
+        # Use pandas to read CSV directly from the URL with custom User-Agent
+        data = pd.read_csv(
+            url,
+            storage_options={'User-Agent': 'Mozilla/5.0'}
+        )
+        print(data)
+    except Exception as e:
+        logger.error(f"Failed to fetch or parse weather data: {e}")
         return {"error": "Website has reported an error. Please, try again later."}
 
     logger.info(f"Retrieved station data: {data}")

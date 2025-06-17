@@ -36,7 +36,7 @@ classimDir = os.path.join(currentDir,'executables')
 runDir = os.path.join(classimDir, 'run')
 storeDir = os.path.join(runDir, 'store')
 # /app/execuatbales"
-createsoilexe = os.path.join(classimDir, 'createsoilfiles.exe')
+createsoilexe = os.path.join(classimDir, 'CreateSoilFiles.exe')
 
 # maize model executables
 maizsimexe = os.path.join(classimDir, 'maizsim')
@@ -554,8 +554,7 @@ def prepare_and_execute( simulation_name, session: SessionDep, current_user_id):
     layerdest_file = os.path.join(field_path, f"{field_name}.lyr")
     createsoil_opfile = lsoilname
     grid_name = field_name
-    cmdd= f"mono ../../createsoilfiles.exe {field_name}.lyr /GN {grid_name} /SN {createsoil_opfile}"    
-    pp = subprocess.Popen(['mono',"../../createsoilfiles.exe",  f"{field_name}.lyr", "/GN", grid_name, "/SN", createsoil_opfile], cwd=field_path)
+    pp = subprocess.Popen(['mono', createsoilexe, f"{field_name}.lyr", "/GN", grid_name, "/SN", createsoil_opfile], cwd=field_path)
     
     while pp.poll() is None:
         time.sleep(1)

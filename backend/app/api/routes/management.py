@@ -216,7 +216,7 @@ def insert_default_operations(session: SessionDep, current_user: CurrentUser, tr
         )
         if cropname=="maize" and op_name=="Emergence":
             continue
-        create_or_update_operation(operation_in, session, current_user)
+        create_or_update_operation_from_simStart(operation_in, session, current_user)
 
 
 def get_treatment_id(session: Session, treatmentname: str, expname: str, cropname: str) -> Optional[int]:
@@ -237,6 +237,172 @@ def get_treatment_id(session: Session, treatmentname: str, expname: str, cropnam
     
     return result
 
+
+def create_or_update_operation_from_simStart(
+    operation_in: OperationCreate,
+    session: SessionDep,
+    current_user: CurrentUser
+) -> bool:
+    op_id = operation_in.opID
+    treatmentname = operation_in.treatmentname
+    expid = operation_in.exid
+    cropname = operation_in.cropname
+    operation_record = operation_in.operation_record
+    initCond_record = operation_in.initCond_record
+    tillage_record = operation_in.tillage_record
+    fert_record = operation_in.fert_record
+    fertNut_record = operation_in.fertNut_record
+    PGR_record = operation_in.PGR_record
+    SR_record = operation_in.SR_record
+    irrAmt_record = operation_in.irrAmt_record
+    
+    if op_id == -10:
+        o_t_exid = get_treatment_id(session, treatmentname, expid, cropname)
+        if not o_t_exid:
+            raise HTTPException(status_code=404, detail="Treatment not found")
+
+        new_op = Operation(o_t_exid=o_t_exid, name=operation_record[0], odate=operation_record[1], owner_id=current_user.id)
+        session.add(new_op)
+        session.commit()
+        session.refresh(new_op)
+        op_id = new_op.opID
+
+        if operation_record[0] == "Simulation Start" and initCond_record:
+            field_names = ["pop", "autoirrigation", "xseed", "yseed", "cec", "eomult", "rowSpacing", "cultivar", "seedpieceMass"]
+            init_cond_data = dict(zip(field_names, initCond_record))    
+                    
+            # Convert fields to appropriate types, handling empty strings or other invalid input
+            init_cond_data['pop'] = float(init_cond_data.get('pop') or 0.0)
+            init_cond_data['autoirrigation'] = float(init_cond_data.get('autoirrigation') or 0.0)
+            init_cond_data['xseed'] = float(init_cond_data.get('xseed') or 0.0)
+            init_cond_data['yseed'] = float(init_cond_data.get('yseed') or 0.0)
+            init_cond_data['cec'] = float(init_cond_data.get('cec') or 0.0)
+            init_cond_data['eomult'] = float(init_cond_data.get('eomult') or 0.0)
+            init_cond_data['rowSpacing'] = float(init_cond_data.get('rowSpacing') or 0.0)
+            init_cond_data['cultivar'] = str(init_cond_data.get('cultivar') or "")  # Ensure it's a string
+            init_cond_data['seedpieceMass'] = float(init_cond_data.get('seedpieceMass') or 0.0)
+            print('init.....', init_cond_data)
+            # Create InitCondOp object and add it to the session
+            try:
+                initCond_op = InitCondOp(opID=op_id, **init_cond_data)
+                session.add(initCond_op)
+                session.commit()  # Commit the session
+            except Exception as e:
+                session.rollback()  # Rollback on error
+                print(f"An error occurred: {e}")
+
+        elif operation_record[0] == "Tillage" and tillage_record:
+            tillage_op = TillageOp(opID=op_id, tillage=tillage_record[0])
+            session.add(tillage_op)
+        elif operation_record[0] == "Fertilizer" and fert_record:
+            fert_op = FertilizationOp(opID=op_id, **dict(zip(["fertilizationClass", "depth"], fert_record)))
+            session.add(fert_op)
+            for i in range(0, len(fertNut_record), 2):
+                fertNut_op = FertNutOp(opID=op_id, nutrient=fertNut_record[i], nutrientQuantity=float(fertNut_record[i+1]))
+                session.add(fertNut_op)
+        elif operation_record[0] == "Plant Growth Regulator" and PGR_record:
+            PGR_op = PGROp(opID=op_id, **dict(zip(["PGRChemical", "applicationType", "bandwidth", "applicationRate", "PGRUnit"], PGR_record)))
+            session.add(PGR_op)
+        elif operation_record[0] == "Surface Residue" and SR_record:
+            SR_op = SR_Op(opID=op_id, **dict(zip(["residueType", "applicationType", "applicationTypeValue"], SR_record)))
+            session.add(SR_op)
+        elif operation_record[0] == "Irrigation Type" and irrAmt_record:
+            irrAmt_op = IrrigPivotOp(opID=op_id, **dict(zip(["irrigationClass", "numIrrAppl"], irrAmt_record)))
+            session.add(irrAmt_op)
+
+        session.commit()
+        return True
+    else:        
+        o_t_exid = get_treatment_id(session, treatmentname, expid, cropname)        
+        if not o_t_exid:
+            raise HTTPException(status_code=404, detail="Treatment not found")
+        
+        op = session.get(Operation, op_id)
+        if not op:
+            raise HTTPException(status_code=404, detail="Operation not found")
+
+        op.o_t_exid = o_t_exid
+        op.name = operation_record[0]
+        op.odate = operation_record[1]
+        session.commit()
+
+        if operation_record[0] == "Simulation Start":
+            initCond_op = session.exec(select(InitCondOp).where(InitCondOp.opID == op_id)).first()
+            if initCond_op: 
+                print("it is inside now")               
+                # Ensure that values are valid before assignment
+                initCond_op.pop = float(initCond_record[0])
+                initCond_op.autoirrigation = float(initCond_record[1])
+                initCond_op.xseed = float(initCond_record[2])
+                initCond_op.yseed = float(initCond_record[3])
+                initCond_op.cec = float(initCond_record[4])
+                initCond_op.eomult = float(initCond_record[5])
+                initCond_op.rowSpacing = float(initCond_record[6])
+                initCond_op.cultivar = str(initCond_record[7])
+                initCond_op.seedpieceMass = float(initCond_record[8])
+
+                session.add(initCond_op)
+
+        elif operation_record[0] == "Tillage":
+            tillage_op = session.exec(select(TillageOp).where(TillageOp.opID == op_id)).first()
+            if tillage_op:
+                tillage_op.tillage = tillage_record[0]
+                session.add(tillage_op)
+        elif operation_record[0] == "Fertilizer":
+            # Fetch the FertilizationOp record based on opID
+            fert_op = session.exec(select(FertilizationOp).where(FertilizationOp.opID == op_id)).first()
+            
+            if fert_op:
+                # Update FertilizationOp fields with new data from fert_record
+                fert_op.fertilizationClass = fert_record[0]  # Assuming fert_record[0] contains fertilizationClass
+                fert_op.depth = fert_record[1]               # Assuming fert_record[1] contains depth
+                session.add(fert_op)  # Add the updated record to the session
+
+            # Handle fertNutOp updates
+            for i in range(0, len(fertNut_record), 2):
+                fertNut_op = session.exec(
+                    select(FertNutOp)
+                    .where(FertNutOp.opID == op_id)
+                    .where(FertNutOp.nutrient == fertNut_record[i])
+                ).first()
+                
+                if fertNut_op:
+                    # Update the existing FertNutOp record
+                    fertNut_op.nutrientQuantity = float(fertNut_record[i+1])
+                else:
+                    # If the record doesn't exist, create a new one
+                    fertNut_op = FertNutOp(
+                        opID=op_id,
+                        nutrient=fertNut_record[i],
+                        nutrientQuantity=float(fertNut_record[i+1])
+                    )
+                session.add(fertNut_op)                            
+        elif operation_record[0] == "Plant Growth Regulator":
+            PGR_op = session.exec(select(PGROp).where(PGROp.opID == op_id)).first()
+            if PGR_op:           
+                # Update FertilizationOp fields with new data from fert_record
+                PGR_op.PGRChemical = PGR_record[0]
+                PGR_op.applicationType = PGR_record[1]
+                PGR_op.bandwidth = float(PGR_record[2])
+                PGR_op.applicationRate = float(PGR_record[3])
+                PGR_op.PGRUnit = PGR_record[4]
+                session.add(PGR_op)
+        elif operation_record[0] == "Surface Residue":
+            SR_op = session.exec(select(SR_Op).where(SR_Op.opID == op_id)).first()
+            if SR_op:
+                SR_op.residueType = SR_record[0]
+                SR_op.applicationType = SR_record[1]
+                SR_op.applicationTypeValue = float(SR_record[2])
+                session.add(SR_op)
+        elif operation_record[0] == "Irrigation Type":
+            irrAmt_op = session.exec(select(IrrigPivotOp).where(IrrigPivotOp.opID == op_id)).first()
+            if irrAmt_op:
+                irrAmt_op.irrigationClass = irrAmt_record[0]
+                irrAmt_op.numIrrAppl = float(irrAmt_record[1])
+                session.add(irrAmt_op)
+
+        session.commit()
+        return True
 
 @router.post("/initCondOp/update/{trearmentId}", response_model=Message)
 def update_simulation_start(
