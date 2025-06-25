@@ -88,7 +88,18 @@ const SearchControl = ({
   return null;
 };
 
-
+// Add this function above your component
+const getAltitude = async (lat: number, lng: number): Promise<number | null> => {
+  try {
+    const response = await fetch(
+      `https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`
+    );
+    const data = await response.json();
+    return data.results[0]?.elevation ?? null;
+  } catch {
+    return null;
+  }
+};
 
 const SimpleMap = () => {
   const showToast = useCustomToast();
@@ -236,15 +247,19 @@ const SimpleMap = () => {
     }
   };
 
+  // Update marker dragend handler to fetch altitude
   const eventHandlers = useMemo(
     () => ({
-      dragend() {
+      async dragend() {
         const marker = markerRef.current;
         if (marker != null) {
           const newLatLng = marker.getLatLng();
           setPosition(newLatLng);
           setLat(newLatLng.lat);
           setLong(newLatLng.lng);
+          // Fetch altitude and update state
+          const alt = await getAltitude(newLatLng.lat, newLatLng.lng);
+          if (alt !== null) setAltitude(alt.toString());
           // Auto-select "Add a new site" if not already selected
           if (selectedOption !== "new") {
             setSelectedOption("new");
@@ -332,10 +347,13 @@ const SimpleMap = () => {
       style={{ height: "55vh", width: "75vw" }}
     >
       <SearchControl
-        onLocationSelect={(latlng) => {
+        onLocationSelect={async (latlng) => {
           setPosition(latlng);
           setLat(latlng.lat.toString());
           setLong(latlng.lng.toString());
+          // Fetch altitude and update state
+          const alt = await getAltitude(latlng.lat, latlng.lng);
+          if (alt !== null) setAltitude(alt.toString());
           // Auto-select "Add a new site" if not already selected
           if (selectedOption !== "new") {
             setSelectedOption("new");
