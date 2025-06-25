@@ -40,7 +40,7 @@ function Weather() {
   const [stationName, setStationName] = useState<string>(""); // State to store the station name
   const [averageWind, setAverageWind] = useState<number | null>(null);
   const [averageRainRate, setAverageRainRate] = useState<number | null>(null);
-  const [averageCO2, setAverageCO2] = useState<number | null>(null);
+  const [averageCO2, setAverageCO2] = useState<number | null>(420); // Default to 1
   const [nContentRainfall, setNContentRainfall] = useState<number | null>(null);
   const [selectedStationData, setSelectedStationData] = useState<any>(null);
   const [tdata, setTData] = useState<WeatherDataCreate[]>([]);
@@ -78,7 +78,7 @@ function Weather() {
       setSite("");
       setAverageWind(null);
       setAverageRainRate(null);
-      setAverageCO2(null);
+      setAverageCO2(420);
       setNContentRainfall(null);
     }
     // console.log(selectedStationData)
@@ -263,7 +263,7 @@ function Weather() {
       // Reset fields if no station is selected
       setAverageWind(null);
       setAverageRainRate(null);
-      setAverageCO2(null);
+      setAverageCO2(420);
       setNContentRainfall(null);
       setSite("");
       setImportType("");
