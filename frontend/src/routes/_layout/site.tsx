@@ -11,7 +11,9 @@ import {
   Grid,
   GridItem,
   Button,
-  Select
+  Select,
+  Alert,
+  AlertIcon
 } from "@chakra-ui/react";
 import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
@@ -214,6 +216,7 @@ const SimpleMap = () => {
         setSaveOption("create");
       }
     } else {
+      // User selected "Select from list" (None)
       if ("geolocation" in navigator) {
         navigator.geolocation.getCurrentPosition(function (position) {
           setPosition({
@@ -224,6 +227,12 @@ const SimpleMap = () => {
       }
       setSaveOption("create");
       setSelectedOption("None");
+      setDraggable(true);      // <-- Add this line
+      setDisable(false);       // <-- Add this line
+      setsitenameInput("");    // Optionally clear site name
+      setAltitude("0");        // Optionally reset altitude
+      setLat(center.lat.toString());      // Optionally reset lat/long to center
+      setLong(center.lng.toString());
     }
   };
 
@@ -232,13 +241,22 @@ const SimpleMap = () => {
       dragend() {
         const marker = markerRef.current;
         if (marker != null) {
-          setPosition(marker.getLatLng());
-          setLat(marker.getLatLng().lat);
-          setLong(marker.getLatLng().lng);
+          const newLatLng = marker.getLatLng();
+          setPosition(newLatLng);
+          setLat(newLatLng.lat);
+          setLong(newLatLng.lng);
+          // Auto-select "Add a new site" if not already selected
+          if (selectedOption !== "new") {
+            setSelectedOption("new");
+            setsitenameInput("");
+            setDisable(false);
+            setDraggable(true);
+            setSaveOption("create");
+          }
         }
       },
     }),
-    []
+    [selectedOption]
   );
 
   const onDelete = () => {
@@ -294,6 +312,12 @@ const SimpleMap = () => {
         Click here to watch the Site Tab video tutorial
       </Link>
 
+      {/* Alert for user guidance */}
+      <Alert status="info" mt={4} mb={4}>
+        <AlertIcon />
+        Drag the marker or use the search box to find and set your site location.
+      </Alert>
+
       {isLoading ? (
         <Flex justify="center" align="center" height="100vh" width="full">
           <Spinner size="xl" color="ui.main" />
@@ -312,6 +336,14 @@ const SimpleMap = () => {
           setPosition(latlng);
           setLat(latlng.lat.toString());
           setLong(latlng.lng.toString());
+          // Auto-select "Add a new site" if not already selected
+          if (selectedOption !== "new") {
+            setSelectedOption("new");
+            setsitenameInput("");
+            setDisable(false);
+            setDraggable(true);
+            setSaveOption("create");
+          }
         }}
       />
       <TileLayer
