@@ -42,13 +42,13 @@ createsoilexe = os.path.join(classimDir, 'CreateSoilFiles.exe')
 maizsimexe = os.path.join(classimDir, 'maizsim')
 
 # Potato model executable
-spudsimexe = os.path.join(classimDir, '2dspudsim.exe')
+spudsimexe = os.path.join(classimDir, 'spudsim')
 
 # Soybean model executable
 glycimexe = os.path.join(classimDir, 'glycim')
 
 # Cotton model executable
-gossymexe = os.path.join(classimDir, '2dgossym.exe')
+gossymexe = os.path.join(classimDir, 'gossym')
 
 # Flag to tell script if output files should be removed, the default is 1 so they are removed
 remOutputFilesFlag = 0
