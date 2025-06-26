@@ -739,17 +739,31 @@ function Weather() {
                 ref={fileInputRef}
                 style={{ display: "none" }}
               />
-              <Button variant='primary' onClick={handleClick}>
-                Choose File
-              </Button>
-              <Button
-                variant='primary'
-                onClick={handleUpload}
-                disabled={!selectedFile}
-                ml={4}
-              >
-                Upload
-              </Button>
+              {/* Show Choose File button only if no file is selected */}
+              {!selectedFile && (
+                <Button variant='primary' onClick={handleClick}>
+                  Choose File
+                </Button>
+              )}
+              {/* Show file name and X if file is selected */}
+              {selectedFile && (
+                <Flex align="center">
+                  <Box mr={2}>{selectedFile.name}</Box>
+                  <Button
+                    size="sm"
+                    colorScheme="red"
+                    variant="ghost"
+                    onClick={() => {
+                      setSelectedFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    aria-label="Remove file"
+                  >
+                    &#10006;
+                  </Button>
+                </Flex>
+              )}
+              {/* Removed the Update button here */}
             </FormControl>
           </>
         )}
@@ -812,7 +826,13 @@ function Weather() {
           type='submit'
           mr={4}
           mb={{ base: 4, md: 0 }}
-          onClick={handleSubmit}
+          onClick={async () => {
+            await handleSubmit();
+            if (importType === "1" && selectedFile) {
+              await handleUpload();
+            }
+          }}
+          isDisabled={importType === "1" && !selectedFile}
         >
           Update
         </Button>

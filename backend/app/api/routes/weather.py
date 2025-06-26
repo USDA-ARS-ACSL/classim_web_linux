@@ -10,6 +10,7 @@ import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 from app.api.deps import SessionDep, CurrentUser
 from app.models import WeatherDatasPublic, WeatherDataPublic, WeatherMeta, WeatherMetasPublic, WeatherMetaPublic, WeatherCreate, WeatherMetaBase, WeatherMetaCreate, WeatherUpdate, Message, WeatherMetaUpdate, WeatherData, SitesPublic, Site, Treatment, Experiment, Operation
+from dateutil import parser
 
 # Create an instance of the FastAPI class
 router = APIRouter()
@@ -156,7 +157,7 @@ def create_station_table(
             stationtype=station_in.stationtype,
             weather_id=station_in.weather_id,
             jday=station_in.jday,
-            date=station_in.date,
+            date=parser.parse(station_in.date).strftime('%Y-%m-%d'),
             hour=station_in.hour,
             srad=station_in.srad,
             wind=station_in.wind,
