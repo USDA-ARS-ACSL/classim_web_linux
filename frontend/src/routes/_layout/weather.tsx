@@ -70,6 +70,7 @@ function Weather() {
   const { data: weatherData } = useQuery({
     queryKey: ["readStationTable", stationType],
     queryFn: () => WeatherService.readStationTable(stationType),
+    enabled: !!selectedStation && !!selectedStationData?.stationtype,
   });
 
   useEffect(() => {

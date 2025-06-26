@@ -76,16 +76,18 @@ def create_station(
 @router.delete("/{id}")
 def delete_station(session: SessionDep, current_user: CurrentUser, id: int) -> Message:
     """
-    Delete an station.
+    Delete a station and its weather data.
     """
     station = session.get(WeatherMeta, id)
     if not station:
         raise HTTPException(status_code=404, detail="station not found")
     if not current_user.is_superuser and (station.owner_id != current_user.id):
         raise HTTPException(status_code=400, detail="Not enough permissions")
+    # Delete all weather data with this weather_id
+    session.query(WeatherData).filter(WeatherData.weather_id == id).delete()
     session.delete(station)
     session.commit()
-    return Message(message="station deleted successfully")
+    return Message(message="station and related weather data deleted successfully")
 
 @router.put("/{id}", response_model=WeatherMetaPublic)
 def update_station(
@@ -108,12 +110,18 @@ def update_station(
 
 @router.get("/data/{stationType}")
 def read_station_data(
-    session: SessionDep, stationType=str, skip: int = 0, limit: int = 5
+    session: SessionDep,current_user: CurrentUser, stationType=str
+    
 ) -> Any:
     """
     Retrieve station.
     """
-    weather_data_query = session.query(WeatherData).filter(WeatherData.stationtype == stationType)
+    query = session.query(WeatherMeta).filter(
+        WeatherMeta.stationtype == stationType,
+        WeatherMeta.owner_id == current_user.id
+    ).first()
+    print(query)
+    weather_data_query = session.query(WeatherData).filter(WeatherData.weather_id == query.id)
     df_weatherdata = pd.read_sql(weather_data_query.statement, session.bind)
     
     weatherSummary = stationType + " Data Availability Report"
@@ -210,6 +218,7 @@ def download(
             url,
             storage_options={'User-Agent': 'Mozilla/5.0'}
         )
+        print(data)
     except Exception as e:
         logger.error(f"Failed to fetch or parse weather data: {e}")
         return {"error": "Website has reported an error. Please, try again later."}
