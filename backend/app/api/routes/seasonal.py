@@ -380,7 +380,7 @@ def WriteIni(cropname,experiment,treatmentname, site, soil, field_path,waterStre
                 rootWeightPerSlab = 0
             elif cropname == "potato":
                 fout.write("Seed  Depth  Length  Bigleaf\n")
-                fout.write(f'{seedpieceMass:-14.6f}{depth:-14.6f}{length:-14.6f}{1}\n')
+                fout.write(f'{seedpieceMass:-14.6f}{depth:-14.6f}{length:-14.6f}{1:-14d}\n')
                 fout.write("Planting          Emergence          End	TimeStep(m)\n")
                 fout.write(f"'{SowingDate}'  '{EmergenceDate}'  '{EndDate}'  {60}\n")
                 fout.write("AutoIrrigate\n")
