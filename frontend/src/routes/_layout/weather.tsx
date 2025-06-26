@@ -9,7 +9,10 @@ import {
   FormLabel,
   Spinner,
   Container,
+  Tooltip,
+  IconButton,
 } from "@chakra-ui/react";
+import { DownloadIcon } from "@chakra-ui/icons";
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
@@ -123,9 +126,18 @@ function Weather() {
     const requiredColumns = ["date", "srad", "rain"];
     const errors: string[] = [];
 
-    const columns = csvData.length ? Object.keys(csvData[0]) : [];
+    // Convert all keys in each row to lowercase
+    const lowerCaseData = csvData.map((row: any) => {
+      const newRow: any = {};
+      Object.keys(row).forEach((key) => {
+        newRow[key.toLowerCase()] = row[key];
+      });
+      return newRow;
+    });
 
-    // Check for required columns
+    const columns = lowerCaseData.length ? Object.keys(lowerCaseData[0]) : [];
+
+    // Check for required columns (all lowercase)
     requiredColumns.forEach((col) => {
       if (!columns.includes(col)) {
         errors.push(`Column ${col} is missing.`);
@@ -146,8 +158,7 @@ function Weather() {
       showToast("Validation Error", errors.join("\n"), "error");
       return false;
     } else {
-      const processedData: WeatherDataCreate[] = csvData;
-      setTData(processedData);
+      setTData(lowerCaseData); // Set processed data with lowercase keys
       return true;
     }
   };
@@ -530,6 +541,13 @@ function Weather() {
     }
   };
 
+  const sampleCsvContent = `jday,date,srad,rain,hour,tmax,tmin,temperature,wind,rh,co2
+1,2024-06-01,15.2,0.0,12,30,20,25,5,60,400
+2,2024-06-02,16.1,0.5,12,32,21,26,6,62,410
+`;
+const sampleCsvBlob = new Blob([sampleCsvContent], { type: "text/csv" });
+const sampleCsvUrl = URL.createObjectURL(sampleCsvBlob);
+
   return (
     <Container maxW='full' mt={[4, 5]} width='80%'>
       <Heading size='lg' textAlign={{ base: "center", md: "left" }} pb={4}>
@@ -739,13 +757,11 @@ function Weather() {
                 ref={fileInputRef}
                 style={{ display: "none" }}
               />
-              {/* Show Choose File button only if no file is selected */}
               {!selectedFile && (
                 <Button variant='primary' onClick={handleClick}>
                   Choose File
                 </Button>
               )}
-              {/* Show file name and X if file is selected */}
               {selectedFile && (
                 <Flex align="center">
                   <Box mr={2}>{selectedFile.name}</Box>
@@ -763,7 +779,22 @@ function Weather() {
                   </Button>
                 </Flex>
               )}
-              {/* Removed the Update button here */}
+              {/* Download Sample CSV Icon Button - only show if no file is selected */}
+              {!selectedFile && (
+                <Tooltip label="Download Sample CSV file" placement="top">
+                  <IconButton
+                    as="a"
+                    href={sampleCsvUrl}
+                    download="sample-weather.csv"
+                    aria-label="Download Sample CSV"
+                    icon={<DownloadIcon />}
+                    variant="outline"
+                    colorScheme="blue"
+                    mt={2}
+                    ml={2}
+                  />
+                </Tooltip>
+              )}
             </FormControl>
           </>
         )}
