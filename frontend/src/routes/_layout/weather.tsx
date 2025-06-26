@@ -25,7 +25,7 @@ import {
   WeatherDataCreate,
   WeatherService,
 } from "../../client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import useCustomToast from "../../hooks/useCustomToast";
 import WeatherTable from "../../components/Weather/WeatherTable";
 import Papa, { ParseResult } from "papaparse";
@@ -48,7 +48,6 @@ function Weather() {
   const [selectedStationData, setSelectedStationData] = useState<any>(null);
   const [tdata, setTData] = useState<WeatherDataCreate[]>([]);
   const [site, setSite] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(false);
   const [importType, setImportType] = useState<string>("");  
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -481,65 +480,58 @@ function Weather() {
     }
   };
 
-  const downloadWeatherTable = async () => {
-    if (!selectedStation || selectedStation === "0") {
-      showToast("Error", "Select station to download.", "error");
-      return;
-    }
-    if (selectedStationData && selectedStationData.id) {
-      try {
-        setIsLoading(true); // Start loading
-        let data = {
-          id: parseInt(selectedStationData.id, 10),
-          con: false,
-        };
-        const response = await WeatherService.downloadWeatherTable(data);
-        if (response) {
-          if (response?.message === "data existed") {
-            const userConfirmed = window.confirm(
-              "There is already data for this site and weather type for this date range.  Would you like to replace this data?"
-            );
-            if (userConfirmed) {
-              data.con = true;
-              const response = await WeatherService.downloadWeatherTable(data);
-              if (!response?.error) {
-                showToast("Successfully", response.message, "success");
-                setSelectedStation("0")
-                setSelectedStationData('')
-              } else {
-                showToast(
-                  "Failed!",
-                  response?.error,
-                  "error"
-                );
-              }
+  const downloadWeatherMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedStation || selectedStation === "0") {
+        showToast("Error", "Select station to download.", "error");
+        throw new Error("No station selected");
+      }
+      if (!selectedStationData || !selectedStationData.id) {
+        showToast(
+          "Error!",
+          "Selected station data or its ID is undefined.",
+          "error"
+        );
+        throw new Error("No station data");
+      }
+      let data = {
+        id: parseInt(selectedStationData.id, 10),
+        con: false,
+      };
+      const response = await WeatherService.downloadWeatherTable(data);
+      if (response) {
+        if (response?.message === "data existed") {
+          const userConfirmed = window.confirm(
+            "There is already data for this site and weather type for this date range.  Would you like to replace this data?"
+          );
+          if (userConfirmed) {
+            data.con = true;
+            const response2 = await WeatherService.downloadWeatherTable(data);
+            if (!response2?.error) {
+              showToast("Successfully", response2.message, "success");
+              setSelectedStation("0");
+              setSelectedStationData("");
             } else {
-              return false;
+              showToast("Failed!", response2?.error, "error");
             }
           } else {
-            if(response.error)
-              showToast("Failed!", response.error, "error");
-            else
-              showToast("Successfully", response.message, "success");
-              setSelectedStation("0")
-              setSelectedStationData('')
+            throw new Error("User cancelled");
           }
         } else {
-          showToast("Failed!", "Failed to download station data.", "error");
+          if (response.error) {
+            showToast("Failed!", response.error, "error");
+          } else {
+            showToast("Successfully", response.message, "success");
+            setSelectedStation("0");
+            setSelectedStationData("");
+          }
         }
-      } catch (error) {
-        showToast("Error!", "Failed to download data", "error");
-      } finally {
-        setIsLoading(false); // End loading
+      } else {
+        showToast("Failed!", "Failed to download station data.", "error");
+        throw new Error("No response");
       }
-    } else {
-      showToast(
-        "Error!",
-        "Selected station data or its ID is undefined.",
-        "error"
-      );
-    }
-  };
+    },
+  });
 
   const sampleCsvContent = `jday,date,srad,rain,hour,tmax,tmin,temperature,wind,rh,co2
 1,2024-06-01,15.2,0.0,12,30,20,25,5,60,400
@@ -809,11 +801,11 @@ const sampleCsvUrl = URL.createObjectURL(sampleCsvBlob);
               </FormLabel>
               <Button
                 variant='primary'
-                onClick={downloadWeatherTable}
-                isLoading={isLoading} // Show loading spinner on button
-                isDisabled={isLoading} // Disable button while loading
+                onClick={() => downloadWeatherMutation.mutate()}
+                isLoading={downloadWeatherMutation.isPending}
+                isDisabled={downloadWeatherMutation.isPending}
               >
-                {isLoading ? <Spinner size='xl' color='ui.main' /> : "Download"}
+                {downloadWeatherMutation.isPending ? <Spinner size='xl' color='ui.main' /> : "Download"}
               </Button>
             </FormControl>
           </>
@@ -883,3 +875,4 @@ const sampleCsvUrl = URL.createObjectURL(sampleCsvBlob);
     </Container>
   );
 }
+

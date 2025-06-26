@@ -210,7 +210,6 @@ def download(
             url,
             storage_options={'User-Agent': 'Mozilla/5.0'}
         )
-        print(data)
     except Exception as e:
         logger.error(f"Failed to fetch or parse weather data: {e}")
         return {"error": "Website has reported an error. Please, try again later."}
@@ -258,27 +257,29 @@ def download(
         numRec = data.shape[0]
         
         try:
+            # Prepare a list of dicts for bulk insert
+            weather_data_dicts = []
             for _, row in data.iterrows():
                 if any(row[['jday', 'hour', 'srad', 'wind', 'rh', 'rain', 'tmax', 'tmin', 'temperature', 'co2']] == ""):
                     continue
-
-                weather_data = WeatherCreate(
-                    stationtype=str(row['stationtype']),
-                    weather_id=id,
-                    jday=float(row['jday']),
-                    date=str(row['date']),
-                    hour=float(row['hour']),
-                    srad=float(row['srad']),
-                    wind=float(row['wind']),
-                    rh=float(row['rh']),
-                    rain=float(row['rain']),
-                    tmax=float(row['tmax']),
-                    tmin=float(row['tmin']),
-                    temperature=float(row['temperature']),
-                    co2=float(row['co2'])
-                )
-                session.add(weather_data)
-            session.commit()
+                weather_data_dicts.append({
+                    "stationtype": str(row['stationtype']),
+                    "weather_id": id,
+                    "jday": float(row['jday']),
+                    "date": str(row['date']),
+                    "hour": float(row['hour']),
+                    "srad": float(row['srad']),
+                    "wind": float(row['wind']),
+                    "rh": float(row['rh']),
+                    "rain": float(row['rain']),
+                    "tmax": float(row['tmax']),
+                    "tmin": float(row['tmin']),
+                    "temperature": float(row['temperature']),
+                    "co2": float(row['co2'])
+                })
+            if weather_data_dicts:
+                session.bulk_insert_mappings(WeatherData, weather_data_dicts)
+                session.commit()
         finally:
             session.close()
 
