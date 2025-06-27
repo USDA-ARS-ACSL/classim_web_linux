@@ -196,7 +196,10 @@ def download(
     """
     Create new station.
     """
-    station = session.get(WeatherMeta, id)
+    station = session.query(WeatherMeta).filter(
+        WeatherMeta.id == id,
+        WeatherMeta.owner_id == current_user.id
+    ).first()
     if not station:
         raise HTTPException(status_code=404, detail="Station not found")
 
@@ -240,9 +243,10 @@ def download(
     maxDate = max(dateList)
     
     count_statement = session.query(func.count()).filter(
-        WeatherData.stationtype == stationType,
+        WeatherData.weather_id == id,
         WeatherData.date > minDate,
-        WeatherData.date < maxDate
+        WeatherData.date < maxDate,
+        
     )
 
     count = session.execute(count_statement).scalar()
