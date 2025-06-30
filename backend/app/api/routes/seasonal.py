@@ -139,9 +139,7 @@ def ingestOutputFile(table_name, g_name, simulationname, session: SessionDep) ->
                           "plantStress_soybean", "g01_cotton", "plantStress_cotton"]:
             # Change date format
             g_df['Date_Time'] = g_df.apply(lambda row: extract_date_time(row['date'], row['time']), axis=1)
-            g_df = g_df.drop(columns=['date', 'time',"sunlit_LAI","shaded_LAI", "sunlit_PFD", "shaded_PFD", "sunlit_An",\
-                                       "shaded_An", "sunlit_Ag", "shaded_Ag", "sunlit_gs", "shaded_gs", "sheathDM",
-                                         "cobDM"],axis=1)
+            g_df = g_df.drop(columns=['date', 'time'],axis=1)
             if table_name == "g01_potato":
                 g_df.rename(columns={'LA/pl': 'LA_pl'}, inplace=True)
             if table_name == "nitrogen_potato":
@@ -623,63 +621,6 @@ def prepare_and_execute( simulation_name, session: SessionDep, current_user_id):
     
     return True
 
-
-# @router.get("/simulationResp/{simulation_name}")
-# async def execute_the_model(
-#     *,simulation_name:int | str,
-# ) -> StreamingResponse:
-#     """After creating the soil, execute the model."""
-#     timeout = 10  # Maximum timeout in seconds
-#     elapsed_time = 0
-#     file_found = False
-
-#     # Wait for the *.g01 file to appear
-#     while elapsed_time < timeout:
-#         print(f"Checking for simulation output file {simulation_name}...")
-#         files = glob.glob(os.path.join(runDir, str(simulation_name), "*.g01"))
-#         if files:
-#             print(f"Simulation output file {simulation_name} found.")
-#             file_found = True
-#             break
-#         await asyncio.sleep(1)  # Wait for 1 second
-#         elapsed_time += 1
-
-#     if not file_found:
-#         raise HTTPException(status_code=404, detail="Simulation output file not found within the timeout period.")
-#     async def simulation_stream():
-#         """
-#         Stream updates from the simulation output file until prepare_and_execute completes.
-#         """
-#         last_position = 0  # Track the last read position in the file
-#         simulation_dir = os.path.join(runDir, str(simulation_name))
-#         done_file = os.path.join(simulation_dir, "done.txt")  # File to signal completion
-
-#         while True:
-#             try:
-#                 # Check if the done file exists
-#                 if os.path.exists(done_file):
-#                     yield f"data: {json.dumps({'message': 'Simulation completed'})} \n\n"
-#                     break  # Stop streaming
-
-#                 # Read the CSV file from the last position
-#                 files = glob.glob(os.path.join(simulation_dir, "*.g01"))
-#                 if files:
-#                     with open(files[0], 'r') as file:
-#                         file.seek(last_position)  # Move to the last read position
-#                         new_data = file.read()  # Read new data
-#                         last_position = file.tell()  # Update the last position
-
-#                         if new_data.strip():  # If there is new data
-#                             df = pd.read_csv(files[0],  skipinitialspace=True, index_col=False)
-#                             for _, row in df.terrows():
-#                                 data = json.dumps({"x": row["LAI"], "y": row["jday"]})
-#                                 yield f"data: {data} \n\n"
-#             except Exception as e:
-#                 yield f"data: {json.dumps({'error': str(e)})} \n\n"
-
-#             await asyncio.sleep(0.001)
-
-#     return StreamingResponse(simulation_stream(), media_type="text/event-stream")
 
 
 
