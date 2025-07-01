@@ -13,17 +13,16 @@ import glob
 import logging
 from datetime import datetime, timedelta
 from fastapi import APIRouter, HTTPException, BackgroundTasks
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 from typing import AsyncGenerator
-
 from app.api.deps import SessionDep, CurrentUser
 from app.models import Message, SimData, seasonRunResponse,Pastrun
 from app.generateModelInputFiles_helper import *
 from app.dbsupport_helper import *
 from sqlalchemy.sql import text
-from dateutil.parser import parse
+from watchfiles import awatch  # Added import for awatch
 import time
+# NOTE: The 'watchfiles' library is required for efficient file watching. Ensure it is installed in your environment.
+
 # Create an instance of the FastAPI class
 router = APIRouter()
 last_read_row = 0
@@ -114,7 +113,7 @@ def checkNaNInOutputFile(table_name,g_name):
 
 
 
-def ingestOutputFile(table_name, g_name, simulationname, session: SessionDep) -> bool:
+def ingestOutputFile(table_name, g_name, simulationname, session: Any) -> bool:
     '''
     Ingest file with output data into the cropOutput database using a SQLAlchemy Session.
     Input:
@@ -170,7 +169,7 @@ def ingestOutputFile(table_name, g_name, simulationname, session: SessionDep) ->
 
 
 
-def ingestGeometryFile(grdFile: str, g03File: str, simulation: str, session: SessionDep) -> bool:
+def ingestGeometryFile(grdFile: str, g03File: str, simulation: str, session: Any) -> bool:
     '''
     Ingest geometry data from .grd and .g03 files into the cropOutput database.
     
@@ -472,7 +471,7 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
     classimDir = os.getcwd()
     return insertion_id
 
-def prepare_and_execute( simulation_name, session: SessionDep, current_user_id):
+def prepare_and_execute( simulation_name, session: Any, current_user_id):
     """
     This will create input files, and execute both exe's.
     """
@@ -624,71 +623,50 @@ def prepare_and_execute( simulation_name, session: SessionDep, current_user_id):
 
 
 
-class CsvFileHandler(FileSystemEventHandler):
-    def __init__(self, queue, file_path):
-        # Store the file_path to check on modification
-        self.queue = queue
-        self.file_path = file_path
+async def stream_csv_selected_columns(file_path: str) -> AsyncGenerator[str, None]:
+    """
+    Async generator to stream only 4 selected columns from a growing CSV file using watchfiles for efficient event-driven tailing.
+    Streams each new row as a JSON object (key-value pairs) via SSE.
+    """
+    columns_to_keep = ["SoilT", "SolRad", "TotLeafDM", "ETdmd"]
+    last_position = 0
+    header = None
+    keep_indices = None
     
-    def on_modified(self, event):
-        # Triggered when the CSV file is modified
-        if event.src_path == self.file_path:
-            self.queue.put_nowait("new_data")  # Signal that there is new data
-
-
-async def read_new_csv_data(file_path: str) -> AsyncGenerator[str, None]:
-    """Async generator to stream new rows from CSV file."""
-    last_position = 0  # Keeps track of where we are in the file
-    header = None  # To store the header row
-
-    while True:
-        with open(file_path, "r") as file:
-            # Move to the last read position
-            file.seek(last_position)
-            reader = csv.reader(file)
-
-            # If header is not yet read, read it first
-            if header is None:
-                header = next(reader, None)
-            # Read new rows and yield them
-            new_rows = []
-            for row in reader:
-                new_rows.append([value.strip() for value in row])
-
-            # Yield each row as data
-            for row in new_rows: # Map header to row values
-                yield f"data: {json.dumps(row)}\n\n"
-
-            # Update the position to the current end of the file
-            last_position = file.tell()
-
-        # Sleep for a short time before checking again for changes
-        await asyncio.sleep(0.001)
-
-async def watch_file(file_path: str, queue: asyncio.Queue) -> AsyncGenerator[str, None]:
-    """Watch the file for changes using watchdog."""
-    event_handler = CsvFileHandler(queue, file_path)
-    observer = Observer()
-    observer.schedule(event_handler, path=os.path.dirname(file_path), recursive=False)
-    observer.start()
-
-    try:
+    # Open the file in text mode
+    with open(file_path, "r") as file:
+        # Read the header
         while True:
-            # Wait for a signal that new data has been added
-            await queue.get()  # Wait for the "new_data" signal
-            # Yield new data from the CSV file
-            async for new_data in read_new_csv_data(file_path):
-                yield new_data
-    except asyncio.CancelledError:
-        observer.stop()
-        observer.join()
+            pos = file.tell()
+            line = file.readline()
+            if not line:
+                file.seek(pos)
+                break
+            if header is None:
+                header = [h.strip() for h in next(csv.reader([line]))]
+                keep_indices = [header.index(col) for col in columns_to_keep if col in header]
+                break
+        last_position = file.tell()
 
+    async for changes in awatch(file_path):
+        # Only process if the file was modified
+        for change, changed_file in changes:
+            if changed_file == file_path:
+                with open(file_path, "r") as file:
+                    file.seek(last_position)
+                    reader = csv.reader(file)
+                    for row in reader:
+                        if keep_indices is not None and len(row) >= max(keep_indices) + 1:
+                            row_dict = {columns_to_keep[i]: row[idx] for i, idx in enumerate(keep_indices)}
+                            print(row_dict)
+                            yield f"data: {json.dumps(row_dict)}\n\n"
+                    last_position = file.tell()
 
 @router.get("/simulationResp/{simulation_name}")
 async def execute_the_model(
     *,simulation_name:int | str,
 ) -> StreamingResponse:
-    """Endpoint to stream new CSV data."""
+    """Endpoint to stream new CSV data using watchfiles for efficient event-driven streaming."""
     timeout = 10  # Maximum timeout in seconds
     elapsed_time = 0
     file_found = False
@@ -704,9 +682,10 @@ async def execute_the_model(
         await asyncio.sleep(1)  # Wait for 1 second
         elapsed_time += 1
     
-    queue = asyncio.Queue()
-    file_path=files[0]
-    return StreamingResponse(watch_file(file_path, queue),media_type="text/event-stream")
+    if not file_found:
+        raise HTTPException(status_code=404, detail="Simulation output file not found.")
+    file_path = files[0]
+    return StreamingResponse(stream_csv_selected_columns(file_path), media_type="text/event-stream")
 
 
 # Modify the route to use asyncio.create_task
@@ -768,7 +747,7 @@ def create_soil(
         raise HTTPException(status_code=500, detail="An error occurred during the simulation process.")
     
 @router.get("/seasonRun/{simulation_name}", status_code=202)
-async def get_simulation_results(background_tasks: BackgroundTasks,simulation_name: int, session: SessionDep,current_user: CurrentUser) -> Any:
+async def get_simulation_results(background_tasks: BackgroundTasks, simulation_name: int, session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Get simulation results.
     """

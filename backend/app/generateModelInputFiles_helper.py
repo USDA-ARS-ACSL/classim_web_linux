@@ -543,7 +543,7 @@ def WriteNitData(soilname, field_name, field_path, rowSpacing,session):
     # Writes Soil Nitrogen parameters into *.nit FILE
     soilnitrogen_list = read_soilnitrogenDB(soilname,session)
     NCount = len(soilnitrogen_list)        
-    MaxX = rowSpacing / 2  # Maximum width of grid
+    MaxX = rowSpacing / 100  # Maximum width of grid
 
     CODEC = "UTF-8"
     filename = os.path.join(field_path, f"{field_name}.nit")

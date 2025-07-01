@@ -5,7 +5,7 @@ from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
 from app.models import PastrunsPublic, Pastrun, Togetsimoutput
-from app.dbsupport_helper import read_experimentDB_id, read_treatmentDB_id, read_operationsDB_id, readOpDetails, getMaizeDateByDev, getMaizeAgronomicData
+from app.dbsupport_helper import read_experimentDB_id, read_treatmentDB_id, getCottonAgronomicData,read_operationsDB_id, readOpDetails, getMaizeDateByDev, getMaizeAgronomicData,getMaturityDate,getSoybeanDevDate,getPotatoAgronomicData,getSoybeanAgronomicData 
 
 router = APIRouter()
 
@@ -32,7 +32,8 @@ def read_pastrun(
 def read_exp_data(
     session: SessionDep, simid: int, current_user: CurrentUser,
 ) -> Any:
-  
+    totalNAppl = 0
+    totalirrAppl = 0
     statement = (
         select(Pastrun.treatment)
         .where(Pastrun.id == simid)
@@ -52,6 +53,7 @@ def read_exp_data(
 
             initCond = readOpDetails(jj[0], jj[1], session)
             plantDensity = initCond[0][3]
+            print("plantDensity+++++++++++++++++++++", plantDensity)
             eomult = initCond[0][8]
             rowSP = initCond[0][9]
             cultivar = initCond[0][10]
@@ -62,7 +64,7 @@ def read_exp_data(
         if jj[1] == 'Tillage':
             TillageDate = jj[2]
 
-        if jj[1] in "Fertilizer":
+        if jj[1] == "Fertilizer":
             FertilizerDateList.append(jj[2])
             fertInfo = readOpDetails(jj[0], jj[1], session)
             for j in range(len(fertInfo)):
@@ -100,7 +102,7 @@ def read_exp_data(
     if len(PGRDateList) >= 1:
         PGRDate = ", "
         PGRDate = PGRDate.join(PGRDateList)
-
+    result_dict = {}
     if cropname == "maize":
         # EmergenceDate = getMaizeDateByDev(simid,"Emerged")
         # TasseledDate = getMaizeDateByDev(simid,"Tasseled")
@@ -111,10 +113,19 @@ def read_exp_data(
             agroDataTuple = getMaizeAgronomicData(simid, MaturityDate, session)
         else:
             agroDataTuple = getMaizeAgronomicData(simid, HarvestDate, session)
-    print("till here")
-    result_dict = {}
-    result_dict['Yield'] = agroDataTuple[0] * plantDensity * 10
-    result_dict['Total_biomass'] = agroDataTuple[1] * plantDensity * 10
-    result_dict['Nitrogen_Uptake'] = agroDataTuple[2] * plantDensity * 10
+
+    elif cropname=="potato":
+        MaturityDate = getMaturityDate(simid, session)
+        agroDataTuple = getPotatoAgronomicData(simid, HarvestDate, session)
+
+    elif cropname == "soybean":
+        MaturityDate= getSoybeanDevDate(simid,7,session)
+        agroDataTuple = getSoybeanAgronomicData(simid, HarvestDate,session)
+    elif cropname == "cotton":
+        agroDataTuple = getCottonAgronomicData(simid,session)
+    # Ensure all values are float for safe multiplication
+    result_dict['Yield'] = round(float(agroDataTuple[0]) * float(plantDensity) * 10, 2)
+    result_dict['Total_biomass'] = round(float(agroDataTuple[1]) * float(plantDensity) * 10, 2)
+    result_dict['Nitrogen_Uptake'] = round(float(agroDataTuple[2]) * float(plantDensity) * 10, 2)
     return result_dict
 

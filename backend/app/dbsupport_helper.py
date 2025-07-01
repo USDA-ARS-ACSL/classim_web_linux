@@ -286,6 +286,57 @@ def getMaizeDateByDev(sim_id:int ,maizePhase: str, session:SessionDep):
     return rlist
 
 
+def getMaturityDate(sim_id:int ,session:SessionDep):
+    '''
+  Returns date for maturity date.
+  Input:
+    sim_id = simulation id
+  Output:
+    maturity date
+    '''
+    rlist = "" # list
+    query= text("""select min("Date_Time") from g01_potato where "Stage" > 10 and g01_potato_id=:id""")
+    result= session.execute(query, {'id': sim_id})
+
+    row = result.fetchone()
+    if row:
+        if isinstance(row[0], str):
+            # Try to parse the string to a datetime object
+            try:
+                dt_obj = datetime.strptime(row[0], '%Y-%m-%d')  # or the format your DB returns
+                rlist = dt_obj.strftime('%m/%d/%Y')
+            except Exception:
+                rlist = row[0]  # fallback: just return the string
+        else:
+            rlist = row[0].strftime('%m/%d/%Y')
+    else:
+        rlist = "N/A"
+    return rlist
+
+
+def getSoybeanDevDate(sim_id, rstage, session:SessionDep):
+    '''
+  Returns the date for a soybean plant development stage.
+  Input:
+    sim_id = simulation id
+    rstage = index that will corespond with a development stage
+  Output:
+    date
+    '''
+    rlist = "" # list
+    query= text("""select min("Date_Time") from g01_soybean where "RSTAGE" >= :rstage and g01_soybean_id=:sim_id""")
+    result= session.execute(query, {
+        'rstage': rstage,
+        'sim_id': sim_id
+    })
+    row = result.fetchone()
+    if row:
+        if row[0] is not None:
+            rlist = row[0].strftime('%m/%d/%Y')
+        else:
+            rlist = "N/A"
+        return rlist
+
 def getMaizeAgronomicData(sim_id, date, session:SessionDep):
     '''
   Returns maize agronomical date.
@@ -310,6 +361,86 @@ def getMaizeAgronomicData(sim_id, date, session:SessionDep):
     if c1row != None:
         rlist = c1row
 
+    return rlist
+
+
+def getPotatoAgronomicData(sim_id, date,session:SessionDep):
+    '''
+  Returns agronomical date.
+  Input:
+    sim_id = simulation id
+    date = maturity date
+  Output:
+    tuberDM = yield
+    totalDM = total biomass
+    Tr-Act = transpiration
+    '''
+    rlist = None # list   
+    harvestDate = dt.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
+    query= text("""select max("tuberDM"), max("totalDM"), sum("Tr-Act") from g01_potato where g01_potato_id=:id and "Date_Time" <= :time""")
+    result= session.execute(query, {
+        'id': sim_id,
+        'time': harvestDate+'%',
+    })
+    c = result.fetchone()
+    rlist = [] 
+    if c is not None:
+        rlist = c
+    else:
+        rlist = (0, 0, 0)
+    return rlist
+
+
+def getSoybeanAgronomicData(sim_id, date, session:SessionDep):
+    '''
+  Returns soybean agronomical date.
+  Input:
+    sim_id = simulation id
+    date = maturity date
+  Output:
+    seedDM = yield
+    totalDM = total biomass
+    Tr_act = transpiration
+    '''
+    rlist = None # list   
+    harvestDate = dt.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
+    query= text("""select max("seedDM"), max("totalDM"), sum("Tr_act") from g01_soybean where g01_soybean_id=:id and "Date_Time" <= :time""")
+    result= session.execute(query, {
+        'id': sim_id,
+        'time': harvestDate+'%',
+    })
+    c = result.fetchone()
+    rlist = [] 
+    if c is not None:
+        rlist = c
+    else:
+        rlist = (0, 0, 0)
+    return rlist
+
+
+def getCottonAgronomicData(sim_id,session:SessionDep):
+    '''
+  Returns cotton agronomic data.
+  Input:
+    sim_id = simulation id
+  Output:
+    date
+    yield
+    PlantDM (total biomass)
+    N_uptake
+    '''
+    query=text("""select "Yield", "PlantDM", "N_uptake","Date_Time" from g01_cotton where g01_cotton_id=:sim_id ORDER BY "Date_Time" DESC LIMIT 1""")
+    result = session.execute(query, {
+        'sim_id': sim_id,
+    })
+    
+    rlist = []
+    c = result.fetchone()
+    print(query, c, "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+    if c is None:
+        rlist = (None, 0, 0, 0) 
+    else:
+        rlist=c
     return rlist
 
 

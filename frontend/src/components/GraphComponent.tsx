@@ -9,7 +9,6 @@ interface DataPoint {
   SolRad: number;
   TotLeafDM: number;
   ETdmd: number;
-  shaded_LAI: number;
 }
 
 interface GraphComponentProps {
@@ -34,29 +33,19 @@ const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID }) => {
     };
 
     eventSource.onmessage = (event: MessageEvent) => {
-
       try {
         const line = event.data.trim();
-  
-        const values = JSON.parse(line.replace("data:", "").trim())
-      .map((v: any) => (typeof v === "string" ? v.trim() : v));
-          // Map the data to the required fields
-          const newPoint: DataPoint = {
-            x: xRef.current++, // Increment x to track time
-            SoilT: parseFloat(values[13]), // Assuming "SoilT" is at index 13
-            SolRad: parseFloat(values[12]), // Assuming "SolRad" is at index 12
-            TotLeafDM: parseFloat(values[44]), // Assuming "TotLeafDM" is at index 42
-            ETdmd: parseFloat(values[16]), // Assuming "ETdmd" is at index 16
-            shaded_LAI: parseFloat(values[23]), // Assuming "shaded_LAI" is at index 23
-          };
-
-          // Validate the numeric values before adding to the chart
-          if (Object.values(newPoint).every((val) => !isNaN(val))) {
-            setData((prev) => [...prev, newPoint].slice(-MAX_POINTS)); // Keep only the latest MAX_POINTS
-          } else {
-            console.warn("Invalid numeric data:", newPoint);
-          }
-
+        const obj = JSON.parse(line.replace("data:", "").trim());
+        const newPoint: DataPoint = {
+          x: xRef.current++,
+          SoilT: parseFloat(obj.SoilT),
+          SolRad: parseFloat(obj.SolRad),
+          TotLeafDM: parseFloat(obj.TotLeafDM),
+          ETdmd: parseFloat(obj.ETdmd),
+        };
+        if (Object.values(newPoint).every((val) => !isNaN(val))) {
+          setData((prev) => [...prev, newPoint].slice(-MAX_POINTS));
+        }
       } catch (err) {
         console.error("Error processing event data:", err);
       }
@@ -115,7 +104,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID }) => {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}>
-      {["SoilT", "SolRad", "TotLeafDM", "ETdmd", "shaded_LAI"].map((key) => (
+      {["SoilT", "SolRad", "TotLeafDM", "ETdmd"].map((key) => (
         <div key={key} style={{ border: "2px solid black", padding: "10px" }}>
           <HighchartsReact
             highcharts={Highcharts}
