@@ -273,13 +273,12 @@ def getMaizeDateByDev(sim_id:int ,maizePhase: str, session:SessionDep):
     '''
     rlist = "" 
     query = text("""select min("Date_Time") from g01_maize where g01_maize_id=:id and "Note"=:phase""")
-
     result = session.execute(query, {
         'id': sim_id,
         'phase': maizePhase,
     })
     row = result.fetchone()
-    if row:
+    if row[0] is not None:
         rlist = row[0].strftime('%m/%d/%Y')
     else:
         rlist="N/A"
@@ -299,18 +298,10 @@ def getMaturityDate(sim_id:int ,session:SessionDep):
     result= session.execute(query, {'id': sim_id})
 
     row = result.fetchone()
-    if row:
-        if isinstance(row[0], str):
-            # Try to parse the string to a datetime object
-            try:
-                dt_obj = datetime.strptime(row[0], '%Y-%m-%d')  # or the format your DB returns
-                rlist = dt_obj.strftime('%m/%d/%Y')
-            except Exception:
-                rlist = row[0]  # fallback: just return the string
-        else:
-            rlist = row[0].strftime('%m/%d/%Y')
+    if row[0] is not None:
+        rlist = row[0].strftime('%m/%d/%Y')
     else:
-        rlist = "N/A"
+        rlist="N/A"
     return rlist
 
 

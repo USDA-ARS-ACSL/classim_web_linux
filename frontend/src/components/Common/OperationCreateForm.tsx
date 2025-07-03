@@ -15,6 +15,7 @@ import {
   FormLabel,
   VStack,
   HStack,
+  useToast,
 } from "@chakra-ui/react";
 import CustomDatePicker from "./CustomDatePicker";
 import { ManagementService } from "../../client/services";
@@ -75,6 +76,7 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
   );
   const [dropdownData, setDropdownData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const toast = useToast();
 
   const isRes = operationType === "s_residue";
   const isIrr = operationType === "irrgationType";
@@ -148,6 +150,29 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
       console.error("Failed to save operation", error);
     } finally {
       setIsSubmitting(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await ManagementService.deleteOperation({ opID: operationID });
+      toast({
+        title: "Operation Deleted",
+        description: "The operation has been deleted successfully.",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+      if (onOperationSaved) onOperationSaved();
+      onClose();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete operation.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
   };
 
@@ -393,6 +418,11 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
           <Button colorScheme="blue" onClick={handleSave} isLoading={isSubmitting}>
             {editMode ? "Update" : "Save"}
           </Button>
+          {editMode && (
+            <Button colorScheme="red" ml={3} onClick={handleDelete} isLoading={isSubmitting}>
+              Delete
+            </Button>
+          )}
         </ModalFooter>
       </ModalContent>
     </Modal>
