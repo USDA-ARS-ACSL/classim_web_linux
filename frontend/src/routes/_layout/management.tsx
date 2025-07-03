@@ -50,8 +50,9 @@ import FaqComponent from "../../components/Faqs/FaqComponent";
 import SimulationStart from "../../components/Management/SimulationStart";
 import { useDisclosure } from "@chakra-ui/react"; // For modal control
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
-import CustomDatePicker from "../../components/Common/CustomDatePicker";
 import OperationUI from "../../components/Common/OperationCreateForm";
+import { OperationForm } from "../../components/Common/OperationCreateForm";
+import CustomDatePicker from "../../components/Common/CustomDatePicker";
 
 const managementApi = {
   getCrops: async () => {
@@ -128,15 +129,6 @@ const managementApi = {
   },
 }
 
-  const handleEditOperation = async (op: any) => {
-    try {
-      const data = await ManagementService.getFullOperationById(op);
-      console.log("Fetched operation data:", data);
-      // Add operationType for edit form
-    } catch (e) {
-      console.error("Error fetching operation data:", e);
-    }
-  };
 const cropManager = () => {
 
   const toast = useToast();
@@ -167,6 +159,10 @@ const cropManager = () => {
   // Add state for editing operation dates
   const [editingOp, setEditingOp] = useState<string | null>(null);
   const [editedDate, setEditedDate] = useState<string>("");
+  // State for editing a full operation
+  const [editOperationModal, setEditOperationModal] = useState<{ open: boolean, opData: any | null }>({ open: false, opData: null });
+  const [editOperationType, setEditOperationType] = useState<string | null>(null);
+  const [editOperationID, setEditOperationID] = useState<number | null>(null);
   // const inputRef = useRef<HTMLInputElement>(null);
   const { data: crops } = useQuery({ queryKey: ["crops"], queryFn: managementApi.getCrops })
   const { data: experiments } = useQuery({
@@ -474,7 +470,69 @@ console.log(simulationStartData)
     setEditedDate("");
   };
 
+  const handleEditOperation = async (op_id: number) => {
+    try {
+      const data = await ManagementService.getFullOperationById(op_id);
 
+      // Map backend response to OperationFormData
+      let operationType = "";
+      let initialData = {};
+
+      if (data.fertilization) {
+        operationType = "fertilization";
+        initialData = {
+          class: data.fertilization.fertilizationClass,
+          date: data.operation.odate,
+          depth: data.fertilization.depth,
+          n: data.fertilization_nutrients?.[0]?.nutrientQuantity,
+          carbon: data.fertilization_nutrients?.[1]?.nutrientQuantity,
+        };
+      } else if (data.surface_residue) {
+        operationType = "s_residue";
+        initialData = {
+          date: data.operation.odate,
+          residue: data.surface_residue.residueType,
+          appType: data.surface_residue.applicationType,
+          appValue: data.surface_residue.applicationTypeValue,
+        };
+      } else if (data.irrigation_pivot || data.irrigation_floodH || data.irrigation_floodR) {
+        operationType = "irrgationType";
+        if (data.irrigation_pivot) {
+          initialData = {
+            irrType: "Sprinkler",
+            date: data.operation.odate,
+            rate: data.irrigation_pivot.AmtIrrAppl,
+          };
+        } else if (data.irrigation_floodH) {
+          initialData = {
+            irrType: "FloodH",
+            depth: data.irrigation_floodH.pondDepth,
+            startDate: data.irrigation_floodH.startDate,
+            startTime: data.irrigation_floodH.startTime,
+            endDate: data.irrigation_floodH.endDate,
+            endTime: data.irrigation_floodH.endTime,
+          };
+        } else if (data.irrigation_floodR) {
+          initialData = {
+            irrType: "FloodR",
+            depth: data.irrigation_floodR.pondDepth,
+            startDate: data.irrigation_floodR.startDate,
+            startTime: data.irrigation_floodR.startTime,
+            endDate: data.irrigation_floodR.endDate,
+            endTime: data.irrigation_floodR.endTime,
+            rate: data.irrigation_floodR.rate,
+          };
+        }
+      }
+      // Add more mappings for other operation types as needed
+
+      setEditOperationType(operationType);
+      setEditOperationID(op_id);
+      setEditOperationModal({ open: true, opData: initialData });
+    } catch (e) {
+      console.error("Error fetching operation data:", e);
+    }
+  };
 
   return (
 
@@ -769,10 +827,17 @@ console.log(simulationStartData)
               <Text fontSize="lg" mb={2}>
                 Operations for Treatment: {selectedTmtName}
               </Text>
-      {/* Operation Creation Dropdown and Button */}
-            <HStack spacing={2} mb={4} width={"100%"}>
-              <OperationUI treatmentId={selectedTmt} operationID={-10}/>
-            </HStack>
+              {/* Operation Creation Dropdown and Button - always at the top */}
+              <HStack spacing={2} mb={4} width={"100%"}>
+                <OperationUI 
+                  treatmentId={selectedTmt} 
+                  operationID={-10}
+                  onOperationSaved={() => {
+                    // Invalidate and refetch operations after new op is created
+                    queryClient.invalidateQueries({ queryKey: ["operations", selectedTmt] });
+                  }}
+                />
+              </HStack>
               {operations.length > 0 ? (
                 operations.map((op) => (
                   // Only show Tillage if it has a date, otherwise show all other ops
@@ -845,11 +910,15 @@ console.log(simulationStartData)
                               Update Data
                             </Button>
                           )}
-                          {["Surface Residue", "Irrigation", "Fertilizer"].includes(op.name) && (
+                          {[
+                            "Surface Residue",
+                            "Irrigation",
+                            "Fertilizer"
+                          ].includes(op.name) && (
                             <Button
                               size="sm"
                               colorScheme="blue"
-                              onClick={() => handleEditOperation(op.op_id)} 
+                              onClick={() => handleEditOperation(op.op_id)}
                             >
                               Edit
                             </Button>
@@ -861,6 +930,21 @@ console.log(simulationStartData)
                 ))
               ) : (
                 <Text>No operations available</Text>
+              )}
+              {/* Edit Operation Modal */}
+              {editOperationModal.open && editOperationModal.opData && (
+                <OperationForm
+                  operationType={editOperationType || ""}
+                  onClose={() => setEditOperationModal({ open: false, opData: null })}
+                  treatmentId={selectedTmt}
+                  operationID={editOperationID || -10}
+                  initialData={editOperationModal.opData}
+                  editMode={true}
+                  onOperationSaved={() => {
+                    setEditOperationModal({ open: false, opData: null });
+                    queryClient.invalidateQueries({ queryKey: ["operations", selectedTmt] });
+                  }}
+                />
               )}
               {/* Modal for SimulationStart */}
               <Modal isOpen={isOpen} onClose={onClose} size="xl">

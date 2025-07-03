@@ -63,9 +63,11 @@ interface OperationFormProps {
   operationID?: number;
   initialData?: OperationFormData;
   hideDropdown?: boolean;
+  editMode?: boolean;
+  onOperationSaved?: () => void;
 }
 
-const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, treatmentId, operationID = -10, initialData, hideDropdown }) => {
+const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, treatmentId, operationID = -10, initialData, hideDropdown, editMode = false, onOperationSaved }) => {
   // Set default class to 'Manure' if isFert
   const isFert = operationType === "fertilization";
   const [formData, setFormData] = useState<OperationFormData>(
@@ -140,6 +142,7 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
         }
       };
       await ManagementService.createOrUpdateOperation({ requestBody: payload });
+      if (onOperationSaved) onOperationSaved();
       onClose();
     } catch (error) {
       console.error("Failed to save operation", error);
@@ -152,10 +155,11 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
     <Modal isOpen onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{`Create ${String(operationType)} Operation`}</ModalHeader>
+        <ModalHeader>{editMode ? `Edit ${String(operationType)} Operation` : `Create ${String(operationType)} Operation`}</ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={4} align="stretch">
+
             {!hideDropdown && isFert && (
               <>
                 <FormControl>
@@ -163,6 +167,7 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                   <Select
                     value={formData.class || ""}
                     onChange={(e) => handleChange("class", e.target.value as FertilizationClass)}
+                    isDisabled={editMode}
                   >
                     {dropdownData.fertilization && dropdownData.fertilization.map((item: string) => (
                       <option key={item} value={item}>
@@ -213,6 +218,7 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                 <FormControl>
                   <FormLabel>Surface Residue</FormLabel>
                   <Select
+                    value={formData.residue || ""}
                     onChange={(e) => handleChange("residue", e.target.value as SurfaceResidue)}
                   >
                     {dropdownData.s_residue && dropdownData.s_residue.map((item: string) => (
@@ -225,6 +231,7 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                 <FormControl>
                   <FormLabel>Application Type</FormLabel>
                   <Select
+                    value={formData.appType || ""}
                     onChange={(e) => handleChange("appType", e.target.value)}
                   >
                     <option value="Mass">Mass</option>
@@ -234,6 +241,7 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                 <FormControl>
                   <FormLabel>Application Value</FormLabel>
                   <Input
+                    value={formData.appValue || ""}
                     onChange={(e) => handleChange("appValue", e.target.value)}
                   />
                 </FormControl>
@@ -383,7 +391,7 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
         </ModalBody>
         <ModalFooter>
           <Button colorScheme="blue" onClick={handleSave} isLoading={isSubmitting}>
-            Save
+            {editMode ? "Update" : "Save"}
           </Button>
         </ModalFooter>
       </ModalContent>
@@ -391,31 +399,36 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
   );
 };
 
-const OperationCreateForm = ({ treatmentId, operationID = -10 }: { treatmentId: number; operationID?: number }) => {
-  const [selectedType, setSelectedType] = useState<string>("");
+const OperationCreateForm = ({ treatmentId, operationID = -10, editMode = false, initialData, operationType, onOperationSaved }: { treatmentId: number; operationID?: number; editMode?: boolean; initialData?: OperationFormData; operationType?: string; onOperationSaved?: () => void }) => {
+  const [selectedType, setSelectedType] = useState<string>(operationType || "");
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [dropdownData, setDropdownData] = useState<any>({});
-  const [operations, setOperations] = useState<any[]>([]); // Store all operations
-console.log(operations)
+
   useEffect(() => {
     getOperationDropDown().then(setDropdownData);
-    // Fetch all operations for the current treatment
-    if (treatmentId) {
-      ManagementService.getOperationsByTreatment({ o_t_exid: treatmentId }).then((data) => {
-        setOperations(data.data || []);
-      });
-    }
-  }, [treatmentId]);
+  }, []);
 
   const handleOperationCreated = () => {
-    // Refresh operations after creation
-    if (treatmentId) {
-      ManagementService.getOperationsByTreatment({ o_t_exid: treatmentId }).then((data) => {
-        setOperations(data.data || []);
-      });
-    }
+    // No need to fetch operations here, handled by parent
+    if (onOperationSaved) onOperationSaved();
     onClose();
   };
+
+  // If in edit mode, open modal immediately and pass props
+  if (editMode && operationType && initialData) {
+    return (
+      <OperationForm
+        operationType={operationType}
+        onClose={onClose}
+        treatmentId={treatmentId}
+        operationID={operationID}
+        initialData={initialData}
+        hideDropdown={true}
+        editMode={true}
+        onOperationSaved={handleOperationCreated}
+      />
+    );
+  }
 
   return (
     <HStack 
@@ -446,10 +459,11 @@ console.log(operations)
         Create Operation
       </Button>
       {isOpen && selectedType && (
-        <OperationForm operationType={selectedType} onClose={handleOperationCreated} treatmentId={treatmentId} operationID={operationID} />
+        <OperationForm operationType={selectedType} onClose={handleOperationCreated} treatmentId={treatmentId} operationID={operationID} onOperationSaved={handleOperationCreated} />
       )}
     </HStack>
   );
 };
 
 export default OperationCreateForm;
+export { OperationForm };

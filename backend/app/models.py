@@ -893,7 +893,8 @@ class TillageType(SQLModel, table=True):
     
 class FertNutOp(SQLModel, table=True):
     __tablename__ = 'fertNutOp'
-    opID : int | None = Field(default=None, primary_key=True)
+    id:int | None = Field(default=None, primary_key=True)
+    opID : int | None = None
     nutrient: str | None = None
     nutrientQuantity:  float | None = None
 
