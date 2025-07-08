@@ -1447,6 +1447,7 @@ class Pastrun(Pastrunbase, table=True):
     rainVar: int
     CO2Var: int
     owner_id:int
+    status: int
    
 
 

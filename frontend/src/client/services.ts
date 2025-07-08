@@ -747,7 +747,21 @@ export class SimulationService {
     });
   }
 
-
+public static deleteSimulation(
+    data: { id: number }
+  ): CancelablePromise<Message> {
+    const { id } = data;
+    return __request(OpenAPI, {
+      method: "DELETE",
+      url: "/api/v1/seasonaloutput/delete/{id}",
+      path: {
+        id,
+      },
+      errors: {
+        422: `Validation Error`,
+      },
+    });
+  }
 
   public static readOutputdata(
     data: TdataFetchSimOutput

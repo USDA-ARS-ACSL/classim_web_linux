@@ -233,14 +233,14 @@ def delete_pastrunsDB(id: str, cropname: str, session: SessionDep) -> bool:
         True if successful
     '''
     # Delete the pastrun entry
-    query = "DELETE FROM pastruns WHERE id = :id"
-    session.execute(query, {'id': id})
+    # query = "DELETE FROM pastruns WHERE id = :id"
+    # session.execute(query, {'id': id})
     
-    session.commit()
+    # session.commit()
 
-    # Delete the directory that was created with the simulation information
-    sim_dir = os.path.join(dbDir, id)
-    shutil.rmtree(sim_dir, ignore_errors=True)
+    # # Delete the directory that was created with the simulation information
+    # sim_dir = os.path.join(dbDir, id)
+    # shutil.rmtree(sim_dir, ignore_errors=True)
 
     # Delete simulations on the cropOutput database tables
     delete_cropOutputSim(id, cropname, session)
@@ -435,7 +435,7 @@ def getCottonAgronomicData(sim_id,session:SessionDep):
     return rlist
 
 
-def read_cultivar_DB_detailed(hybridname: str, cropname: str, session: SessionDep):
+def read_cultivar_DB_detailed(hybridname: str, cropname: str, session: SessionDep,current_user_id=None) -> Any:
     '''
     Extracts the link id from cropname and croptable. With linkid, we can query cultivar_* table to get details of the crop variety.
     This one gives a lot more parameters.
@@ -452,7 +452,7 @@ def read_cultivar_DB_detailed(hybridname: str, cropname: str, session: SessionDe
                "RRRM","RRRY","RVRL","ALPM","ALPY","RTWL","RTMinWTperArea","EPSI","IUPW","CourMax","Diffx","Diffz","VelZ",
                "lsink","Rroot","Constl_M","ConstK_M","Cmin0_M","ConstI_Y","ConstK_Y","Cmin0_Y","hybridname"
         FROM cultivar_maize
-        WHERE hybridname = :hybridname
+        WHERE hybridname = :hybridname AND owner_id = :owner
         """)
     elif cropname == "potato":
         query = text("""
@@ -460,7 +460,7 @@ def read_cultivar_DB_detailed(hybridname: str, cropname: str, session: SessionDe
                "EPSI","IUPW","CourMax","Diffx","Diffz","VelZ","lsink","Rroot","Constl_M","ConstK_M","Cmin0_M","ConstI_Y",
                "ConstK_Y","Cmin0_Y"
         FROM cultivar_potato
-        WHERE hybridname = :hybridname
+        WHERE hybridname = :hybridname AND owner_id = :owner
         """)
     elif cropname == "soybean":
         query = text("""
@@ -468,7 +468,7 @@ def read_cultivar_DB_detailed(hybridname: str, cropname: str, session: SessionDe
               "g2","g3","g4","g5","g6","g7","g8","g9","RRRM","RRRY","RVRL","ALPM","ALPY","RTWL","RTMinWTperArea","EPSI",
               "IUPW","CourMax","Diffx","Diffz","VelZ","lsink","Rroot","Constl_M","ConstK_M","Cmin0_M","ConstI_Y","ConstK_Y","Cmin0_Y"
         FROM cultivar_soybean
-        WHERE hybridname = :hybridname
+        WHERE hybridname = :hybridname AND owner_id = :owner
         """)
     elif cropname == "cotton":
         query = text("""
@@ -477,9 +477,9 @@ def read_cultivar_DB_detailed(hybridname: str, cropname: str, session: SessionDe
                calbrt36, calbrt37, calbrt38, calbrt39, calbrt40, calbrt41, calbrt42, calbrt43, calbrt44, calbrt45,
                calbrt47, calbrt48, calbrt49, calbrt50, calbrt52, calbrt57
         FROM cultivar_cotton
-        WHERE hybridname = :hybridname
+        WHERE hybridname = :hybridname AND owner_id = :owner
         """)
-    result = session.execute(query, {'hybridname': hybridname})
+    result = session.execute(query, {'hybridname': hybridname, 'owner': current_user_id})
     resp=result.fetchone()
     return resp
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Container,
@@ -19,6 +19,7 @@ import {
   TabPanels,
   FormLabel,
 } from "@chakra-ui/react";
+import { DeleteIcon } from "@chakra-ui/icons";
 import { createFileRoute } from "@tanstack/react-router";
 import { SimulationApiResponse } from "../../client/models";
 import { SimulationService, ApiError } from "../../client"; // Adjust path as needed
@@ -26,6 +27,21 @@ import FaqComponent from "../../components/Faqs/FaqComponent";
 import NextPreviousButtons from "../../components/Common/NextPreviousButtons";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import useCustomToast from "../../hooks/useCustomToast";
+
+// StatusBar component for showing progress/status
+function StatusBar({ status }: { status: number | null | undefined }) {
+  if (status == null) return <Text color="red.400">Failed</Text>;
+  if (status === 101) return <Text color="green.500">Completed</Text>;
+  if (status === 1001) return <Text color="orange.400">Started</Text>;
+  if (status < 0) return <Text color="red.500">Failed</Text>;
+  // Show progress bar for 0-100
+  return (
+    <Box w="100px" bg="gray.100" borderRadius="md" overflow="hidden">
+      <Box style={{ width: `${Math.min(100, status)}%` }} h="8px" bg="blue.400" />
+      <Text fontSize="xs" textAlign="center">{status}%</Text>
+    </Box>
+  );
+}
 
 const SeasonalOutput: React.FC = () => {
   const queryClient = useQueryClient();
@@ -38,6 +54,66 @@ const SeasonalOutput: React.FC = () => {
   const simulations = response?.data || [];
   const [selectedSimulations, setSelectedSimulations] = useState<number[]>([]);
   const [simulationOutputs, setSimulationOutputs] = useState<Record<number, { Yield: any; Nitrogen: any; Total_biomass: any }>>({});
+  // Status polling state
+  const [statusMap, setStatusMap] = useState<Record<number, number | null>>({});
+
+  // Poll status every 3 seconds only if any simulation is in progress
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    const pollStatus = () => {
+      SimulationService.readSimulations().then((resp) => {
+        const newStatusMap: Record<number, number | null> = {};
+        let anyStarted = false;
+        (resp.data || []).forEach((sim: any) => {
+          newStatusMap[sim.id] = sim.status;
+          // Consider "Started" as status === -1, and "in progress" as 0 <= status < 101
+          if (sim.status === -1 || (sim.status != null && sim.status >= 0 && sim.status < 101)) {
+            anyStarted = true;
+          }
+        });
+        setStatusMap(newStatusMap);
+        // If nothing is in started or in progress, stop polling
+        if (!anyStarted && interval) {
+          clearInterval(interval);
+          interval = null;
+        }
+      });
+    };
+    // Initial check if any simulation is started or in progress
+    const initialCheck = () => {
+      SimulationService.readSimulations().then((resp) => {
+        const newStatusMap: Record<number, number | null> = {};
+        let anyStarted = false;
+        (resp.data || []).forEach((sim: any) => {
+          newStatusMap[sim.id] = sim.status;
+          if (sim.status === -1 || (sim.status != null && sim.status >= 0 && sim.status < 101)) {
+            anyStarted = true;
+          }
+        });
+        setStatusMap(newStatusMap);
+        if (anyStarted && !interval) {
+          interval = setInterval(pollStatus, 3000);
+        }
+      });
+    };
+    initialCheck();
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, []);
+
+  const handleDelete = (simulationId: number): void => {
+    SimulationService.deleteSimulation({ id: simulationId })
+      .then(() => {
+        showToast("Simulation deleted successfully", "", "success");
+        // Refetch the simulations data so the deleted one is not shown
+        queryClient.invalidateQueries({ queryKey: ["readSimulations"] });
+      })
+      .catch((err: ApiError) => {
+        const errDetail = (err.body as any)?.detail;
+        showToast("Failed to delete simulation", String(errDetail), "error");
+      });
+  };
 
   const handleCheckboxChange = (simulationId: number): void => {
     if (selectedSimulations.length >= 4 && !selectedSimulations.includes(simulationId)) {
@@ -68,7 +144,7 @@ const SeasonalOutput: React.FC = () => {
     },
     onError: (err: ApiError) => {
       const errDetail = (err.body as any)?.detail;
-      showToast("Something went wrong.", `${errDetail}`, "error");
+      showToast("Something went wrong.", String(errDetail), "error");
     },
     onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -108,7 +184,6 @@ const SeasonalOutput: React.FC = () => {
         </Link>
 
         {/* Simulation Selection Table */}
-        <Box maxW="100%" overflowX="auto" maxHeight="350px" whiteSpace="nowrap">
           <Box maxHeight="400px" overflowY="auto">
             <Table variant="simple" minWidth="1000px" size="sm">
               <Thead>
@@ -122,11 +197,7 @@ const SeasonalOutput: React.FC = () => {
                   <Th>Crop/Experiment/Treatment</Th>
                   <Th>Start Year</Th>
                   <Th>End Year</Th>
-                  <Th>Water Stress</Th>
-                  <Th>Nitrogen Stress</Th>
-                  <Th>Temp Variance (°C)</Th>
-                  <Th>Rain Variance (%)</Th>
-                  <Th>CO2 Variance (ppm)</Th>
+                  <Th>status</Th>
                 </Tr>
               </Thead>
               <Tbody>
@@ -136,6 +207,7 @@ const SeasonalOutput: React.FC = () => {
                       <Checkbox
                         isChecked={selectedSimulations.includes(sim.id)}
                         onChange={() => handleCheckboxChange(sim.id)}
+                        isDisabled={(statusMap[sim.id] ?? sim.status) !== 101}
                       />
                     </Td>
                     <Td>{sim.id}</Td>
@@ -146,17 +218,27 @@ const SeasonalOutput: React.FC = () => {
                     <Td>{sim.treatment}</Td>
                     <Td>{sim.startyear}</Td>
                     <Td>{sim.endyear}</Td>
-                    <Td>{sim.waterstress == 0 ? "No" : sim.waterstress}</Td>
-                    <Td>{sim.nitrostress === 0 ? "No" : sim.nitrostress}</Td>
-                    <Td>{sim.tempVar}</Td>
-                    <Td>{sim.rainVar}</Td>
-                    <Td>{sim.CO2Var === 0 ? "None" : sim.CO2Var}</Td>
+                    <Td>
+                      {/* Show Failed + trash icon inline if status is null or < 0 */}
+                      {((statusMap[sim.id] ?? sim.status) == null || (statusMap[sim.id] ?? sim.status) < 0) ? (
+                        <Box display="flex" alignItems="center">
+                          <Text color="red.500" fontWeight="bold" mr={1}>Failed</Text>
+                          <DeleteIcon
+                            style={{ cursor: "pointer" }}
+                            color="#E53E3E"
+                            onClick={() => handleDelete(sim.id)}
+                          />
+                        </Box>
+                      ) : (
+                        <StatusBar status={statusMap[sim.id] ?? sim.status} />
+                      )}
+                    </Td>
                   </Tr>
                 ))}
               </Tbody>
             </Table>
           </Box>
-        </Box>
+        
 
         <Tabs>
           <TabList>

@@ -87,6 +87,7 @@ export type Simulation = {
   tempVar: number;
   rainVar: number;
   CO2Var: number;
+  status: number
 }
 
 export type SimulationApiResponse = {

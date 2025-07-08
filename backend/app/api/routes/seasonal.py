@@ -471,10 +471,30 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
     classimDir = os.getcwd()
     return insertion_id
 
+def update_status(msg,simulation_name,session: Any):
+    """
+    Update the status of the simulation in the database.
+    """
+    try:
+        statement = (
+            select(Pastrun)
+            .where(Pastrun.id == simulation_name)
+        )
+        simulation = session.exec(statement).one()
+        if simulation:
+            simulation.status = msg
+            session.add(simulation)
+            session.commit()
+    except Exception as e:
+        print(f"Error updating status: {e}")
+    finally:
+        session.close()
+
 def prepare_and_execute( simulation_name, session: Any, current_user_id):
     """
     This will create input files, and execute both exe's.
     """
+    update_status(1001, simulation_name,session)
     statement = (
         select(Pastrun)
         .where(Pastrun.id == simulation_name)
@@ -528,7 +548,7 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
                                                        lsoilname, field_path, waterStressFlag,
                                                        nitroStressFlag, session)
     if cultivar != "fallow":
-        WriteCropVariety(lcrop, cultivar, field_name, field_path, session)
+        WriteCropVariety(lcrop, cultivar, field_name, field_path, session,current_user_id)
     else:
         src_file = os.path.join(storeDir, 'fallow.var')
         dest_file = os.path.join(field_path, 'fallow.var')
@@ -571,13 +591,21 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
             file_ext = ["g01", "G03", "G04", "G05", "G07"]
         else:  # fallow
             p = subprocess.Popen([maizsimexe, runname], stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=False)
-            file_ext = ["G03", "G05", "G07"]         
+            file_ext = ["G03", "G05", "G07"]
+        for line in iter(p.stdout.readline, b''):
+            if b'Progress' in line:
+                prog = re.findall(r"[-+]?\d*\.\d+|\d+", line.decode())
+                update_status(int(prog[0]), simulation_name, session)
         (out, err) = p.communicate()
         if p.returncode == 0:
             print("twosoil stage completed. %s", str(out))
+            update_status(101, simulation_name, session)
         else:
             print("twosoil stage failed. Error =. %s", str(err))
+            delete_pastrunsDB(str(simulation_name), lcrop, session)
+
     except OSError as e:
+        delete_pastrunsDB(str(simulation_name), lcrop, session)
         sys.exit("failed to execute twodsoil program, %s", str(e))
 
     missingRec = ""
@@ -614,16 +642,19 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
             ingestOutputFile(f"nitrogen_{lcrop}", os.path.join(field_path, "nitrogen.crp"), str(simulation_name), session)
             if remOutputFilesFlag:
                 os.remove(os.path.join(field_path, "nitrogen.crp"))
-    done_file = os.path.join(runDir, str(simulation_name), "done.txt")
-    with open(done_file, 'w') as f:
-        f.write("Simulation completed")
     
+    # Remove the simulation folder after completion
+    import shutil
+    try:
+        shutil.rmtree(field_path)
+    except Exception as e:
+        logger.warning(f"Failed to remove simulation folder {field_path}: {e}")
     return True
 
 
 
 
-async def stream_csv_selected_columns(file_path: str) -> AsyncGenerator[str, None]:
+async def stream_csv_selected_columns(file_path: str, simulation_name: int | str) -> AsyncGenerator[str, None]:
     """
     Async generator to stream only 4 selected columns from a growing CSV file using watchfiles for efficient event-driven tailing.
     Streams each new row as a JSON object (key-value pairs) via SSE.
@@ -652,40 +683,48 @@ async def stream_csv_selected_columns(file_path: str) -> AsyncGenerator[str, Non
         # Only process if the file was modified
         for change, changed_file in changes:
             if changed_file == file_path:
-                with open(file_path, "r") as file:
-                    file.seek(last_position)
-                    reader = csv.reader(file)
-                    for row in reader:
-                        if keep_indices is not None and len(row) >= max(keep_indices) + 1:
-                            row_dict = {columns_to_keep[i]: row[idx] for i, idx in enumerate(keep_indices)}
-                            print(row_dict)
-                            yield f"data: {json.dumps(row_dict)}\n\n"
-                    last_position = file.tell()
+                try:
+                    with open(file_path, "r") as file:
+                        file.seek(last_position)
+                        reader = csv.reader(file)
+                        for row in reader:
+                            if keep_indices is not None and len(row) >= max(keep_indices) + 1:
+                                row_dict = {columns_to_keep[i]: row[idx] for i, idx in enumerate(keep_indices)}
+                                yield f"data: {json.dumps(row_dict)}\n\n"
+                        last_position = file.tell()
+                except FileNotFoundError:
+                    yield f"event: end\ndata: File not found.\n\n"
+                    return
+                except Exception as e:
+                    yield f"event: error\ndata: Error reading file: {str(e)}\n\n"
+                    return
+
 
 @router.get("/simulationResp/{simulation_name}")
 async def execute_the_model(
-    *,simulation_name:int | str,
+    *, simulation_name: int | str, session: SessionDep
 ) -> StreamingResponse:
-    """Endpoint to stream new CSV data using watchfiles for efficient event-driven streaming."""
-    timeout = 10  # Maximum timeout in seconds
+    """
+    Endpoint to stream new CSV data using watchfiles for efficient event-driven streaming.
+    Ends streaming if output file is not found or pastruns.status is 101 (completed).
+    """
+    timeout = 10  # Maximum timeout in seconds for initial file check
     elapsed_time = 0
     file_found = False
 
     # Wait for the *.g01 file to appear
     while elapsed_time < timeout:
-        print(f"Checking for simulation output file {simulation_name}...")
         files = glob.glob(os.path.join(runDir, str(simulation_name), "*.g01"))
         if files:
-            print(f"Simulation output file {simulation_name} found.")
             file_found = True
             break
-        await asyncio.sleep(1)  # Wait for 1 second
-        elapsed_time += 1
-    
+        await asyncio.sleep(0.01)  # 10 milliseconds
+        elapsed_time += 0.01
+
     if not file_found:
         raise HTTPException(status_code=404, detail="Simulation output file not found.")
     file_path = files[0]
-    return StreamingResponse(stream_csv_selected_columns(file_path), media_type="text/event-stream")
+    return StreamingResponse(stream_csv_selected_columns(file_path,simulation_name), media_type="text/event-stream")
 
 
 # Modify the route to use asyncio.create_task

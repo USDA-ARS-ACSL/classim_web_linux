@@ -70,9 +70,9 @@ def WriteDripIrrigationFile(field_name, field_path):
 
  
 
-def WriteCropVariety(crop, cultivar, field_name, field_path,session):
+def WriteCropVariety(crop, cultivar, field_name, field_path,session,current_user_id=None):
     hybridname = cultivar
-    hybridparameters = read_cultivar_DB_detailed(hybridname, crop,session)
+    hybridparameters = read_cultivar_DB_detailed(hybridname, crop,session,current_user_id)
 
     filename = os.path.join(field_path, hybridname + ".var")
     

@@ -4,7 +4,7 @@ from fastapi import APIRouter, HTTPException
 from sqlmodel import func, select
 
 from app.api.deps import CurrentUser, SessionDep
-from app.models import PastrunsPublic, Pastrun, Togetsimoutput
+from app.models import PastrunsPublic, Pastrun, Message
 from app.dbsupport_helper import read_experimentDB_id, read_treatmentDB_id, getCottonAgronomicData,read_operationsDB_id, readOpDetails, getMaizeDateByDev, getMaizeAgronomicData,getMaturityDate,getSoybeanDevDate,getPotatoAgronomicData,getSoybeanAgronomicData 
 
 router = APIRouter()
@@ -129,3 +129,16 @@ def read_exp_data(
     result_dict['Nitrogen_Uptake'] = round(float(agroDataTuple[2]) * float(plantDensity) * 10, 2)
     return result_dict
 
+@router.delete("/delete/{id}")
+def delete_item(session: SessionDep, current_user: CurrentUser, id: int) -> Message:
+    """
+    Delete an item.
+    """
+    item = session.get(Pastrun, id)
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    if not current_user.is_superuser and (item.owner_id != current_user.id):
+        raise HTTPException(status_code=400, detail="Not enough permissions")
+    session.delete(item)
+    session.commit()
+    return Message(message="Item deleted successfully")
