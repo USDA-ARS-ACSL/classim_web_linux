@@ -654,12 +654,23 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
 
 
 
-async def stream_csv_selected_columns(file_path: str, simulation_name: int | str) -> AsyncGenerator[str, None]:
+async def stream_csv_selected_columns(file_path: str, simulation_name: int | str, session: SessionDep) -> AsyncGenerator[str, None]:
     """
     Async generator to stream only 4 selected columns from a growing CSV file using watchfiles for efficient event-driven tailing.
     Streams each new row as a JSON object (key-value pairs) via SSE.
     """
-    columns_to_keep = ["SoilT", "SolRad", "TotLeafDM", "ETdmd"]
+    crop_row = session.get(Pastrun, simulation_name)
+    crop_name = crop_row.treatment.split('/')[0] if crop_row and crop_row.treatment else None
+    if crop_name =="maize":
+        columns_to_keep = ["SoilT", "SolRad", "TotLeafDM", "ETdmd"]
+    elif crop_name == "soybean":
+        columns_to_keep = ["SoilT", "SolRad", "TotLeafDM", "ETdmd"]
+    elif crop_name == "potato":
+        columns_to_keep = ["LAI", "totalDM", "tuberDM", "Tr-Pot"]
+    elif crop_name == "cotton":
+        columns_to_keep = ["LAI", "PlantDM", "Yield", "Nodes"]
+    
+    print(f"Streaming columns++++++++++++++++++++: {columns_to_keep} for crop: {crop_name}")
     last_position = 0
     header = None
     keep_indices = None
@@ -724,7 +735,7 @@ async def execute_the_model(
     if not file_found:
         raise HTTPException(status_code=404, detail="Simulation output file not found.")
     file_path = files[0]
-    return StreamingResponse(stream_csv_selected_columns(file_path,simulation_name), media_type="text/event-stream")
+    return StreamingResponse(stream_csv_selected_columns(file_path,simulation_name,session), media_type="text/event-stream")
 
 
 # Modify the route to use asyncio.create_task
