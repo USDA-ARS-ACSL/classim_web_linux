@@ -151,7 +151,8 @@ export type SitesPublic = {
 };
 
 export type Simulations = {
-  id: any;
+  id: number;
+  message: string;
 }
 
 export type SoilWithLatLon = {

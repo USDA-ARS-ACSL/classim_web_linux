@@ -618,13 +618,20 @@ def read_soilhydroDB(soilname, session: SessionDep,current_user_id) -> Any:
     '''
     rlist = []
     if soilname:
-        query = text("""
+        if current_user_id ==1:
+            query = text("""
             SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id= :owner)
+            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname)
         """)
-        print(query, soilname)
-        result = session.execute(query, {'soilname': soilname, 'owner':current_user_id})
+            result = session.execute(query, {'soilname': soilname})
+        else:
+            query = text("""
+                SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
+                FROM soil_long 
+                WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id= :owner)
+            """)
+            result = session.execute(query, {'soilname': soilname, 'owner':current_user_id})
         rlist = result.fetchall()
     return rlist
 

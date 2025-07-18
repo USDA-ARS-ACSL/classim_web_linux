@@ -568,7 +568,8 @@ def WriteSoiData(soilname, field_name, field_path,session,current_user_id):
     # Writes Soil data into *.soi FILE
     soil_hydrology_list = read_soilhydroDB(soilname,session,current_user_id)
     NCount = len(soil_hydrology_list)               
-    CODEC = "UTF-8"        
+    CODEC = "UTF-8"    
+    sandcontent=[]    
     filename = os.path.join(field_path, f"{soilname}.soi")
 
     try:

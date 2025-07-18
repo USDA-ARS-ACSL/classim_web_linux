@@ -796,16 +796,92 @@ def create_soil(
         logger.error(f"Error during simulation: {e}")
         raise HTTPException(status_code=500, detail="An error occurred during the simulation process.")
     
+# @router.get("/seasonRun/{simulation_name}", status_code=202)
+# async def get_simulation_results(background_tasks: BackgroundTasks, simulation_name: int, session: SessionDep, current_user: CurrentUser) -> Any:
+#     """
+#     Get simulation results.
+#     """
+#     try:
+#         # simulation = read_pastrunsDB_id(simulation_name, session)
+#         background_tasks.add_task(prepare_and_execute, simulation_name,session, current_user.id)
+
+#         return {"id":simulation_name}
+#     except Exception as e:
+#         logger.error(f"Error fetching simulation results: {e}")
+#         raise HTTPException(status_code=500, detail="An error occurred while fetching simulation results.")
+    
+
 @router.get("/seasonRun/{simulation_name}", status_code=202)
-async def get_simulation_results(background_tasks: BackgroundTasks, simulation_name: int, session: SessionDep, current_user: CurrentUser) -> Any:
+async def get_simulation_results(
+    background_tasks: BackgroundTasks,
+    simulation_name: int,
+    session: SessionDep,
+    current_user: CurrentUser
+) -> Any:
     """
-    Get simulation results.
+    Get simulation results, but first verify key operation dates are in order.
     """
     try:
-        # simulation = read_pastrunsDB_id(simulation_name, session)
-        background_tasks.add_task(prepare_and_execute, simulation_name,session, current_user.id)
+        # Fetch the simulation row
+        simulation = session.get(Pastrun, simulation_name)
+        if not simulation:
+            raise HTTPException(status_code=404, detail="Simulation not found.")
 
-        return {"id":simulation_name}
+        # Fetch all operations for this simulation
+          # Parse treatment info
+        treatment = simulation.treatment
+        # You may need to adjust how you get experiment/crop/treatment name
+        crop = treatment.split('/')[0]
+        experiment = treatment.split('/')[1] if '/' in treatment else None
+        treatment_name = treatment.split('/')[2] if treatment.count('/') >= 2 else None
+
+        # Fetch all operations for this treatment
+        # You may need to adjust this helper to your schema
+        exid = read_experimentDB_id(crop, experiment, session)
+        tid = read_treatmentDB_id(exid, treatment_name, session)
+        operationList = read_operationsDB_id(tid, session)  # [(id, name, date, ...), ...]
+        print(f"Operation List: {operationList}")
+        # Only check these key operations
+        key_ops = ['Simulation Start', 'Sowing', 'Harvest', 'Simulation End']
+        op_dates = []
+        for op_name in key_ops:
+            # Find the first operation with this name
+            op = next((o for o in operationList if o[1] == op_name), None)
+            print(f"Operation: {op_name}, Found: {op}")
+            if op is not None and op[2]:
+                try:
+                    op_date = pd.to_datetime(op[2])
+                except Exception:
+                    return {"error": f"Operation '{op_name}' has invalid date: {op[2]}"}
+                op_dates.append((op_name, op_date))
+            else:
+                op_dates.append((op_name, None))
+
+        # Check chronological order
+        wrong_ops = []
+        print(f"Operation Dates: {op_dates}")
+        last_date = None
+        for idx, (op_name, op_date) in enumerate(op_dates):
+            if op_date is None:
+                continue  # skip missing ops
+            if last_date and op_date < last_date:
+                
+                # Report both the current and previous operation as problematic
+                wrong_ops.append(f"{op_dates[idx-1][0]} ({op_dates[idx-1][1].strftime('%m/%d/%Y') if op_dates[idx-1][1] else 'N/A'}) before {op_name} ({op_date.strftime('%m/%d/%Y')})")
+            last_date = op_date
+        
+        if wrong_ops:
+            msg = (
+                "The following operations are out of order: "
+                + "; ".join(wrong_ops)
+                + ". Please ensure Simulation Start < Sowing < Harvest < Simulation End."
+            )
+            print(f"Wrong Operations: {wrong_ops}")
+            return {"id":-1,"message": msg}
+
+        # If all good, start the simulation
+        background_tasks.add_task(prepare_and_execute, simulation_name, session, current_user.id)
+        return {"id": simulation_name, "message": "Simulation started successfully."}
     except Exception as e:
         logger.error(f"Error fetching simulation results: {e}")
         raise HTTPException(status_code=500, detail="An error occurred while fetching simulation results.")

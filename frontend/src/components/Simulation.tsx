@@ -155,6 +155,10 @@ const Simulation: React.FC = () => {
       const response = await SeasonalRun.RunSeasonalSim(data);
 
       if (response) {
+        if (response.id === -1) {
+          showToast("Error!", response.message, "error");
+          return;
+        }
         setSimulationId(response.id);
         showToast("Success", "Simulation Started", "success");
         setShowGraph(true);
