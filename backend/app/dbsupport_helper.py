@@ -74,6 +74,25 @@ def read_treatmentDB_id(exid: int, treatmentname: str, session: SessionDep) -> A
     return row[0] if row else None
 
 
+def is_all_cultivar_zero(tid: int, session: SessionDep) -> bool:
+    """
+    Returns True if all cultivar values for the given treatment id are 0, otherwise False.
+    """
+    query = text("""
+        SELECT ico.cultivar
+        FROM operations o
+        JOIN "initCondOp" ico ON o."opID" = ico."opID"
+        WHERE o.o_t_exid = :tid
+    """)
+    result = session.execute(query, {'tid': tid})
+    rows = result.fetchall()
+    # If any cultivar is not 0, return False
+    for row in rows:
+        if row[0] != '0':
+            return True
+    return False
+
+
 def readOpDetails(operationid: int, operationName: str, session: SessionDep) -> list:
     '''
     Extract operation info based on operation id

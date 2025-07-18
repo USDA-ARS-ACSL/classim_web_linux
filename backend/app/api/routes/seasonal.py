@@ -840,14 +840,15 @@ async def get_simulation_results(
         exid = read_experimentDB_id(crop, experiment, session)
         tid = read_treatmentDB_id(exid, treatment_name, session)
         operationList = read_operationsDB_id(tid, session)  # [(id, name, date, ...), ...]
-        print(f"Operation List: {operationList}")
+        cutlivar_simStart_check = is_all_cultivar_zero(tid, session)
+        if not cutlivar_simStart_check:
+            return {"id": -1, "message": "Please add cultivar for this experiment. Management-> experiment->treatment->cultivar."}
         # Only check these key operations
         key_ops = ['Simulation Start', 'Sowing', 'Harvest', 'Simulation End']
         op_dates = []
         for op_name in key_ops:
             # Find the first operation with this name
             op = next((o for o in operationList if o[1] == op_name), None)
-            print(f"Operation: {op_name}, Found: {op}")
             if op is not None and op[2]:
                 try:
                     op_date = pd.to_datetime(op[2])
@@ -859,7 +860,6 @@ async def get_simulation_results(
 
         # Check chronological order
         wrong_ops = []
-        print(f"Operation Dates: {op_dates}")
         last_date = None
         for idx, (op_name, op_date) in enumerate(op_dates):
             if op_date is None:
@@ -876,7 +876,6 @@ async def get_simulation_results(
                 + "; ".join(wrong_ops)
                 + ". Please ensure Simulation Start < Sowing < Harvest < Simulation End."
             )
-            print(f"Wrong Operations: {wrong_ops}")
             return {"id":-1,"message": msg}
 
         # If all good, start the simulation
