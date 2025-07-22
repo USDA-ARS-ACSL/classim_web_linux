@@ -287,7 +287,7 @@ def WriteCropVariety(crop, cultivar, field_name, field_path,session,current_user
 
             
 
-def WriteWeather(experiment,treatmentname,stationtype,weather,field_path,tempVar,rainVar,CO2Var,session:SessionDep):
+def WriteWeather(experiment,treatmentname,stationtype,weather,field_path,tempVar,rainVar,CO2Var,owner_id,session:SessionDep):
 
     # First create .wea file that stores the daily/hourly weather information for the simulation period
     filename = "".join([os.path.join(field_path, stationtype),'.wea'])
@@ -308,7 +308,10 @@ def WriteWeather(experiment,treatmentname,stationtype,weather,field_path,tempVar
     sdate = df_op_date['odate'].min() - timedelta(days=1)
     edate = df_op_date['odate'].max() + timedelta(days=1)
     diffInDays = (edate - sdate)/np.timedelta64(1,'D')
-    statement = select(WeatherMeta).filter(WeatherMeta.stationtype == weather)
+    statement = select(WeatherMeta).filter(
+    WeatherMeta.stationtype == weather,
+    WeatherMeta.owner_id == owner_id
+    )
     weatherMetadata = session.exec(statement).first()
     weather_id=weatherMetadata.id
     weather_query = """select jday, date, hour, srad, tmax, tmin, temperature, rain, wind, rh, co2 from weather_data where 

@@ -554,7 +554,7 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
         dest_file = os.path.join(field_path, 'fallow.var')
         copyFile(src_file, dest_file)
     WriteDripIrrigationFile(field_name, field_path)
-    hourly_flag, edate = WriteWeather(lexperiment, ltreatmentname, lstationtype, lweather, field_path, ltempVar, lrainVar, lCO2Var, session)
+    hourly_flag, edate = WriteWeather(lexperiment, ltreatmentname, lstationtype, lweather, field_path, ltempVar, lrainVar, lCO2Var,current_user_id, session)
     WriteSoluteFile(lsoilname, field_path, session)
     WriteGasFile(field_path, session)
     hourlyFlag = 1
@@ -830,6 +830,28 @@ async def get_simulation_results(
         # Fetch all operations for this simulation
           # Parse treatment info
         treatment = simulation.treatment
+        weather_info= simulation.weather
+        statoiptiontype = simulation.stationtype
+        statement = select(WeatherMeta).filter(
+        WeatherMeta.stationtype == weather_info,
+        WeatherMeta.owner_id == current_user.id
+        )
+        weatherMetadata = session.exec(statement).first()
+        weather_id=str(weatherMetadata.id)
+        query = text(
+            """
+            select jday, date from weather_data where 
+                stationtype= :stationtype and weather_id= :weather_id order by date
+            """
+        )
+
+        # Execute the query with provided parameters
+        result = session.execute(query, {'stationtype': statoiptiontype, 'weather_id': weather_id})
+
+        # Fetch and return the result
+        row = result.fetchone()
+        if not row:
+            return {"id": -1, "message": "Weather data not found for the specified station type."}
         # You may need to adjust how you get experiment/crop/treatment name
         crop = treatment.split('/')[0]
         experiment = treatment.split('/')[1] if '/' in treatment else None
@@ -841,6 +863,7 @@ async def get_simulation_results(
         tid = read_treatmentDB_id(exid, treatment_name, session)
         operationList = read_operationsDB_id(tid, session)  # [(id, name, date, ...), ...]
         cutlivar_simStart_check = is_all_cultivar_zero(tid, session)
+
         if not cutlivar_simStart_check:
             return {"id": -1, "message": "Please add cultivar for this experiment. Management-> experiment->treatment->cultivar."}
         # Only check these key operations

@@ -455,7 +455,7 @@ def read_operation_by_treatmentId(
     statement = (
         select(Operation)
         .filter(Operation.o_t_exid == o_t_exid)
-        .order_by(Operation.opID.asc())  # Order by operation id ascending
+        .order_by(text("to_date(odate, 'MM/DD/YYYY') ASC NULLS LAST"), Operation.opID.asc())
         .offset(skip)
         .limit(limit)
     )
