@@ -907,7 +907,7 @@ console.log(simulationStartData)
                                 onOpen();
                               }}
                             >
-                              Update Data
+                              Field Details
                             </Button>
                           )}
                           {[
