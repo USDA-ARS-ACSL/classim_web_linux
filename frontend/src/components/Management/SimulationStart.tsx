@@ -22,11 +22,13 @@ import CustomDatePicker from "../Common/CustomDatePicker";
 interface SimulationProps {
   treatmentId: number;
   onClose: () => void;
+  onSaved?: (newDate: string) => void; // <-- add this
 }
 
 const SimulationStart: React.FC<SimulationProps> = ({
   treatmentId,
   onClose,
+  onSaved, // <-- add this
 }) => {
   const [cultivar, setCultivar] = useState<string>("");
   const [eachCropCultivars, seteachCropCultivars] = useState<CultivarCropPublic[]>(
@@ -151,6 +153,7 @@ const SimulationStart: React.FC<SimulationProps> = ({
     try {
       await ManagementService.updateInitCondOpData({ treatmentid: treatmentId, requestBody });
       showToast("Success", "Simulation start data saved!", "success");
+      if (onSaved && date) onSaved(date); // <-- notify parent
       onClose();
     } catch (err: any) {
       showToast("Error", err?.message || "Failed to save data", "error");

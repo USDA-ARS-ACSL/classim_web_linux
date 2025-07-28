@@ -883,14 +883,24 @@ class OperationData(BaseModel):
     opName: Optional[str]
     treatmentid: Optional[int]
     opDate: Optional[str]
+    tillageType: Optional[str]
 
 class TillageType(SQLModel, table=True):
     __tablename__ = 'tillageType'    
     id: int  | None = Field(default=None, primary_key=True)
     tillage: str | None = None
     description: str | None = None
-    
-    
+
+class TillageTypePublic(SQLModel):
+    id: int | None = None
+    tillage: str | None = None
+    description: str | None = None
+
+class TillageTypesPublic(SQLModel):
+    data: list[TillageTypePublic]
+    count: int 
+
+ 
 class FertNutOp(SQLModel, table=True):
     __tablename__ = 'fertNutOp'
     id:int | None = Field(default=None, primary_key=True)

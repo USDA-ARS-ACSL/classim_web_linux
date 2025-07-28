@@ -58,7 +58,7 @@ const OperationForm: React.FC<NewOperationFormProps> = ({
   const [calendar, setCalendar] = useState<Date | null>(null);
   const [fertClass, setFertClass] = useState<FertilizerClass[]>([]);
   const [selectedFertClass, setSelectedFertClass] = useState("");
-  const [tillageTypeList, setTillageTypeList] = useState<TillageType[]>([]);
+  const [tillageTypeList] = useState<TillageType[]>([]);
   const [PGRList, setPGRList] = useState<PGRChemical[]>([]);
   const [selectedPGR, setSelectedPGR] = useState("");
   const [PGRAppTypeList, setPGRAppTypeList] = useState<PGRApplType[]>([]);
@@ -99,7 +99,7 @@ console.log(calendar, "calendar")
     // Fetch initial data
     const fetchFirstOperationDate = async () => {
       const fertClassData = await ManagementService.readFertilizationClass();
-      const tillageTypeData = await ManagementService.readTillageTypeDB();
+      // const tillageTypeData = await ManagementService.readTillageTypeDB();
       const PGRData = await ManagementService.readPGRChemicalDB();
       const PGRAppTypeData = await ManagementService.readPGRAppTypeDB();
       const PGRAppUnitData = await ManagementService.readPGRAppUnitDB();
@@ -124,7 +124,7 @@ console.log(calendar, "calendar")
       }
 
       setFertClass(fertClassData);
-      setTillageTypeList(tillageTypeData);
+      // setTillageTypeList(tillageTypeData);
       setPGRList(PGRData);
       setPGRAppTypeList(PGRAppTypeData);
       setPGRAppUnitList(PGRAppUnitData);

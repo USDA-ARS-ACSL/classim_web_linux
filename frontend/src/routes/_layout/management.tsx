@@ -146,7 +146,7 @@ const cropManager = () => {
   // const [addOpType, setAddOpType] = useState<string>("")
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   const [newTreatmentName, setNewTreatmentName] = useState<string>("");
-  const [simulationStartData, setSimulationStartData] = useState<{ name: string; date: string; id?: number } | null>(null);
+  // const [simulationStartData, setSimulationStartData] = useState<{ name: string; date: string; id?: number } | null>(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<{ id: number | 0, name: string | null, module: string | null }>({
     id: 0,
@@ -163,6 +163,8 @@ const cropManager = () => {
   const [editOperationModal, setEditOperationModal] = useState<{ open: boolean, opData: any | null }>({ open: false, opData: null });
   const [editOperationType, setEditOperationType] = useState<string | null>(null);
   const [editOperationID, setEditOperationID] = useState<number | null>(null);
+  const [isTillageModalOpen, setIsTillageModalOpen] = useState(false);
+  const [tillageOp, setTillageOp] = useState<any>(null);
   // const inputRef = useRef<HTMLInputElement>(null);
   const { data: crops } = useQuery({ queryKey: ["crops"], queryFn: managementApi.getCrops })
   const { data: experiments } = useQuery({
@@ -181,6 +183,20 @@ const cropManager = () => {
     enabled: !!selectedTmt,
   })
 
+  // Add state for selected tillage type
+  const [selectedTillageType, setSelectedTillageType] = useState<string | null>(null);
+
+  // Fetch tillage types from API
+  const { data: tillageTypes = [] } = useQuery({
+    queryKey: ["tillageTypes"],
+    queryFn: async () => {
+      // Replace with your actual API call
+      const resp = await ManagementService.readTillageTypeDB();
+      return resp.data; // [{ id, tillage, description }]
+    },
+    staleTime: 60 * 60 * 1000, // cache for 1 hour
+  });
+
   const handleNavigation = (callback: () => void) => {
     if (hasUnsavedChanges) {
       const confirmLeave = window.confirm("You have unsaved changes. Do you want to leave?")
@@ -189,7 +205,6 @@ const cropManager = () => {
     }
     callback()
   }
-console.log(simulationStartData)
   const handleCropSelection = (crop: string) => {
     setSelectedCrop(crop)
     setSelectedExp(null) // Reset experiment selection
@@ -431,13 +446,14 @@ console.log(simulationStartData)
 
   // Mutation for updating operation date
   const updateOperationDateMutation = useMutation({
-    mutationFn: (data: { op_id: number; opName: string; treatmentid: number; opDate: string }) =>
+    mutationFn: (data: { op_id: number; opName: string; treatmentid: number; opDate: string; tillageType: string }) =>
       ManagementService.updateOperationsDate({
         requestBody: {
           op_id: data.op_id,
           opName: data.opName,
           treatmentid: selectedTmt!,
           opDate: data.opDate,
+          tillageType: data.tillageType,
         },
       }),
     onSuccess: () => {
@@ -458,18 +474,23 @@ console.log(simulationStartData)
   });
 
   // Save edited date (for now, just update local state)  handleDateSave(op.name, editedDate, op.op_id)
-  const handleDateSave = (opName: string, opDate: string, op_id:number) => {
+  const handleDateSave = (opName: string, opDate: string, op_id:number, tillageType:string) => {
     // Call mutation to update the backend
+    if (tillageType === "No tillage") {
+        opDate=""; // Set date to null if "No Tillage"
+    }
     updateOperationDateMutation.mutate({
       op_id,
       opName,
       treatmentid: selectedTmt!,
       opDate,
+      tillageType,
     });
     setEditingOp(null);
     setEditedDate("");
   };
 
+  
   const handleEditOperation = async (op_id: number) => {
     try {
       const data = await ManagementService.getFullOperationById(op_id);
@@ -532,6 +553,32 @@ console.log(simulationStartData)
     } catch (e) {
       console.error("Error fetching operation data:", e);
     }
+  };
+
+  const handleSimulationStartSaved = () => {
+    // Invalidate and refetch operations for the selected treatment
+    queryClient.invalidateQueries({ queryKey: ["operations", selectedTmt] });
+  };
+
+  // Handler for Tillage edit icon
+  const handleTillageEdit = async (op: any) => {
+    try {
+      const resp = await ManagementService.getTillage({ opid: op.op_id });
+      setSelectedTillageType(resp.tillage);
+    
+    } catch (e) {
+      setSelectedTillageType(op.tillage || null);
+    }
+    setTillageOp(op);
+    setIsTillageModalOpen(true);
+  };
+
+  // Handler for saving Tillage date from modal
+  const handleTillageDateSave = () => {
+    if (tillageOp && tillageOp.op_id && tillageOp.date && selectedTillageType) {
+      handleDateSave("Tillage", tillageOp.date, tillageOp.op_id, selectedTillageType);
+    }
+    setIsTillageModalOpen(false);
   };
 
   return (
@@ -840,7 +887,6 @@ console.log(simulationStartData)
               </HStack>
               {operations.length > 0 ? (
                 operations.map((op) => (
-                  // Only show Tillage if it has a date, otherwise show all other ops
                   op.name !== "" && (
                     <Box
                       key={op.name}
@@ -853,7 +899,23 @@ console.log(simulationStartData)
                       <HStack justify="space-between" width="100%">
                         <Text color="black">{op.name}</Text>
                         <HStack>
-                          {isEditableOp(op.name) ? (
+                          {/* Special case for Tillage: always show edit icon and modal */}
+                          {op.name === "Tillage" ? (
+                            <HStack>
+                              {(!op.date || op.date.trim() === "") ? (
+                                <Text color="gray.500" fontStyle="italic">No Tillage</Text>
+                              ) : (
+                                <Text color="black">{formatDate(op.date)}</Text>
+                              )}
+                              <IconButton
+                                aria-label="Edit Tillage"
+                                icon={<FiEdit />}
+                                size="xs"
+                                variant="ghost"
+                                onClick={() => handleTillageEdit(op)}
+                              />
+                            </HStack>
+                          ) : isEditableOp(op.name) ? (
                             editingOp === op.name ? (
                               <HStack>
                                 <CustomDatePicker
@@ -862,18 +924,18 @@ console.log(simulationStartData)
                                 />
                                 <IconButton
                                   aria-label="Save date"
-                                  icon={<CheckIcon color="white" />} 
+                                  icon={<CheckIcon color="white" />}
                                   size="xs"
                                   colorScheme="green"
                                   variant="solid"
                                   onClick={() => {
-                                    handleDateSave(op.name, editedDate, op.op_id);
+                                    handleDateSave(op.name, editedDate, op.op_id,"otherOp");
                                     setEditingOp(null);
                                   }}
                                 />
                                 <IconButton
                                   aria-label="Cancel edit"
-                                  icon={<CloseIcon color="white" />} 
+                                  icon={<CloseIcon color="white" />}
                                   size="xs"
                                   colorScheme="red"
                                   variant="solid"
@@ -898,23 +960,20 @@ console.log(simulationStartData)
                           ) : (
                             <Text color="black">{op.date}</Text>
                           )}
+                          {/* ...other buttons... */}
                           {op.name === "Simulation Start" && (
-                            <Button
-                              size="sm"
-                              colorScheme="blue"
+                            <IconButton
+                              aria-label="Edit date"
+                              icon={<FiEdit />}
+                              size="xs"
+                              variant="ghost"
                               onClick={() => {
-                                setSimulationStartData(op);
+                                // setSimulationStartData(op);
                                 onOpen();
                               }}
-                            >
-                              Field Details
-                            </Button>
+                            />
                           )}
-                          {[
-                            "Surface Residue",
-                            "Irrigation",
-                            "Fertilizer"
-                          ].includes(op.name) && (
+                          {["Surface Residue", "Irrigation", "Fertilizer"].includes(op.name) && (
                             <Button
                               size="sm"
                               colorScheme="blue"
@@ -956,10 +1015,53 @@ console.log(simulationStartData)
                     <SimulationStart
                       treatmentId={selectedTmt}
                       onClose={onClose}
+                      onSaved={handleSimulationStartSaved}
                     />
                   </ModalBody>
                   <ModalFooter>
                     <Button onClick={onClose}>Close</Button>
+                  </ModalFooter>
+                </ModalContent>
+              </Modal>
+              {/* Modal for Tillage Edit */}
+              <Modal isOpen={isTillageModalOpen} onClose={() => setIsTillageModalOpen(false)} size="md">
+                <ModalOverlay />
+                <ModalContent>
+                  <ModalHeader>Edit Tillage Operation</ModalHeader>
+                  <ModalCloseButton />
+                  <ModalBody>
+                    <CustomDatePicker
+                      date={tillageOp?.date || ""}
+                      onDateChange={(val: string) => setTillageOp({ ...tillageOp, date: val })}
+                    />
+                    <Box mt={4}>
+                      <Text mb={1}>Tillage Type</Text>
+                      <select
+                        style={{ width: "100%", padding: "8px", borderRadius: "4px" }}
+                        value={selectedTillageType || ""}
+                        onChange={e => setSelectedTillageType(e.target.value)}
+                      >
+                        <option value="">Select Tillage Type</option>
+                        {tillageTypes.map((t: { id: number; tillage: string; description: string }) => (
+                          <option key={t.id} value={t.tillage}>
+                            {t.tillage} {t.description ? `(${t.description})` : ""}
+                          </option>
+                        ))}
+                      </select>
+                    </Box>
+                  </ModalBody>
+                  <ModalFooter>
+                    <Button
+                      colorScheme="green"
+                      mr={3}
+                      onClick={handleTillageDateSave}
+                      isDisabled={!tillageOp?.date || !selectedTillageType}
+                    >
+                      Save
+                    </Button>
+                    <Button variant="ghost" onClick={() => setIsTillageModalOpen(false)}>
+                      Cancel
+                    </Button>
                   </ModalFooter>
                 </ModalContent>
               </Modal>

@@ -9,7 +9,7 @@ from app.models import (
     FertilizationClass, PGRChemical, SurfResType, FertilizationWithNutrients, PGRApplType,
     PGRUnit, SurfResApplType, IrrigationClass, TreatmentPublic ,CultivarMaizedata,
     CultivarPotatodata, CultivarSoybeandata, TillageType, TreatmentCopy, InitCondOpUpdateRequest,
-    OperationData, IrrigFloodH, IrrigFloodR
+    OperationData, IrrigFloodH, IrrigFloodR, TillageTypesPublic
 )
 from sqlmodel import func, select
 from datetime import datetime, timedelta
@@ -555,16 +555,12 @@ def read_irrigation_type(db: SessionDep) -> List[str]:
     return result if result else []  # Return an empty list if no results found
 
 
-@router.get('/tillageType', response_model=List[str])
-def read_tillage_type(db: SessionDep) -> List[str]:    
-    stmt = select(TillageType.tillage).order_by(func.lower(TillageType.tillage))
-    
-    result = db.execute(stmt).scalars().all()
+@router.get('/tillageType', response_model=TillageTypesPublic)
+def read_tillage_type(session: SessionDep, skip=0, limit=10) -> TillageTypesPublic:    
+    statement = select(TillageType).offset(skip).limit(limit)
+    items = session.exec(statement).all()
 
-    if not result:
-        raise HTTPException(status_code=404, detail="No Irrigation Type found")
-
-    return result
+    return TillageTypesPublic(data=items, count=len(items))
 
 @router.get('/pgrApplType', response_model=List[str])
 def read_pgr_application_type(db: SessionDep) -> List[str]:    
@@ -871,26 +867,35 @@ def update_operation_date(
     op_name = data.opName
     treatmentid = data.treatmentid
     op_date = data.opDate
+    tillageType = data.tillageType
 
     if op_id is None:
         raise HTTPException(status_code=400, detail="Operation ID is required")
-    operation = session.get(Operation, op_id)
-    if not operation:
+    operation_meta = session.get(Operation, op_id)
+    if not operation_meta:
         raise HTTPException(status_code=404, detail="Operation not found")
     if treatmentid is not None:
-        operation.o_t_exid = treatmentid
+        operation_meta.o_t_exid = treatmentid
     if op_name is not None:
-        operation.name = op_name
+        operation_meta.name = op_name
     if op_date is not None:
-        operation.odate = op_date
-    session.add(operation)
+        operation_meta.odate = op_date
+    if tillageType != "otherOp":
+        tillageopData = session.get(TillageOp, op_id)
+        print("tillage+++++++++++++++++++++++++++++++", tillageopData)
+        tillageopData.tillage= tillageType
+        session.add(tillageopData)
+    # if tillageType is not None:
+    #     operation.tillageType = tillageType
+    session.add(operation_meta)
     session.commit()
-    session.refresh(operation)
+    session.refresh(operation_meta)
     return OperationData(
-        op_id=operation.opID,
-        opName=operation.name,
-        treatmentid=operation.o_t_exid,
-        opDate=operation.odate
+        op_id=operation_meta.opID,
+        opName=operation_meta.name,
+        treatmentid=operation_meta.o_t_exid,
+        opDate=operation_meta.odate,
+        tillageType=tillageType
     )
 
 

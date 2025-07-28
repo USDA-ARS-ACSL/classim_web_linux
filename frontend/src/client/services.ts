@@ -66,9 +66,9 @@ import type {
   CultivarCropPublic,
   InitCondOp,
   InitCondOpDataUpdate,//this is used to update (creation will heppen when treatment is created) the simulation start operation
-  TillageType,
+  TillageTypes,
   DownloadMessage,
-  TillageOp,
+  TillageOpResponse,
   TreatmentDataCopy,
   OperationPublic,
   ExpOtData,
@@ -1788,7 +1788,7 @@ export class ManagementService {
     });
   }
 
-  public static readTillageTypeDB(): CancelablePromise<TillageType[]> {
+  public static readTillageTypeDB(): CancelablePromise<TillageTypes> {
     return __request(OpenAPI, {
       method: "GET",
       url: "/api/v1/management/tillageType",
@@ -1954,7 +1954,7 @@ export class ManagementService {
 
   public static getTillage(
     data: TDataOperationForms
-  ): CancelablePromise<TillageOp> {
+  ): CancelablePromise<TillageOpResponse> {
     const { opid } = data;
     return __request(OpenAPI, {
       method: "GET",
@@ -2054,6 +2054,7 @@ export class ManagementService {
     public static updateOperationsDate(
       data: OperationDataUpdate
     ): CancelablePromise<OperationData> {
+      
       const {  requestBody } = data;
       return __request(OpenAPI, {
         method: "POST",

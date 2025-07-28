@@ -343,23 +343,21 @@ const Simulation: React.FC = () => {
     <Box p={5} border='Highlight' borderRadius="md" mt={10} overflowX="auto">
       <Heading size="md" mb={5}>Simulator</Heading>
 
-      <SimpleGrid columns={2} spacing={2} pb={10} alignItems="center">
+      <SimpleGrid columns={{ base: 1, md: 2 }} spacing={2} pb={10} alignItems="center">
         <FormControl isInvalid={!!fieldErrors.site}>
           <FormLabel>
             Site <Text as="span" color="red.500">*</Text>
           </FormLabel>
-          {
-            sites && (
-              <Select placeholder="Select from list" value={site} id="dropdown" onChange={(e) => {
-                handleSiteChange(e);
-                handleFieldChange("site", e.target.value);
-              }}>
-                {sites.data.map((eachSite) => (
-                  <option key={eachSite.sitename} value={eachSite.sitename}>{eachSite.sitename}</option>
-                ))}
-              </Select>
-            )
-          }
+          {sites && (
+            <Select placeholder="Select from list" value={site} id="dropdown" onChange={(e) => {
+              handleSiteChange(e);
+              handleFieldChange("site", e.target.value);
+            }}>
+              {sites.data.map((eachSite) => (
+                <option key={eachSite.sitename} value={eachSite.sitename}>{eachSite.sitename}</option>
+              ))}
+            </Select>
+          )}
           <FormErrorMessage>{fieldErrors.site}</FormErrorMessage>
         </FormControl>
 
@@ -367,18 +365,16 @@ const Simulation: React.FC = () => {
           <FormLabel>
             Soil <Text as="span" color="red.500">*</Text>
           </FormLabel>
-          {
-            soils && (
-              <Select placeholder="Select from list" value={soil} id="dropdown" onChange={(e) => {
-                setSoil(e.target.value);
-                handleFieldChange("soil", e.target.value);
-              }}>
-                {soils.data.map((eachSoil) => (
-                  <option key={eachSoil.soilname} value={eachSoil.soilname}>{eachSoil.soilname}</option>
-                ))}
-              </Select>
-            )
-          }
+          {soils && (
+            <Select placeholder="Select from list" value={soil} id="dropdown" onChange={(e) => {
+              setSoil(e.target.value);
+              handleFieldChange("soil", e.target.value);
+            }}>
+              {soils.data.map((eachSoil) => (
+                <option key={eachSoil.soilname} value={eachSoil.soilname}>{eachSoil.soilname}</option>
+              ))}
+            </Select>
+          )}
           <FormErrorMessage>{fieldErrors.soil}</FormErrorMessage>
         </FormControl>
 
@@ -411,11 +407,9 @@ const Simulation: React.FC = () => {
             setWeather(e.target.value);
             handleFieldChange("weather", e.target.value);
           }}>
-            {
-              weathers && (
-                <option key={weathers} value={weathers}>{weathers}</option>
-              )
-            }
+            {weathers && (
+              <option key={weathers} value={weathers}>{weathers}</option>
+            )}
           </Select>
           <FormErrorMessage>{fieldErrors.weather}</FormErrorMessage>
         </FormControl>

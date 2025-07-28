@@ -664,7 +664,15 @@ export type TillageType = {
   description: string;
 }
 
+export type TillageTypes = {
+  data: Array<TillageType>;
+  count: number;
+};
 export type TillageOp = {
+  tillage: string;
+}
+export type TillageOpResponse = {
+  opID: number;
   tillage: string;
 }
 
@@ -756,6 +764,7 @@ export type OperationData = {
   opName: string | null;
   treatmentid: number | null;
   opDate: string | null;
+  tillageType: string | null;
 }
 export type OperationDataUpdate = {
   requestBody: OperationData
