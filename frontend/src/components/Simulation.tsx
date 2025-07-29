@@ -32,7 +32,7 @@ import {
   FormErrorMessage
 } from '@chakra-ui/react';
 import { DeleteIcon, AddIcon } from "@chakra-ui/icons";
-import GraphComponent from "./GraphComponentmaize";
+import GraphComponent from "./Management/graphs/GraphComponentmaize";
 import { SiteService, SoilService, WeatherService, SeasonalRun } from '../client';
 import { useQueries } from "@tanstack/react-query";
 import { CROP_DATA } from '../constants';
@@ -600,7 +600,7 @@ const Simulation: React.FC = () => {
           <DrawerHeader>Simulation Results</DrawerHeader>
 
           <DrawerBody>
-            {showGraph && <GraphComponent simulationID={simulationID} />}
+            {showGraph && <GraphComponent simulationID={simulationID} crop={rows[0]?.crop} />}
           </DrawerBody>
 
           <DrawerFooter>

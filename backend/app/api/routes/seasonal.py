@@ -655,52 +655,54 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
 
 
 async def stream_csv_selected_columns(file_path: str, simulation_name: int | str, session: SessionDep) -> AsyncGenerator[str, None]:
-    """
-    Async generator to stream only 4 selected columns from a growing CSV file using watchfiles for efficient event-driven tailing.
-    Streams each new row as a JSON object (key-value pairs) via SSE.
-    """
     crop_row = session.get(Pastrun, simulation_name)
     crop_name = crop_row.treatment.split('/')[0] if crop_row and crop_row.treatment else None
-    if crop_name =="maize":
+
+    if crop_name == "maize":
         columns_to_keep = ["SoilT", "SolRad", "TotLeafDM", "ETdmd"]
     elif crop_name == "soybean":
-        columns_to_keep = ["SoilT", "SolRad", "TotLeafDM", "ETdmd"]
+        columns_to_keep = ["LAI", "totalDM", "podDM", "Tr_act"]
     elif crop_name == "potato":
         columns_to_keep = ["LAI", "totalDM", "tuberDM", "Tr-Pot"]
     elif crop_name == "cotton":
         columns_to_keep = ["LAI", "PlantDM", "Yield", "Nodes"]
-    
-    print(f"Streaming columns++++++++++++++++++++: {columns_to_keep} for crop: {crop_name}")
-    last_position = 0
+    else:
+        columns_to_keep = None  # Stream all columns if crop is unknown
+
+    print(f"Streaming columns: {columns_to_keep}, {file_path} for crop: {crop_name}")
     header = None
     keep_indices = None
-    
-    # Open the file in text mode
-    with open(file_path, "r") as file:
-        # Read the header
-        while True:
-            pos = file.tell()
-            line = file.readline()
-            if not line:
-                file.seek(pos)
-                break
-            if header is None:
-                header = [h.strip() for h in next(csv.reader([line]))]
-                keep_indices = [header.index(col) for col in columns_to_keep if col in header]
-                break
-        last_position = file.tell()
+    last_position = 0
 
     async for changes in awatch(file_path):
-        # Only process if the file was modified
         for change, changed_file in changes:
             if changed_file == file_path:
                 try:
                     with open(file_path, "r") as file:
-                        file.seek(last_position)
-                        reader = csv.reader(file)
-                        for row in reader:
+                        if header is None:
+                            header_line = file.readline()
+                            if not header_line:
+                                print("File is empty, no header found.")
+                                continue  # Wait for next file update
+                            header = [h.strip() for h in next(csv.reader([header_line]))]
+                            print(f"Header found: {header}")
+                            if columns_to_keep:
+                                keep_indices = [header.index(col) for col in columns_to_keep if col in header]
+                                if not keep_indices:
+                                    print(f"No matching columns found for crop: {crop_name}. Streaming all columns.")
+                                    keep_indices = list(range(len(header)))
+                                    columns_to_keep = header
+                            else:
+                                keep_indices = list(range(len(header)))
+                                columns_to_keep = header
+                            last_position = file.tell()
+                        else:
+                            file.seek(last_position)
+                        # Now read new rows
+                        for row in csv.reader(file):
                             if keep_indices is not None and len(row) >= max(keep_indices) + 1:
-                                row_dict = {columns_to_keep[i]: row[idx] for i, idx in enumerate(keep_indices)}
+                                row_dict = {columns_to_keep[i]: (row[idx]) for i, idx in enumerate(keep_indices)}
+                                print(f"Yielding row: {row_dict}")
                                 yield f"data: {json.dumps(row_dict)}\n\n"
                         last_position = file.tell()
                 except FileNotFoundError:

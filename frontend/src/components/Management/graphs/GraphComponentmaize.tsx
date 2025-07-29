@@ -1,25 +1,31 @@
 import React, { useState, useEffect, useRef } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
-import { OpenAPI } from "../client";
+import { OpenAPI } from "../../../client";
 
 interface DataPoint {
   x: number;
-  SoilT: number;
-  SolRad: number;
-  TotLeafDM: number;
-  ETdmd: number;
+  [key: string]: number; // Allow dynamic keys for different crops
 }
 
 interface GraphComponentProps {
   simulationID: number;
+  crop: string;
 }
 
 const MAX_POINTS = 3000;
 
-const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID }) => {
+// Crop-specific keys to plot
+const cropKeys: Record<string, string[]> = {
+  maize: ["SoilT", "SolRad", "TotLeafDM", "ETdmd"],
+  soybean: ["LAI", "totalDM", "podDM", "Tr_act"],
+  potato: ["LAI", "totalDM", "tuberDM", "Tr-Pot"],
+  cotton: ["LAI", "PlantDM", "Yield", "Nodes"],
+};
+
+const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID, crop }) => {
   const [data, setData] = useState<DataPoint[]>([]);
-  const xRef = useRef<number>(0); // Track x without re-rendering
+  const xRef = useRef<number>(0);
 
   useEffect(() => {
     const eventSource = new EventSource(
@@ -27,21 +33,22 @@ const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID }) => {
     );
 
     eventSource.onopen = () => {
-      console.log("SSE connection established."); // Log when connection is open
+      console.log("SSE connection established.");
     };
 
     eventSource.onmessage = (event: MessageEvent) => {
       try {
         const line = event.data.trim();
         const obj = JSON.parse(line.replace("data:", "").trim());
-        const newPoint: DataPoint = {
-          x: xRef.current++,
-          SoilT: parseFloat(obj.SoilT),
-          SolRad: parseFloat(obj.SolRad),
-          TotLeafDM: parseFloat(obj.TotLeafDM),
-          ETdmd: parseFloat(obj.ETdmd),
-        };
-        if (Object.values(newPoint).every((val) => !isNaN(val))) {
+        const keys = cropKeys[crop] || Object.keys(obj);
+        const newPoint: DataPoint = { x: xRef.current++ };
+        let valid = true;
+        keys.forEach((key) => {
+          const val = parseFloat(obj[key]);
+          if (isNaN(val)) valid = false;
+          newPoint[key] = val;
+        });
+        if (valid) {
           setData((prev) => [...prev, newPoint].slice(-MAX_POINTS));
         }
       } catch (err) {
@@ -54,19 +61,19 @@ const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID }) => {
       eventSource.close();
     };
 
-    // Cleanup on component unmount
     return () => {
-      console.log("Closing SSE connection..."); // Log cleanup
+      console.log("Closing SSE connection...");
       eventSource.close();
     };
-  }, [simulationID]);
+  }, [simulationID, crop]);
 
   if (data.length === 0) {
     return <p>Waiting for data...</p>;
   }
 
-  // Function to generate chart options dynamically
-  const generateChartOptions = (key: keyof DataPoint) => ({
+  const keysToPlot = cropKeys[crop] || Object.keys(data[0] || {});
+
+  const generateChartOptions = (key: string) => ({
     chart: {
       type: "line",
       height: 180,
@@ -102,11 +109,11 @@ const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID }) => {
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}>
-      {["SoilT", "SolRad", "TotLeafDM", "ETdmd"].map((key) => (
+      {keysToPlot.map((key) => (
         <div key={key} style={{ border: "2px solid black", padding: "10px" }}>
           <HighchartsReact
             highcharts={Highcharts}
-            options={generateChartOptions(key as keyof DataPoint)}
+            options={generateChartOptions(key)}
           />
         </div>
       ))}

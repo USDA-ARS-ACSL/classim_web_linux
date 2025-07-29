@@ -104,7 +104,6 @@ def read_exp_data(
         PGRDate = ", "
         PGRDate = PGRDate.join(PGRDateList)
     result_dict = {}
-    print("cropname++++++++++++++++++++++++++++++", cropname)
     if cropname == "maize":
         # EmergenceDate = getMaizeDateByDev(simid,"Emerged")
         # TasseledDate = getMaizeDateByDev(simid,"Tasseled")
