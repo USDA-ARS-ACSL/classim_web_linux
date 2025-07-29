@@ -228,14 +228,14 @@ def delete_cropOutputSim(id: str, crop: str, session: SessionDep) -> bool:
         file_ext = ["g01", "g03", "g04", "g05", "g07", "plantStress"]
 
     # Delete geometry data
-    geo_query = "DELETE FROM geometry WHERE simID = :id"
+    geo_query = text("""DELETE FROM geometry WHERE "simID" = :id""")
     session.execute(geo_query, {'id': id})
 
     # Delete from each crop-specific table
     for ext in file_ext:
         table_name = f"{ext}_{crop}"
         id_name = f"{table_name}_id"
-        query = f"DELETE FROM {table_name} WHERE {id_name} = :id"
+        query = text(f"DELETE FROM {table_name} WHERE {id_name} = :id")
         session.execute(query, {'id': id})
 
     session.commit()
@@ -317,10 +317,14 @@ def getMaturityDate(sim_id:int ,session:SessionDep):
     result= session.execute(query, {'id': sim_id})
 
     row = result.fetchone()
+    print("getMaturityDate+++++++++++", row)
     if row[0] is not None:
-        rlist = row[0].strftime('%m/%d/%Y')
+        try:
+            rlist = row[0].strftime('%m/%d/%Y')
+        except AttributeError:
+            rlist = row[0]  # Already a string
     else:
-        rlist="N/A"
+        rlist = "N/A"
     return rlist
 
 
@@ -425,6 +429,7 @@ def getSoybeanAgronomicData(sim_id, date, session:SessionDep):
         rlist = c
     else:
         rlist = (0, 0, 0)
+    print(f"getSoybeanAgronomicData++++++++++++++++++++++: {query}, {rlist}")
     return rlist
 
 

@@ -20,6 +20,7 @@ def read_pastrun(
         statement = (
             select(Pastrun)
             .where(Pastrun.owner_id == current_user.id)
+            .order_by(Pastrun.id.desc())
             .offset(skip)
             .limit(limit)
         )
@@ -103,6 +104,7 @@ def read_exp_data(
         PGRDate = ", "
         PGRDate = PGRDate.join(PGRDateList)
     result_dict = {}
+    print("cropname++++++++++++++++++++++++++++++", cropname)
     if cropname == "maize":
         # EmergenceDate = getMaizeDateByDev(simid,"Emerged")
         # TasseledDate = getMaizeDateByDev(simid,"Tasseled")
