@@ -18,3 +18,7 @@ org_root_ca.crt
 .env
 backend/cacerts
 frontend/src/routes/_layout/management_old.tsx
+backend/executables/gossym
+backend/executables/spudsim
+backend/testcer.py
+frontend/src/components/Common/CustomDatePicker.jsx
