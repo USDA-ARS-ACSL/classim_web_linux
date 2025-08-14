@@ -137,6 +137,7 @@ const SimpleMap = () => {
       showToast("Something went wrong.", `${errDetail}`, "error");
     },
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["readSite"] }); // <-- Add this
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
     },
@@ -153,6 +154,7 @@ const SimpleMap = () => {
       showToast("Something went wrong.", `${errDetail}`, "error");
     },
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["readSite"] }); // <-- Add this
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
     },
@@ -163,16 +165,30 @@ const SimpleMap = () => {
       SiteService.createSite({ requestBody: data }),
     onSuccess: () => {
       showToast("Success!", "Site Created successfully.", "success");
+      resetFormAndState();
     },
     onError: (err: ApiError) => {
       const errDetail = (err.body as any)?.detail;
       showToast("Something went wrong.", `${errDetail}`, "error");
     },
     onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["readSite"] }); // <-- Add this
       queryClient.invalidateQueries({ queryKey: ["users"] });
       queryClient.invalidateQueries({ queryKey: ["currentUser"] });
     },
   });
+
+  // Add this function inside your component
+  const resetFormAndState = () => {
+    setSelectedOption("None");
+    setDraggable(true);
+    setDisable(false);
+    setsitenameInput("");
+    setAltitude("0");
+    setLat(center.lat.toString());
+    setLong(center.lng.toString());
+    setPosition(center);
+  };
 
   const onSubmit: SubmitHandler<SiteUpdate> = async (data: any) => {
     data.rlat = position.lat;
@@ -276,6 +292,7 @@ const SimpleMap = () => {
 
   const onDelete = () => {
     setSaveOption("delete");
+    deleteMutation.mutate();
   };
 
   const handleLatitudeChange = (event: any) => {
