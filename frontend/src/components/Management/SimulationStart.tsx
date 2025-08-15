@@ -42,6 +42,8 @@ const SimulationStart: React.FC<SimulationProps> = ({
   const [plantingGrid, setPlantingGrid] = useState<number>(0.65);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [cropName, setCropName] = useState<string>("");
+  const [seedpieceMass, setSeedpieceMass] = useState<number>(10);
 
   const showToast = useCustomToast();
 
@@ -94,6 +96,8 @@ const SimulationStart: React.FC<SimulationProps> = ({
         setRowSpacing(ss_response?.rowSpacing ?? 0.5);
         setPlantingGrid(ss_response?.eomult ?? 0.65);
         setAutoIrrigation(ss_response?.autoirrigation ?? 0);
+        setCropName(cropName);
+        setSeedpieceMass(ss_response?.seedpieceMass ?? 0);
       } catch (err: any) {
         setError(err.message || "Failed to load data");
       } finally {
@@ -144,7 +148,7 @@ const SimulationStart: React.FC<SimulationProps> = ({
       eomult: plantingGrid,
       rowSpacing: rowSpacing,
       cultivar: cultivar,
-      seedpieceMass: 0, // TODO: Replace with actual value if available
+      seedpieceMass: seedpieceMass, // TODO: Replace with actual value if available
       odate: date,
       // treatmentid removed from here
     };
@@ -188,7 +192,7 @@ const SimulationStart: React.FC<SimulationProps> = ({
           <CustomDatePicker date={date} onDateChange={setDate} />
         </FormControl>
         <FormControl>
-          <FormLabel>Cultivars</FormLabel>
+          <FormLabel>Cultivars for {cropName}</FormLabel>
           <Select
             placeholder="Select Cultivar"
             value={cultivar}
@@ -218,6 +222,16 @@ const SimulationStart: React.FC<SimulationProps> = ({
             onChange={(e) => setSeedDepth(Number(e.target.value))}
           />
         </FormControl>
+                {cropName === "potato" && (
+          <FormControl>
+            <FormLabel>Seed Piece Mass (g)</FormLabel>
+            <Input
+              type="number"
+              value={seedpieceMass}
+              onChange={(e) => setSeedpieceMass(Number(e.target.value))}
+            />
+          </FormControl>
+        )}
         <FormControl>
           <FormLabel>Row Spacing (cm)</FormLabel>
           <Input
