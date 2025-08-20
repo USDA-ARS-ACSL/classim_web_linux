@@ -228,12 +228,12 @@ def ingestGeometryFile(grdFile: str, g03File: str, simulation: str, session: Any
 
 import os
 
-def WriteLayerGas(soilname, field_name, field_path, rowSpacing, rootWeightPerSlab,session):
+def WriteLayerGas(soilname, field_name, field_path, rowSpacing, rootWeightPerSlab,session,current_user_id):
     '''
     Writes Layer file (*.lyr)
     '''
     # Get Grid Ratio for the soil
-    gridratio_list = read_soilgridratioDB(soilname,session)
+    gridratio_list = read_soilgridratioDB(soilname,session,current_user_id)
     NumObs = len(gridratio_list)
 
     # Define file path
@@ -268,7 +268,7 @@ def WriteLayerGas(soilname, field_name, field_path, rowSpacing, rootWeightPerSla
                         g/cm3    cm3/cm3   cm3/cm3\n")
 
             
-            soilgrid_list = read_soilshortDB(soilname,session)
+            soilgrid_list = read_soilshortDB(soilname,session,current_user_id)
             for rrow in range(0, len(soilgrid_list)):
                 record_tuple = soilgrid_list[rrow]
 
@@ -560,7 +560,7 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
     hourlyFlag = 1
     WriteTimeFileData(ltreatmentname, lexperiment, lcrop, lstationtype, hourlyFlag, field_name, field_path, hourly_flag, 0, session)
     WriteNitData(lsoilname, field_name, field_path, rowSpacing, session)
-    WriteLayerGas(lsoilname, field_name, field_path, rowSpacing, rootWeightPerSlab, session)
+    WriteLayerGas(lsoilname, field_name, field_path, rowSpacing, rootWeightPerSlab, session,current_user_id)
     surfResType = WriteManagement(lcrop, lexperiment, ltreatmentname, field_name, field_path, rowSpacing, session)
     irrType = irrigationInfo(lcrop, lexperiment, ltreatmentname, session)
     WriteMulchGeo(field_path, surfResType, session)

@@ -171,7 +171,7 @@ def read_soillongDB_maxdepth(soilname: str, session: SessionDep):
     query = text("""
     SELECT max("Bottom_depth")
     FROM soil_long
-    WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname)
+    WHERE o_sid = (SELECT site_id FROM soil WHERE soilname = :soilname)
     """)
 
     result = session.execute(query, {'soilname': soilname})
@@ -518,7 +518,7 @@ def read_soiltextureDB(soilname: str, session: SessionDep):
     query = text("""
     SELECT "Sand", "Silt", "Clay"
     FROM soil_long
-    WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname)
+    WHERE o_sid = (SELECT site_id FROM soil WHERE soilname = :soilname)
     """)
     result = session.execute(query, {'soilname': soilname})
     return result.fetchall()
@@ -626,7 +626,7 @@ def read_soilnitrogenDB(soilname, session: SessionDep) -> Any:
         query = text("""
             SELECT kh, kL, km, kn, kd, fe, fh, r0, "rL", rm, fa, nq, cs
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname)
+            WHERE o_sid = (SELECT site_id FROM soil WHERE soilname = :soilname)
         """)
         result = session.execute(query, {'soilname': soilname})
         rlist = result.fetchall()
@@ -646,14 +646,14 @@ def read_soilhydroDB(soilname, session: SessionDep,current_user_id) -> Any:
             query = text("""
             SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname)
+            WHERE o_sid = (SELECT site_id FROM soil WHERE soilname = :soilname)
         """)
             result = session.execute(query, {'soilname': soilname})
         else:
             query = text("""
                 SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
                 FROM soil_long 
-                WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id= :owner)
+                WHERE o_sid = (SELECT site_id FROM soil WHERE soilname = :soilname and owner_id= :owner)
             """)
             result = session.execute(query, {'soilname': soilname, 'owner':current_user_id})
         rlist = result.fetchall()
@@ -673,7 +673,7 @@ def read_soilOMDB(soilname, session: SessionDep) -> Any:
         query = text("""
             SELECT id, "Sand", "Silt", "Clay", "BD", "OM_pct", "TH33", "TH1500" 
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname)
+            WHERE o_sid = (SELECT site_id FROM soil WHERE soilname = :soilname)
         """)
         result = session.execute(query, {'soilname': soilname})
         rlist = result.fetchall()
@@ -843,7 +843,7 @@ def read_gasDB(session: SessionDep) -> Any:
 
 
 
-def read_soilgridratioDB(soilname: str, session: SessionDep) -> list:
+def read_soilgridratioDB(soilname: str, session: SessionDep,current_user_id) -> list:
     '''
     Returns gridratio information based on soilname.
     Input:
@@ -862,12 +862,12 @@ def read_soilgridratioDB(soilname: str, session: SessionDep) -> list:
                 WHERE gridratio_id = (
                     SELECT o_gridratio_id 
                     FROM soil 
-                    WHERE soilname = :soilname
+                    WHERE soilname = :soilname AND owner_id = :current_user_id
                 )
             """)
             # Execute the query with the provided soilname parameter
-            result = session.execute(query, {'soilname': soilname}).fetchall()
-
+            result = session.execute(query, {'soilname': soilname, 'current_user_id': current_user_id}).fetchall()
+            print(query, soilname, result,"+++++++++++++++++++++++++")
             # If the query returns results, append them to the result list
             if result:
                 for record in result:
@@ -880,7 +880,7 @@ def read_soilgridratioDB(soilname: str, session: SessionDep) -> list:
         return rlist
 
 
-def read_soilshortDB(soilname: str, session: SessionDep) -> list:
+def read_soilshortDB(soilname: str, session: SessionDep,current_user_id) -> list:
     '''
     Returns more restricted soil information from soil_long table based on soilname
     Input:
@@ -898,13 +898,13 @@ def read_soilshortDB(soilname: str, session: SessionDep) -> list:
                        "Ks", "Kk", "thk", "CO2", "O2","N2O"
                 FROM soil_long
                 WHERE o_sid = (
-                    SELECT id
+                    SELECT site_id
                     FROM soil
-                    WHERE soilname = :soilname
+                    WHERE soilname = :soilname AND owner_id = :current_user_id
                 )
             """)
             # Execute the query with the provided soilname parameter
-            result = session.execute(query, {'soilname': soilname}).fetchall()
+            result = session.execute(query, {'soilname': soilname, 'current_user_id': current_user_id}).fetchall()
 
             # If the query returns results, append them to the result list
             if result:
