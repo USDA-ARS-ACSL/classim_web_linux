@@ -617,7 +617,7 @@ const sampleCsvUrl = URL.createObjectURL(sampleCsvBlob);
           <FormLabel htmlFor='averageWindInput'>Average Wind (Km/h)</FormLabel>
           <Input
             id='averageWindInput'
-            type='text'
+            type='number'
             placeholder='Enter Average Wind (Km/h)'
             value={averageWind ?? ""}
             onChange={handleAverageWindChange}
@@ -633,7 +633,7 @@ const sampleCsvUrl = URL.createObjectURL(sampleCsvBlob);
           </FormLabel>
           <Input
             id='averageRainRateInput'
-            type='text'
+            type='number'
             placeholder='Average Rain Rate (cm/hr)'
             value={averageRainRate ?? ""}
             onChange={handleAverageRainRateChange}
@@ -655,7 +655,7 @@ const sampleCsvUrl = URL.createObjectURL(sampleCsvBlob);
           <FormLabel htmlFor='averageCO2Input'>Average CO2 (ppm)</FormLabel>
           <Input
             id='averageCO2Input'
-            type='text'
+            type='number'
             placeholder='Average CO2 (ppm)'
             value={averageCO2 ?? ""}
             onChange={handleAverageCO2Change}
@@ -671,7 +671,7 @@ const sampleCsvUrl = URL.createObjectURL(sampleCsvBlob);
           </FormLabel>
           <Input
             id='nContentRainfallInput'
-            type='text'
+            type='number'
             placeholder='N Content Rainfall (ppm)'
             value={nContentRainfall ?? ""}
             onChange={handleNContentRainfallChange}

@@ -570,7 +570,7 @@ class WeatherMetaBase(SQLModel):
     BIR: int | None = None
     AvgWind: float | None = None
     AvgRainRate: float | None = None
-    ChemCOnc: int | None = None
+    ChemCOnc: float | None = None
     AvgCO2: float | None = None
 
 
@@ -593,7 +593,7 @@ class WeatherMetaPublic(WeatherMetaBase):
     BIR: int | None = None
     AvgWind: float | None = None
     AvgRainRate: float | None = None
-    ChemCOnc: int | None = None
+    ChemCOnc: float | None = None
     AvgCO2: float | None = None
 
 
@@ -612,7 +612,7 @@ class WeatherMetaCreate(WeatherMetaBase):
     BIR: int | None = None
     AvgWind: float | None = None
     AvgRainRate: float | None = None
-    ChemCOnc: int | None = None
+    ChemCOnc: float | None = None
     AvgCO2: float | None = None
 
 class WeatherMetaUpdate(WeatherMetaBase):
@@ -626,7 +626,7 @@ class WeatherMetaUpdate(WeatherMetaBase):
     BIR: int | None = None
     AvgWind: float | None = None
     AvgRainRate: float | None = None
-    ChemCOnc: int | None = None
+    ChemCOnc: float | None = None
     AvgCO2: float | None = None
 
 ######### Weather Meta tab model Start ##############

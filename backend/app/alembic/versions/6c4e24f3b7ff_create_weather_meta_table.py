@@ -30,7 +30,7 @@ def upgrade():
         sa.Column('BIR', sa.Integer, default=1),
         sa.Column('AvgWind', sa.Float, default=3.0),
         sa.Column('AvgRainRate', sa.Float, default=10.0),
-        sa.Column('ChemCOnc', sa.Integer, default=0),
+        sa.Column('ChemCOnc', sa.Float, default=0),
         sa.Column('AvgCO2', sa.Float, default=380.0),
     )
 
