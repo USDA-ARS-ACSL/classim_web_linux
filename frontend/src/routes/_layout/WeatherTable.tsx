@@ -31,7 +31,7 @@ const WeatherTable: React.FC<WeatherTableProps> = ({
   
     if(!weatherData || weatherData?.data === null ) {
       if(selectedStation){
-    return <div>No Weather Data. Please use import method to <b>upload/donwnload</b> Weather Data</div>;
+    return <div>No Weather Data. Please use import method to <b>upload/download</b> Weather Data</div>;
       }
       else{
         return <div>Please select a station to show weather data.</div>;
