@@ -229,7 +229,7 @@ const SeasonalOutput: React.FC = () => {
                             onClick={() => handleDelete(sim.id)}
                           />
                         </Box>
-                      ) : ((statusMap[sim.id] ?? sim.status) === 101 || (statusMap[sim.id] ?? sim.status) === 1001) ? (
+                      ) : (statusMap[sim.id] ?? sim.status) === 101 ? (
                         <Box display="flex" alignItems="center">
                           <Text color="green.500" fontWeight="bold" mr={1}>Completed</Text>
                           <DeleteIcon
