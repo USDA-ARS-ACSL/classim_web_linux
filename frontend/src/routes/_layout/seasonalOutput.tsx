@@ -220,9 +220,18 @@ const SeasonalOutput: React.FC = () => {
                     <Td>{sim.endyear}</Td>
                     <Td>
                       {/* Show Failed + trash icon inline if status is null or < 0 */}
-                      {((statusMap[sim.id] ?? sim.status) == null || (statusMap[sim.id] ?? sim.status) < 0) ? (
+                          {((statusMap[sim.id] ?? sim.status) == null || (statusMap[sim.id] ?? sim.status) < 0) ? (
                         <Box display="flex" alignItems="center">
                           <Text color="red.500" fontWeight="bold" mr={1}>Failed</Text>
+                          <DeleteIcon
+                            style={{ cursor: "pointer" }}
+                            color="#E53E3E"
+                            onClick={() => handleDelete(sim.id)}
+                          />
+                        </Box>
+                      ) : (statusMap[sim.id] ?? sim.status) === 101 ? (
+                        <Box display="flex" alignItems="center">
+                          <Text color="green.500" fontWeight="bold" mr={1}>Completed</Text>
                           <DeleteIcon
                             style={{ cursor: "pointer" }}
                             color="#E53E3E"
