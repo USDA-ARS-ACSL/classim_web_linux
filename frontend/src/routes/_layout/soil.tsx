@@ -15,7 +15,7 @@ import {
   TDataUpdateGridRatio,
   TDataUpdateSoil,
 } from "../../client";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import useCustomToast from "../../hooks/useCustomToast";
 import {
   Flex,
@@ -43,20 +43,117 @@ const SoilTab = () => {
   const [soilName, setSoilName] = useState("");
   const [siteName, setSiteName] = useState("");
   const [selectedSoilData, setSelectedSoilData] = useState<any>(null);
-  const [soilDeleted, setSoilDeleted] = useState<Message>({ message: "" });
+  const [ setSoilDeleted] = useState<Message>({ message: "" });
+  const [datas, setDatas] = useState<SoilFetchPublicTable[]>([]);
+  const showToast = useCustomToast();
+  const queryClient = useQueryClient();
+
+  // Queries
   const { data: soils, isLoading: soilsLoading } = useQuery({
-    queryKey: ["readSite"],
+    queryKey: ["readSoil"],
     queryFn: () => SoilService.readSoils(),
   });
-  console.log(soilDeleted)
+  
   const { data: sites, isLoading: sitesLoading } = useQuery({
-    queryKey: ["readSoil"],
+    queryKey: ["readSite"],
     queryFn: () => SiteService.readSites(),
   });
 
   const { data: grlist } = useQuery({
     queryKey: ["readGr"],
     queryFn: () => GridRatioService.readGridRatioList(),
+  });
+
+  // Mutations
+  const createGridRatioMutation = useMutation({
+    mutationFn: (data: TDataCreateGridRatio) => GridRatioService.createGridRatio(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["readGr"] });
+    },
+  });
+
+  const updateGridRatioMutation = useMutation({
+    mutationFn: (data: TDataUpdateGridRatio) => GridRatioService.updateGridRatio(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["readGr"] });
+    },
+  });
+
+  const createSoilMutation = useMutation({
+    mutationFn: (data: TDataCreateSoil) => SoilService.createSoil(data),
+    onSuccess: () => {
+      // Invalidate queries to refresh data (this will add the new soil to the dropdown)
+      queryClient.invalidateQueries({ queryKey: ["readSoil"] });
+      
+      // Reset form state to original
+      setSoilName("");
+      setSelectedSiteOption(null);
+      setOGridratioId(null);
+      setSelectedSoilOption(""); // Reset to empty to show placeholder
+      setDatas([]);
+      setSiteName("");
+      setGridRatio(null);
+      
+      // Clear localStorage table data
+      localStorage.removeItem("soil_table");
+      
+      showToast("Success", "Soil profile saved successfully", "success");
+    },
+    onError: (error: any) => {
+      const errDetail = error.body?.detail || "Unknown error occurred";
+      showToast("Something went wrong.", `${errDetail}`, "error");
+    },
+  });
+
+  const updateSoilMutation = useMutation({
+    mutationFn: (data: TDataUpdateSoil) => SoilService.updateSoil(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["readSoil"] });
+      showToast("Success", "Soil profile updated successfully", "success");
+    },
+    onError: (error: any) => {
+      const errDetail = error.body?.detail || "Unknown error occurred";
+      showToast("Something went wrong.", `${errDetail}`, "error");
+    },
+  });
+
+  const deleteSoilMutation = useMutation({
+    mutationFn: (data: TDataDeleteSoil) => SoilService.deleteSoil(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["readSoil"] });
+      showToast("Successfully", "The soil was deleted successfully.", "success");
+      setSoilName("");
+      setSelectedSiteOption(null);
+      setOGridratioId(null);
+      setSelectedSoilOption("");
+    },
+    onError: (error: any) => {
+      showToast("Failed!", "Failed to delete soil.", "error");
+    },
+  });
+
+  const deleteGridRatioMutation = useMutation({
+    mutationFn: (data: TDataDeleteGridRatio) => GridRatioService.deleteGridRatio(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["readGr"] });
+    },
+  });
+
+  const deleteSoilTableMutation = useMutation({
+    mutationFn: (data: TDataSoilTableHtmlContent) => SoilService.deleteSoilTable(data),
+    onSuccess: () => {
+      showToast("Success", "Soil table deleted successfully", "success");
+    },
+  });
+
+  const createSoilTableMutation = useMutation({
+    mutationFn: (data: TDataCreateSoilTable) => SoilService.createSoilTable(data),
+    onSuccess: () => {
+      // After creating a soil table entry, refetch the soil profile data
+      if (selectedSiteOption) {
+        fetchSoilProfile(selectedSiteOption.toString()).then(setDatas);
+      }
+    },
   });
 
   const handleSoilSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -94,60 +191,10 @@ const SoilTab = () => {
     setOGridratioId(value === "" ? null : parseInt(value));
   };
 
-  const [datas, setDatas] = useState<SoilFetchPublicTable[]>([]);
   const handleSiteSelect = (siteId: string) => {
     const selectedSite = Number(siteId);
     setSelectedSiteOption(selectedSite);
-    fetchSoilProfile(selectedSite.toString()).then((data) => {
-      const mapDataArr: SoilFetchPublicTable[] = [];
-
-      data.forEach((data: any) => {
-        const mapData = {
-          Bottom_depth: Number(data.Bottom_depth) ?? Number(data.one),
-          OM_pct: Number(data.OM_pct),
-          NO3: Number(data.NO3) ?? Number(data.three),
-          NH4: Number(data.NH4) ?? Number(data.four),
-          HnNew: Number(data.HnNew) ?? Number(data.five),
-          initType: 1,
-          Tmpr: Number(data.Tmpr),
-          Sand: Number(data.Sand) ?? Number(data.seven),
-          Silt: Number(data.Silt) ,
-          Clay: Number(data.Clay) ?? Number(data.nine),
-          BD: parseFloat(data.BD) ?? parseFloat(data.default),
-          TH33: Number(data.TH33) ?? Number(data.ten),
-          TH1500: Number(data.TH1500) ?? Number(data.eleven),
-          kh: Number(data.kh) ?? Number(data.twelve),
-          kl: Number(data.kl) ?? Number(data.default),
-          km: Number(data.km) ?? Number(data.default),
-          kn: Number(data.kn) ?? Number(data.default),
-          kd: Number(data.kd) ?? Number(data.default),
-          fe: Number(data.fe) ?? Number(data.default),
-          fh: Number(data.fh) ?? Number(data.default),
-          r0: Number(data.r0) ?? Number(data.default),
-          rL: Number(data.rL) ?? Number(data.default),
-          rm: Number(data.rm) ?? Number(data.default),
-          fa: Number(data.fa) ?? Number(data.default),
-          nq: Number(data.nq) ?? Number(data.default),
-          cs: Number(data.cs) ?? Number(data.default),
-          th: Number(data.th) ?? Number(data.default),
-          thr: Number(data.thr) ?? Number(data.default),
-          ths: Number(data.ths) ?? Number(data.default),
-          tha: Number(data.tha) ?? Number(data.default),
-          Alfa: Number(data.Alfa) ?? Number(data.default),
-          n: Number(data.n) ?? Number(data.default),
-          Ks: Number(data.Ks) ?? Number(data.default),
-          Kk: Number(data.Kk) ?? Number(data.default),
-          thk: Number(data.thk) ?? Number(data.default),
-          CO2: parseFloat(data.CO2) ?? parseFloat(data.default),
-          O2: parseFloat(data.O2) ?? parseFloat(data.default),
-          N2O: parseFloat(data.N2O) ?? parseFloat(data.default),
-        };
-
-        mapDataArr.push(mapData);
-      });
-
-      setDatas(mapDataArr);
-    });
+    fetchSoilProfile(selectedSite.toString()).then(setDatas);
   };
 
   let responsea: any;
@@ -160,7 +207,6 @@ const SoilTab = () => {
       const existingEntry = await SoilService.fetchSoilTableBySid(siteIdTable);
 
       if (existingEntry.data.length > 0) {
-        console.log(existingEntry.data,"this is data")
         existingEntry.data.forEach((data: any) => {
           const mapData = {
             Bottom_depth: Number(data.Bottom_depth),
@@ -240,7 +286,6 @@ const SoilTab = () => {
             cs: Number(data.cs),
             th: Number(data.default),
             thr: Number(data.default),
-            
             ths: Number(data.default),
             tha: Number(data.default),
             Alfa: Number(data.default),
@@ -248,10 +293,9 @@ const SoilTab = () => {
             Ks: Number(data.default),
             Kk: Number(data.default),
             thk: Number(data.default),
-            CO2:Number(data.CO2),
-            O2:Number(data.O2),
-            N2O:Number(data.N2O),
-            
+            CO2: Number(data.CO2),
+            O2: Number(data.O2),
+            N2O: Number(data.N2O),
           };
 
           mapDataArr.push(mapData);
@@ -267,12 +311,9 @@ const SoilTab = () => {
       const siteIdTable: TDataSoilTableHtmlContent = {
         o_sid: Number(selectedSiteOption),
       };
-      const existingEntry = await SoilService.fetchSoilTableBySid(siteIdTable);
-
-      if (existingEntry.data.length > 0) {
-        const deleted = await SoilService.deleteSoilTable(siteIdTable);
-        setSoilDeleted(deleted);
-      }
+      
+      // Use the mutation instead of direct API call
+      await deleteSoilTableMutation.mutateAsync(siteIdTable);
 
       for (const data of updatedData) {
         const updatedSoilTableData: TDataCreateSoilTable = {
@@ -318,7 +359,13 @@ const SoilTab = () => {
             N2O: parseFloat(data.N2O),
           },
         };
-        await SoilService.createSoilTable(updatedSoilTableData);
+        await createSoilTableMutation.mutateAsync(updatedSoilTableData);
+      }
+      
+      // After all updates, refetch the soil profile
+      if (selectedSiteOption) {
+        const updatedData = await fetchSoilProfile(selectedSiteOption.toString());
+        setDatas(updatedData);
       }
     } catch (error) {
       console.error("Error saving data:", error);
@@ -364,8 +411,9 @@ const SoilTab = () => {
             GasBCBottom: 1,
           },
         };
-        const createGridRatioResponse =
-          await GridRatioService.createGridRatio(gridRationData);
+        
+        // Use mutation instead of direct API call
+        const createGridRatioResponse = await createGridRatioMutation.mutateAsync(gridRationData);
 
         if (createGridRatioResponse) {
           const gridratioId = createGridRatioResponse.gridratio_id;
@@ -376,9 +424,9 @@ const SoilTab = () => {
               o_gridratio_id: Number(gridratioId),
             },
           };
-          await SoilService.createSoil(soilData);
-          showToast("Success", "Soil profile saved successfully", "success");
-          queryClient.invalidateQueries({ queryKey: ["readSoil"] });
+          
+          // Use mutation instead of direct API call
+          await createSoilMutation.mutateAsync(soilData);
         }
       } else {
         // Update existing soil
@@ -398,7 +446,8 @@ const SoilTab = () => {
           gridratio_id: Number(gridRatio),
         };
 
-        await GridRatioService.updateGridRatio(gridRationData);
+        // Use mutation instead of direct API call
+        await updateGridRatioMutation.mutateAsync(gridRationData);
 
         const updatedSoil: TDataUpdateSoil = {
           requestBody: {
@@ -408,32 +457,42 @@ const SoilTab = () => {
           },
           id: Number(selectedSoilOption),
         };
-        await SoilService.updateSoil(updatedSoil);
-        showToast("Success", "Soil profile updated successfully", "success");
+        
+        // Use mutation instead of direct API call
+        await updateSoilMutation.mutateAsync(updatedSoil);
       }
-    } catch (error:any) {
-      const errDetail = (error as any).body?.detail
-      showToast("Something went wrong.", `${errDetail}`, "error")
-    }
 
-    const storedData = localStorage.getItem("soil_table");
-    if (storedData) {
-      try {
-        const parsedData = JSON.parse(storedData);
-        if (Array.isArray(parsedData)) {
-          handleSaveData(parsedData);
-        } else {
-          console.error("Stored data is not an array");
+      // After save/update, refetch all relevant data
+      queryClient.invalidateQueries({ queryKey: ["readSoil"] });
+      queryClient.invalidateQueries({ queryKey: ["readSite"] });
+      queryClient.invalidateQueries({ queryKey: ["readGr"] });
+      
+      // Process table data from localStorage
+      const storedData = localStorage.getItem("soil_table");
+      if (storedData) {
+        try {
+          const parsedData = JSON.parse(storedData);
+          if (Array.isArray(parsedData)) {
+            await handleSaveData(parsedData);
+          } else {
+            console.error("Stored data is not an array");
+          }
+        } catch (error) {
+          console.error("Error parsing stored data", error);
         }
-      } catch (error) {
-        console.error("Error parsing stored data", error);
       }
+
+      // After everything is saved, refetch the soil profile
+      if (selectedSiteOption) {
+        const updatedData = await fetchSoilProfile(selectedSiteOption.toString());
+        setDatas(updatedData);
+      }
+    } catch (error: any) {
+      const errDetail = (error as any).body?.detail || "Unknown error";
+      showToast("Something went wrong.", `${errDetail}`, "error");
     }
   };
 
-  const showToast = useCustomToast();
-
-  const queryClient = useQueryClient();
   const handleDelete = async () => {
     if (!selectedSoilOption || selectedSoilOption === "0") {
       showToast("Error", "No soil selected for deletion.", "error");
@@ -441,41 +500,23 @@ const SoilTab = () => {
     }
     if (selectedSoilData && selectedSoilData.id) {
       try {
+        // Use mutations instead of direct API calls
         const data: TDataDeleteSoil = {
           id: parseInt(selectedSoilData.id, 10),
         };
-        const response = await SoilService.deleteSoil(data);
-
+        
         const datagr: TDataDeleteGridRatio = {
           gridratio_id: Number(gridRatio),
         };
-        const delResponse = await GridRatioService.deleteGridRatio(datagr);
-        if (response && delResponse) {
-          showToast(
-            "Successfully",
-            "The soil was deleted successfully.",
-            "success"
-          );
-          // Reset fields after deletion
-          setSoilName("");
-          setSelectedSiteOption(null);
-          setOGridratioId(null);
-
-          queryClient.invalidateQueries({
-            queryKey: ["readSoil"],
-          });
-        } else {
-          showToast("Failed!", "Failed to delete soil.", "error");
-        }
+        
+        // Delete grid ratio first, then delete soil
+        await deleteGridRatioMutation.mutateAsync(datagr);
+        await deleteSoilMutation.mutateAsync(data);
       } catch (error) {
-        // showToast("Error!", `Error occurred: ${error.message}`, "error");
+        showToast("Error!", "Failed to delete soil.", "error");
       }
     } else {
-      showToast(
-        "Error!",
-        "Selected soil data or its ID is undefined.",
-        "error"
-      );
+      showToast("Error!", "Selected soil data or its ID is undefined.", "error");
     }
   };
 
@@ -591,7 +632,7 @@ const SoilTab = () => {
         </Flex>
 
         {selectedSiteOption && selectedSiteOption !== null && (
-          <EditableTable initialData={datas} /*onSave={handleSaveData}*/ />
+          <EditableTable initialData={datas} />
         )}
 
         <Flex direction={{ base: "column", md: "row" }} pb={8} width='100%'>
@@ -602,7 +643,7 @@ const SoilTab = () => {
               type='text'
               placeholder='Enter Soil Name'
               value={soilName}
-              onChange={(e) => setSoilName(e.target.value)} // Allow manual input as well
+              onChange={(e) => setSoilName(e.target.value)}
               required
               isDisabled={selectedSoilOption !== "0"}
             />
@@ -610,7 +651,11 @@ const SoilTab = () => {
         </Flex>
         <Flex direction='row' justify='center' pt={8}>
           {selectedSoilOption === "0" ? (
-            <Button onClick={handleSave} colorScheme='teal'>
+            <Button 
+              onClick={handleSave} 
+              colorScheme='teal'
+              isLoading={createGridRatioMutation.isPending || createSoilMutation.isPending}
+            >
               Save Changes
             </Button>
           ) : (
@@ -620,10 +665,16 @@ const SoilTab = () => {
                 type='submit'
                 mr={{ base: 0, md: 4 }}
                 onClick={handleSave}
+                isLoading={updateGridRatioMutation.isPending || updateSoilMutation.isPending}
               >
                 Update
               </Button>
-              <Button variant='danger' type='submit' onClick={handleDelete}>
+              <Button 
+                variant='danger' 
+                type='submit' 
+                onClick={handleDelete}
+                isLoading={deleteSoilMutation.isPending || deleteGridRatioMutation.isPending}
+              >
                 Delete
               </Button>
             </>
@@ -633,7 +684,6 @@ const SoilTab = () => {
       <NextPreviousButtons />
       <FaqComponent tabname='soil' />
     </Container>
-    
   );
 };
 
