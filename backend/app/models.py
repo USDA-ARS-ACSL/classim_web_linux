@@ -782,6 +782,7 @@ class Treatment(TreatmentBase, table=True):
     tid: int | None = Field(default=None, primary_key=True)
     t_exid: int | None = None
     name: str | None = None
+    owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
     
 class TreatmentCreate(TreatmentBase, table=True): 
     __tablename__ = 'treatment'  
@@ -791,6 +792,7 @@ class TreatmentCreate(TreatmentBase, table=True):
     name: str | None = None
     crop: str | None = None
     expname: str | None = None
+    owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
 
 class TreatmentCopy(BaseModel):
     treatmentname: str
