@@ -2,7 +2,6 @@ import { Container, Text, Link } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import {
   GridRatioService,
-  Message,
   SiteService,
   SoilFetchPublicTable,
   SoilService,
@@ -43,7 +42,6 @@ const SoilTab = () => {
   const [soilName, setSoilName] = useState("");
   const [siteName, setSiteName] = useState("");
   const [selectedSoilData, setSelectedSoilData] = useState<any>(null);
-  const [ setSoilDeleted] = useState<Message>({ message: "" });
   const [datas, setDatas] = useState<SoilFetchPublicTable[]>([]);
   const showToast = useCustomToast();
   const queryClient = useQueryClient();
@@ -128,7 +126,7 @@ const SoilTab = () => {
       setSelectedSoilOption("");
     },
     onError: (error: any) => {
-      showToast("Failed!", "Failed to delete soil.", "error");
+      showToast("Failed!", "Failed to delete soil.", error);
     },
   });
 
@@ -513,7 +511,7 @@ const SoilTab = () => {
         await deleteGridRatioMutation.mutateAsync(datagr);
         await deleteSoilMutation.mutateAsync(data);
       } catch (error) {
-        showToast("Error!", "Failed to delete soil.", "error");
+        showToast("Failed!", "Failed to delete soil.", "error");
       }
     } else {
       showToast("Error!", "Selected soil data or its ID is undefined.", "error");

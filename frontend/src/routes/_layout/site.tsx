@@ -225,16 +225,13 @@ const SimpleMap = () => {
   const [disable, setDisable] = useState(false);
   const [isLoadingElevation, setIsLoadingElevation] = useState(false);
 
-  const markerRef = useRef<any>(null);
   const queryClient = useQueryClient();
 
   const {
-    register,
     handleSubmit,
     formState: { isSubmitting, errors },
     reset,
   } = useForm<SitePublic>({
-    mode: "onBlur",
     criteriaMode: "all",
   });
 
