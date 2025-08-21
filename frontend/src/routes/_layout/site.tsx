@@ -13,9 +13,10 @@ import {
   Button,
   Select,
   Alert,
-  AlertIcon
+  AlertIcon,
+  useToast
 } from "@chakra-ui/react";
-import { MapContainer, TileLayer, Marker, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useRef, useState, useEffect } from "react";
@@ -47,6 +48,18 @@ const center = {
   lat: 39.8283,
   lng: -103.8233,
 };
+
+// Click Handler Component
+function MapClickHandler({ onMapClick, enabled }: { onMapClick: (latlng: L.LatLngLiteral) => void, enabled: boolean }) {
+  useMapEvents({
+    click: (e) => {
+      if (enabled) {
+        onMapClick(e.latlng);
+      }
+    },
+  });
+  return null;
+}
 
 const SearchControl = ({
   onLocationSelect,
@@ -88,298 +101,79 @@ const SearchControl = ({
   return null;
 };
 
-// Add this function above your component
+// Improved altitude fetching with better error handling
 const getAltitude = async (lat: number, lng: number): Promise<number | null> => {
   try {
     const response = await fetch(
       `https://api.open-elevation.com/api/v1/lookup?locations=${lat},${lng}`
     );
+    if (!response.ok) {
+      console.warn("Elevation API returned non-200 status");
+      return null;
+    }
     const data = await response.json();
     return data.results[0]?.elevation ?? null;
-  } catch {
+  } catch (error) {
+    console.error("Error fetching elevation data:", error);
     return null;
   }
 };
 
-const SimpleMap = () => {
-  const showToast = useCustomToast();
-  const [position, setPosition] = useState(center);
-  const [selectedOption, setSelectedOption] = useState("None");
-  const [draggable, setDraggable] = useState(true);
-  const [siteid, setSiteid] = useState(0);
-  const [altitude, setAltitude] = useState("0");
-  const [lat, setLat] = useState("39.8283");
-  const [long, setLong] = useState("-103.8233");
-  const [sitenameInput, setsitenameInput] = useState("");
-  const [saveOption, setSaveOption] = useState("create");
-  const [disable, setDisable] = useState(false);
-
+// Map Component that receives and updates position
+const MapComponent = ({
+  position,
+  draggable,
+  onPositionChange,
+  isLoading,
+}: {
+  position: L.LatLngLiteral;
+  setPosition: React.Dispatch<React.SetStateAction<L.LatLngLiteral>>;
+  draggable: boolean;
+  onPositionChange: (latlng: L.LatLngLiteral) => void;
+  isLoading: boolean;
+}) => {
   const markerRef = useRef<any>(null);
-  const queryClient = useQueryClient();
 
-  const {
-    register,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<SitePublic>({
-    mode: "onBlur",
-    criteriaMode: "all",
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: (data: SiteUpdate) =>
-      SiteService.updateSite({ id: siteid, requestBody: data }),
-    onSuccess: () => {
-      showToast("Success!", "Site updated successfully.", "success");
-    },
-    onError: (err: ApiError) => {
-      const errDetail = (err.body as any)?.detail;
-      showToast("Something went wrong.", `${errDetail}`, "error");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["readSite"] }); // <-- Add this
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: () => SiteService.deleteSite({ id: siteid }),
-    onSuccess: () => {
-      showToast("Success!", "Site Deleted successfully.", "success");
-      location.reload();
-    },
-    onError: (err: ApiError) => {
-      const errDetail = (err.body as any)?.detail;
-      showToast("Something went wrong.", `${errDetail}`, "error");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["readSite"] }); // <-- Add this
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-    },
-  });
-
-  const saveMutation = useMutation({
-    mutationFn: (data: SiteCreate) =>
-      SiteService.createSite({ requestBody: data }),
-    onSuccess: () => {
-      showToast("Success!", "Site Created successfully.", "success");
-      resetFormAndState();
-    },
-    onError: (err: ApiError) => {
-      const errDetail = (err.body as any)?.detail;
-      showToast("Something went wrong.", `${errDetail}`, "error");
-    },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["readSite"] }); // <-- Add this
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      queryClient.invalidateQueries({ queryKey: ["currentUser"] });
-    },
-  });
-
-  // Add this function inside your component
-  const resetFormAndState = () => {
-    setSelectedOption("None");
-    setDraggable(true);
-    setDisable(false);
-    setsitenameInput("");
-    setAltitude("0");
-    setLat(center.lat.toString());
-    setLong(center.lng.toString());
-    setPosition(center);
-  };
-
-  const onSubmit: SubmitHandler<SiteUpdate> = async (data: any) => {
-    data.rlat = position.lat;
-    data.rlon = position.lng;
-    if (saveOption === "update") {
-      updateMutation.mutate(data);
-    } else if (saveOption === "create") {
-      saveMutation.mutate(data);
-    } else if (saveOption === "delete") {
-      deleteMutation.mutate();
-    }
-  };
-
-  const {
-    data: sites,
-    isLoading,
-  } = useQuery({
-    queryKey: ["readSite"],
-    queryFn: () => SiteService.readSites(),
-  });
-
-  const handleDropdownChange = (event: any) => {
-    var eventValue = event.target.value;
-    if (eventValue !== "") {
-      setSelectedOption(eventValue);
-      if (eventValue !== "new" && sites) {
-        sites.data.forEach((eachSite: any) => {
-          if (eachSite.id == eventValue) {
-            setPosition({ lat: eachSite.rlat, lng: eachSite.rlon });
-            setSiteid(eventValue);
-            setDraggable(false);
-            setLat(eachSite.rlat);
-            setLong(eachSite.rlon);
-            setAltitude(eachSite.altitude);
-            setsitenameInput(eachSite.sitename);
-            setSaveOption("update");
-            setDisable(true);
-          }
-        });
-      } else if (eventValue === "new") {
-        setsitenameInput("");
-        setDisable(false);
-        setDraggable(true);
-        if ("geolocation" in navigator) {
-          navigator.geolocation.getCurrentPosition(function (position) {
-            setPosition({
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            });
-          });
-        }
-        setSaveOption("create");
-      }
-    } else {
-      // User selected "Select from list" (None)
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(function (position) {
-          setPosition({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-          });
-        });
-      }
-      setSaveOption("create");
-      setSelectedOption("None");
-      setDraggable(true);      // <-- Add this line
-      setDisable(false);       // <-- Add this line
-      setsitenameInput("");    // Optionally clear site name
-      setAltitude("0");        // Optionally reset altitude
-      setLat(center.lat.toString());      // Optionally reset lat/long to center
-      setLong(center.lng.toString());
-    }
-  };
-
-  // Update marker dragend handler to fetch altitude
+  // Handle marker drag
   const eventHandlers = useMemo(
     () => ({
-      async dragend() {
+      dragend() {
         const marker = markerRef.current;
         if (marker != null) {
           const newLatLng = marker.getLatLng();
-          setPosition(newLatLng);
-          setLat(newLatLng.lat);
-          setLong(newLatLng.lng);
-          // Fetch altitude and update state
-          const alt = await getAltitude(newLatLng.lat, newLatLng.lng);
-          if (alt !== null) setAltitude(alt.toString());
-          // Auto-select "Add a new site" if not already selected
-          if (selectedOption !== "new") {
-            setSelectedOption("new");
-            setsitenameInput("");
-            setDisable(false);
-            setDraggable(true);
-            setSaveOption("create");
-          }
+          onPositionChange(newLatLng);
         }
       },
     }),
-    [selectedOption]
+    [onPositionChange]
   );
 
-  const onDelete = () => {
-    setSaveOption("delete");
-    deleteMutation.mutate();
-  };
-
-  const handleLatitudeChange = (event: any) => {
-    let newLatitude = event.target.value;
-    if (newLatitude === "" || newLatitude === "-") {
-      setLat(newLatitude);
-      return;
-    }
-    if (/^-?\d*\.?\d*$/.test(newLatitude)) {
-      setLat(newLatitude);
-      if (!isNaN(parseFloat(newLatitude))) {
-        setPosition({
-          lat: parseFloat(newLatitude),
-          lng: parseFloat(long),
-        });
-      }
-    } else {
-      showToast("Please enter a valid latitude value", "", "error");
+  // Handle map click
+  const handleMapClick = (latlng: L.LatLngLiteral) => {
+    if (draggable) {
+      onPositionChange(latlng);
     }
   };
 
-  const handleLongitudeChange = (event: any) => {
-    let newLongitude = event.target.value;
-    if (newLongitude === "" || newLongitude === "-") {
-      setLong(newLongitude);
-      return;
-    }
-    if (/^-?\d*\.?\d*$/.test(newLongitude)) {
-      setLong(newLongitude);
-      if (!isNaN(parseFloat(newLongitude))) {
-        setPosition({
-          lat: parseFloat(lat),
-          lng: parseFloat(newLongitude),
-        });
-      }
-    } else {
-      showToast("Please enter a valid longitude value", "", "error");
-    }
+  // Update map center when position changes
+  const MapUpdater = () => {
+    const map = useMap();
+    useEffect(() => {
+      map.setView([position.lat, position.lng], map.getZoom());
+    }, [position, map]);
+    return null;
   };
 
   return (
-    <Container maxW="full" mt={[4, 5]}>
-      <Text fontSize="2xl">Site Tab</Text>
-      <Text>
-        Here we identify our agriculture SITE (for simulation purposes) with
-        latitude, longitude, altitude and a name...
-      </Text>
-      <Link color="blue" href="https://youtu.be/VxEn6QM7nzU/" isExternal>
-        Click here to watch the Site Tab video tutorial
-      </Link>
-
-      {/* Alert for user guidance */}
-      <Alert status="info" mt={4} mb={4}>
-        <AlertIcon />
-        Drag the marker or use the search box to find and set your site location.
-      </Alert>
-
-      {isLoading ? (
-        <Flex justify="center" align="center" height="100vh" width="full">
-          <Spinner size="xl" color="ui.main" />
-        </Flex>
-      ) : (
-        sites && null // Remove dropdown from here
-      )}
-
     <MapContainer
       center={position}
       zoom={5}
-      style={{ height: "55vh", width: "75vw" }}
+      style={{ height: "55vh", width: "100%", opacity: isLoading ? 0.6 : 1 }}
     >
+      <MapUpdater />
+      <MapClickHandler onMapClick={handleMapClick} enabled={draggable} />
       <SearchControl
-        onLocationSelect={async (latlng) => {
-          setPosition(latlng);
-          setLat(latlng.lat.toString());
-          setLong(latlng.lng.toString());
-          // Fetch altitude and update state
-          const alt = await getAltitude(latlng.lat, latlng.lng);
-          if (alt !== null) setAltitude(alt.toString());
-          // Auto-select "Add a new site" if not already selected
-          if (selectedOption !== "new") {
-            setSelectedOption("new");
-            setsitenameInput("");
-            setDisable(false);
-            setDraggable(true);
-            setSaveOption("create");
-          }
-        }}
+        onLocationSelect={onPositionChange}
       />
       <TileLayer
         attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
@@ -396,20 +190,330 @@ const SimpleMap = () => {
         icon={iconmarker}
         ref={markerRef}
       />
+      {isLoading && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(255, 255, 255, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <Spinner size="xl" />
+        </div>
+      )}
     </MapContainer>
+  );
+};
 
-      {/* Move dropdown here */}
-      {!isLoading && sites && (
-        <Box mt={6} mb={2}>
-            <FormLabel fontWeight="bold" mb={1}>
-    Select Site or Add a New Site
-  </FormLabel>
+const SimpleMap = () => {
+  const showToast = useCustomToast();
+  const toast = useToast();
+  const [position, setPosition] = useState(center);
+  const [selectedOption, setSelectedOption] = useState("None");
+  const [draggable, setDraggable] = useState(true);
+  const [siteid, setSiteid] = useState(0);
+  const [altitude, setAltitude] = useState("0");
+  const [lat, setLat] = useState("39.8283");
+  const [long, setLong] = useState("-103.8233");
+  const [sitenameInput, setsitenameInput] = useState("");
+  const [saveOption, setSaveOption] = useState("create");
+  const [disable, setDisable] = useState(false);
+  const [isLoadingElevation, setIsLoadingElevation] = useState(false);
+
+  const markerRef = useRef<any>(null);
+  const queryClient = useQueryClient();
+
+  const {
+    register,
+    handleSubmit,
+    formState: { isSubmitting, errors },
+    reset,
+  } = useForm<SitePublic>({
+    mode: "onBlur",
+    criteriaMode: "all",
+  });
+
+  // Query for site data
+  const {
+    data: sites,
+    isLoading: sitesLoading,
+    isFetching: sitesFetching
+  } = useQuery({
+    queryKey: ["readSite"],
+    queryFn: () => SiteService.readSites(),
+  });
+
+  // Mutations
+  const updateMutation = useMutation({
+    mutationFn: (data: SiteUpdate) =>
+      SiteService.updateSite({ id: siteid, requestBody: data }),
+    onSuccess: () => {
+      showToast("Success!", "Site updated successfully.", "success");
+      queryClient.invalidateQueries({ queryKey: ["readSite"] });
+    },
+    onError: (err: ApiError) => {
+      const errDetail = (err.body as any)?.detail;
+      showToast("Something went wrong.", `${errDetail}`, "error");
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: () => SiteService.deleteSite({ id: siteid }),
+    onSuccess: () => {
+      showToast("Success!", "Site deleted successfully.", "success");
+      resetFormAndState();
+      queryClient.invalidateQueries({ queryKey: ["readSite"] });
+    },
+    onError: (err: ApiError) => {
+      const errDetail = (err.body as any)?.detail;
+      showToast("Something went wrong.", `${errDetail}`, "error");
+    },
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (data: SiteCreate) =>
+      SiteService.createSite({ requestBody: data }),
+    onSuccess: () => {
+      showToast("Success!", "Site created successfully.", "success");
+      resetFormAndState();
+      queryClient.invalidateQueries({ queryKey: ["readSite"] });
+    },
+    onError: (err: ApiError) => {
+      const errDetail = (err.body as any)?.detail;
+      showToast("Something went wrong.", `${errDetail}`, "error");
+    },
+  });
+
+  // Reset form function
+  const resetFormAndState = () => {
+    setSelectedOption("None");
+    setDraggable(true);
+    setDisable(false);
+    setsitenameInput("");
+    setAltitude("0");
+    setLat(center.lat.toString());
+    setLong(center.lng.toString());
+    setPosition(center);
+    setSaveOption("create");
+    reset(); // Reset form fields
+  };
+
+  // Handle form submission
+  const onSubmit: SubmitHandler<SiteUpdate> = async (data: any) => {
+    // Basic validation
+    if (!sitenameInput.trim()) {
+      toast({
+        title: "Site name is required",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+    
+    data.rlat = position.lat;
+    data.rlon = position.lng;
+    data.altitude = parseFloat(altitude) || 0;
+    data.sitename = sitenameInput;
+    
+    if (saveOption === "update") {
+      updateMutation.mutate(data);
+    } else if (saveOption === "create") {
+      saveMutation.mutate(data);
+    }
+  };
+
+  // Handle dropdown change - select site
+  const handleDropdownChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const eventValue = event.target.value;
+    
+    if (eventValue === "") {
+      // User selected "Select from list" (None)
+      resetFormAndState();
+      return;
+    }
+    
+    if (eventValue === "new") {
+      // New site selected
+      setSelectedOption("new");
+      setsitenameInput("");
+      setDisable(false);
+      setDraggable(true);
+      setSaveOption("create");
+      
+      // Try to get current location
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          function (position) {
+            const newPos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude,
+            };
+            handlePositionChange(newPos);
+          },
+          function(error) {
+            console.warn("Geolocation error:", error);
+            // Keep default position if geolocation fails
+          }
+        );
+      }
+      return;
+    }
+    
+    // Existing site selected
+    setSelectedOption(eventValue);
+    if (sites) {
+      const selectedSite = sites.data.find((eachSite: any) => eachSite.id == eventValue);
+      if (selectedSite) {
+        const newPos = { lat: selectedSite.rlat, lng: selectedSite.rlon };
+        setPosition(newPos);
+        setSiteid(parseInt(eventValue));
+        setDraggable(false);
+        setLat(selectedSite.rlat.toString());
+        setLong(selectedSite.rlon.toString());
+        setAltitude(selectedSite.altitude?.toString() || "0");
+        setsitenameInput(selectedSite.sitename);
+        setSaveOption("update");
+        setDisable(true);
+      }
+    }
+  };
+
+  // Handle position changes from marker drag or map click
+  const handlePositionChange = async (newPos: L.LatLngLiteral) => {
+    setPosition(newPos);
+    setLat(newPos.lat.toString());
+    setLong(newPos.lng.toString());
+    
+    // Fetch altitude data
+    setIsLoadingElevation(true);
+    try {
+      const alt = await getAltitude(newPos.lat, newPos.lng);
+      if (alt !== null) {
+        setAltitude(alt.toString());
+      }
+    } catch (error) {
+      console.error("Failed to fetch altitude:", error);
+    } finally {
+      setIsLoadingElevation(false);
+    }
+    
+    // Auto-select "Add a new site" if not already selected
+    if (selectedOption !== "new") {
+      setSelectedOption("new");
+      setsitenameInput("");
+      setDisable(false);
+      setDraggable(true);
+      setSaveOption("create");
+    }
+  };
+
+  // Delete site handler
+  const onDelete = () => {
+    if (window.confirm("Are you sure you want to delete this site?")) {
+      deleteMutation.mutate();
+    }
+  };
+
+  // Handle manual latitude input
+  const handleLatitudeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let newLatitude = event.target.value;
+    if (newLatitude === "" || newLatitude === "-") {
+      setLat(newLatitude);
+      return;
+    }
+    
+    if (/^-?\d*\.?\d*$/.test(newLatitude)) {
+      setLat(newLatitude);
+      if (!isNaN(parseFloat(newLatitude)) && parseFloat(newLatitude) >= -90 && parseFloat(newLatitude) <= 90) {
+        setPosition({
+          lat: parseFloat(newLatitude),
+          lng: parseFloat(long),
+        });
+      }
+    } else {
+      showToast("Please enter a valid latitude value (-90 to 90)", "", "error");
+    }
+  };
+
+  // Handle manual longitude input
+  const handleLongitudeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    let newLongitude = event.target.value;
+    if (newLongitude === "" || newLongitude === "-") {
+      setLong(newLongitude);
+      return;
+    }
+    
+    if (/^-?\d*\.?\d*$/.test(newLongitude)) {
+      setLong(newLongitude);
+      if (!isNaN(parseFloat(newLongitude)) && parseFloat(newLongitude) >= -180 && parseFloat(newLongitude) <= 180) {
+        setPosition({
+          lat: parseFloat(lat),
+          lng: parseFloat(newLongitude),
+        });
+      }
+    } else {
+      showToast("Please enter a valid longitude value (-180 to 180)", "", "error");
+    }
+  };
+
+  // Effect to update position when lat/long inputs change (with debouncing)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const latNum = parseFloat(lat);
+      const longNum = parseFloat(long);
+      
+      if (!isNaN(latNum) && !isNaN(longNum)) {
+        setPosition({
+          lat: latNum,
+          lng: longNum,
+        });
+      }
+    }, 500); // 500ms debounce
+    
+    return () => clearTimeout(timer);
+  }, [lat, long]);
+
+  const isLoading = sitesLoading || sitesFetching || isLoadingElevation || 
+                    updateMutation.isPending || saveMutation.isPending || deleteMutation.isPending;
+
+  return (
+    <Container maxW="full" mt={[4, 5]}>
+      <Text fontSize="2xl" fontWeight="bold" mb={2}>Site Tab</Text>
+      <Text mb={2}>
+        Here we identify our agriculture SITE (for simulation purposes) with
+        latitude, longitude, altitude and a name.
+      </Text>
+      <Link color="blue" href="https://youtu.be/VxEn6QM7nzU/" isExternal mb={4} display="inline-block">
+        Click here to watch the Site Tab video tutorial
+      </Link>
+
+      {/* Alert for user guidance */}
+      <Alert status="info" mt={4} mb={4}>
+        <AlertIcon />
+        <Box>
+          <Text>Click anywhere on the map, Darg the marker or Use search Box</Text>
+        </Box>
+      </Alert>
+
+      {/* Move dropdown above map for better UX */}
+      {!sitesLoading && sites && (
+        <Box mb={4}>
+          <FormLabel fontWeight="bold" mb={1}>
+            Select Site or Add a New Site
+          </FormLabel>
           <Select
             maxW="sm"
             placeholder="Select from list"
             value={selectedOption}
             id="dropdown"
             onChange={handleDropdownChange}
+            isDisabled={isLoading}
           >
             <option value="new">Add a new site</option>
             {sites.data.map((eachSite) => (
@@ -421,94 +525,113 @@ const SimpleMap = () => {
         </Box>
       )}
 
-      {selectedOption !== "None" && (
-        <Grid
-          templateColumns={["1fr", "1fr 1fr", "repeat(4, 1fr)", "repeat(5, 1fr)"]}
-          gap={6}
-          as="form"
-          onSubmit={handleSubmit(onSubmit)}
-        >
-          <GridItem>
-            <FormControl>
-              <FormLabel>Latitude</FormLabel>
-              <Input
-                value={lat}
-                onChange={handleLatitudeChange}
-                disabled={disable}
-              />
-            </FormControl>
-          </GridItem>
+      {/* Map component */}
+      <Box position="relative" mb={6} borderRadius="md" overflow="hidden" borderWidth="1px">
+        {sitesLoading ? (
+          <Flex justify="center" align="center" height="55vh" width="100%">
+            <Spinner size="xl" color="ui.main" />
+          </Flex>
+        ) : (
+          <MapComponent 
+            position={position} 
+            setPosition={setPosition}
+            draggable={draggable}
+            onPositionChange={handlePositionChange}
+            isLoading={isLoading}
+          />
+        )}
+      </Box>
 
-          <GridItem>
-            <FormControl>
-              <FormLabel>Longitude</FormLabel>
-              <Input
-                value={long}
-                onChange={handleLongitudeChange}
-                disabled={disable}
-              />
-            </FormControl>
-          </GridItem>
+      {/* Form fields */}
+      <Grid
+        as="form"
+        onSubmit={handleSubmit(onSubmit)}
+        templateColumns={["1fr", "1fr 1fr", "repeat(4, 1fr)", "repeat(5, 1fr)"]}
+        gap={6}
+        mb={6}
+      >
+        <GridItem>
+          <FormControl isInvalid={!!errors.rlat}>
+            <FormLabel>Latitude</FormLabel>
+            <Input
+              value={lat}
+              onChange={handleLatitudeChange}
+              disabled={disable || isLoading}
+              isRequired
+            />
+          </FormControl>
+        </GridItem>
 
-          <GridItem>
-            <FormControl>
-              <FormLabel>Altitude (m)</FormLabel>
-              <Input
-                placeholder="0"
-                {...register("altitude")}
-                value={altitude}
-                onChange={(e) => setAltitude(e.target.value)}
-              />
-            </FormControl>
-          </GridItem>
+        <GridItem>
+          <FormControl isInvalid={!!errors.rlon}>
+            <FormLabel>Longitude</FormLabel>
+            <Input
+              value={long}
+              onChange={handleLongitudeChange}
+              disabled={disable || isLoading}
+              isRequired
+            />
+          </FormControl>
+        </GridItem>
 
-          <GridItem>
-            <FormControl>
-              <FormLabel>Site Name</FormLabel>
-              <Input
-                placeholder="Enter Site Name"
-                {...register("sitename")}
-                value={sitenameInput}
-                onChange={(e) => setsitenameInput(e.target.value)}
-                disabled={disable}
-              />
-            </FormControl>
-          </GridItem>
+        <GridItem>
+          <FormControl>
+            <FormLabel>Altitude (m)</FormLabel>
+            <Input
+              placeholder="0"
+              value={altitude}
+              onChange={(e) => setAltitude(e.target.value)}
+              disabled={isLoading}
+            />
+          </FormControl>
+        </GridItem>
 
-          <GridItem>
-            <Box mt={8}>
-              {selectedOption === "new" ? (
+        <GridItem>
+          <FormControl isInvalid={!!errors.sitename}>
+            <FormLabel>Site Name</FormLabel>
+            <Input
+              placeholder="Enter Site Name"
+              value={sitenameInput}
+              onChange={(e) => setsitenameInput(e.target.value)}
+              disabled={disable || isLoading}
+              isRequired
+            />
+          </FormControl>
+        </GridItem>
+
+        <GridItem>
+          <Box mt={8}>
+            {selectedOption === "None" ? null : selectedOption === "new" ? (
+              <Button
+                colorScheme="teal"
+                type="submit"
+                isLoading={isSubmitting || isLoading}
+                isDisabled={!sitenameInput.trim()}
+              >
+                Save
+              </Button>
+            ) : (
+              <Flex direction="row" align="center" gap={2}>
                 <Button
                   colorScheme="teal"
                   type="submit"
-                  isLoading={isSubmitting}
+                  isLoading={isSubmitting || isLoading}
                 >
-                  Save
+                  Update
                 </Button>
-              ) : (
-                <Flex direction="row" align="center" gap={2}>
-                  <Button
-                    colorScheme="teal"
-                    type="submit"
-                    isLoading={isSubmitting}
-                  >
-                    Update
-                  </Button>
-                  <Button
-                    colorScheme="red"
-                    onClick={onDelete}
-                    isLoading={isSubmitting}
-                  >
-                    <FiTrash fontSize="16px" />
-                  </Button>
-                </Flex>
-              )}
-            </Box>
-          </GridItem>
-        </Grid>
-      )}
+                <Button
+                  colorScheme="red"
+                  onClick={onDelete}
+                  isLoading={isSubmitting || isLoading}
+                >
+                  <FiTrash fontSize="16px" />
+                </Button>
+              </Flex>
+            )}
+          </Box>
+        </GridItem>
+      </Grid>
 
-      <br />
       <NextPreviousButtons />
       <FaqComponent tabname={"Site"} />
     </Container>
