@@ -11,6 +11,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 from app.api.deps import SessionDep, CurrentUser
 from app.models import WeatherDatasPublic, WeatherDataPublic, WeatherMeta, WeatherMetasPublic, WeatherMetaPublic, WeatherCreate, WeatherMetaBase, WeatherMetaCreate, WeatherUpdate, Message, WeatherMetaUpdate, WeatherData, SitesPublic, Site, Treatment, Experiment, Operation
 from dateutil import parser
+from aiohttp import ClientSession
 
 # Create an instance of the FastAPI class
 router = APIRouter()
@@ -186,118 +187,73 @@ def create_station_table(
 
 
 @router.get("/download/{id}/{con}")
-def download(
+async def download(
     *,
-    session: SessionDep,
+    db: SessionDep,  # Rename from 'session' to 'db' to avoid collision
     current_user: CurrentUser,
     id: int,
     con: bool
 ) -> Any:
-    """
-    Create new station.
-    """
-    station = session.query(WeatherMeta).filter(
+    """Download weather data for a station."""
+    # Remove transaction context manager - FastAPI dependency injection already handles it
+    station = db.query(WeatherMeta).filter(
         WeatherMeta.id == id,
         WeatherMeta.owner_id == current_user.id
     ).first()
+    
     if not station:
         raise HTTPException(status_code=404, detail="Station not found")
 
-    stationType = str(station.stationtype) if station else None
-    sitename = str(station.site) if station else None
-    siteData = session.query(Site).filter(Site.sitename == sitename).first()
+    stationType = str(station.stationtype)
+    sitename = str(station.site)
+    siteData = db.query(Site).filter(Site.sitename == sitename).first()
 
-    rlat = str(siteData.rlat) if siteData else None
-    rlon = str(siteData.rlon) if siteData else None
+    if not siteData or not siteData.rlat or not siteData.rlon:
+        raise HTTPException(status_code=400, detail="Site location data missing")
 
-    if rlat is not None and rlon is not None:
-        logger.info(f"Retrieved station with rlat: {rlat}, rlon: {rlon}")
+    # Construct URL and fetch data
     currentyear = datetime.now().year
     year = str(currentyear + 2)
-    url = f"https://weather.covercrop-data.org/hourly?lat={rlat}&lon={rlon}&start=2018-1-1&end={year}-12-31&1attributes=air_temperature,relative_humidity,wind_speed,shortwave_radiation,precipitation&output=csv&options=predicted"
+    url = f"https://weather.covercrop-data.org/hourly?lat={siteData.rlat}&lon={siteData.rlon}&start=2018-1-1&end={year}-12-31&1attributes=air_temperature,relative_humidity,wind_speed,shortwave_radiation,precipitation&output=csv&options=predicted"
+    
+    # Add timeout to prevent hanging on slow external API
     try:
-        # Use pandas to read CSV directly from the URL with custom User-Agent
-        data = pd.read_csv(
-            url,
-            storage_options={'User-Agent': 'Mozilla/5.0'}
-        )
-        print(data)
+        # Use aiohttp for async requests - rename ClientSession variable to avoid collision
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        async with ClientSession() as http_session:  # Renamed to http_session
+            async with http_session.get(url, headers=headers, timeout=30) as response:
+                if response.status != 200:
+                    return {"error": f"API returned status {response.status}"}
+                content = await response.read()
+                data = pd.read_csv(BytesIO(content))
     except Exception as e:
-        logger.error(f"Failed to fetch or parse weather data: {e}")
-        return {"error": "Website has reported an error. Please, try again later."}
+        logger.error(f"Failed to fetch weather data: {e}")
+        return {"error": "Website has reported an error. Please try again later."}
 
-    logger.info(f"Retrieved station data: {data}")
+    # Process data with vectorized operations
+    processed_data = process_weather_data(data, stationType, id)
     
-    data['jday'] = pd.to_datetime(data['date']).dt.strftime('%j')
-    data['hour'] = pd.to_datetime(data['date']).dt.strftime('%H')
-    data['date'] = pd.to_datetime(data['date']).dt.strftime('%Y-%m-%d')
-    data.rename(columns={"air_temperature": "temperature", "relative_humidity": "rh", "wind_speed": "wind", "shortwave_radiation": "srad", "precipitation": "rain"}, inplace=True)
-    
-    # Convert solar radiation
-    data['srad'] = data['srad'] * 3600 / 1000000
-    # Convert rh to percentage
-    data['rh'] = data['rh'] * 100
-    
-    dateList = data['date']
+    # Check date range
+    dateList = processed_data['date']
     minDate = min(dateList)
     maxDate = max(dateList)
     
-    count_statement = session.query(func.count()).filter(
-        WeatherData.weather_id == id,
-        WeatherData.date > minDate,
-        WeatherData.date < maxDate,
-        
-    )
-
-    count = session.execute(count_statement).scalar()
-    count = int(count) if count is not None else 0
+    # Check if data exists
+    data_exists = check_existing_data(db, id, minDate, maxDate)
     
-    if count > 0 and not con:
+    if data_exists and not con:
         return {"message": "data existed"}
-    else:
-        # Delete existing data
-        delete_weather_data(session, station_type=stationType, mindate=minDate, maxdate=maxDate)
-        
-        dbColumns = ['weather_id', 'jday', 'date', 'hour', 'srad', 'wind', 'rh', 'rain', 'tmax', 'tmin', 'temperature', 'co2']
-        data['stationtype'] = stationType
-        data['weather_id'] = id
-
-        for col in dbColumns:
-            if col not in data.columns:
-                data[col] = 0.00
-
-        data = data[['stationtype', 'weather_id', 'jday', 'date', 'hour', 'srad', 'wind', 'rh', 'rain', 'tmax', 'tmin', 'temperature', 'co2']]
-        numRec = data.shape[0]
-        
-        try:
-            # Prepare a list of dicts for bulk insert
-            weather_data_dicts = []
-            for _, row in data.iterrows():
-                if any(row[['jday', 'hour', 'srad', 'wind', 'rh', 'rain', 'tmax', 'tmin', 'temperature', 'co2']] == ""):
-                    continue
-                weather_data_dicts.append({
-                    "stationtype": str(row['stationtype']),
-                    "weather_id": id,
-                    "jday": float(row['jday']),
-                    "date": str(row['date']),
-                    "hour": float(row['hour']),
-                    "srad": float(row['srad']),
-                    "wind": float(row['wind']),
-                    "rh": float(row['rh']),
-                    "rain": float(row['rain']),
-                    "tmax": float(row['tmax']),
-                    "tmin": float(row['tmin']),
-                    "temperature": float(row['temperature']),
-                    "co2": float(row['co2'])
-                })
-            if weather_data_dicts:
-                session.bulk_insert_mappings(WeatherData, weather_data_dicts)
-                session.commit()
-        finally:
-            session.close()
-
-        recMessage = f"Number of rows ingested into database: {numRec}"
-        return {"message": recMessage}
+    
+    # Delete existing data if replacing
+    if data_exists:
+        delete_weather_data(db, stationType, minDate, maxDate)
+    
+    # Insert new data efficiently
+    columns_to_keep = ['stationtype', 'weather_id', 'jday', 'date', 'hour', 'srad', 'wind', 'rh', 'rain', 'tmax', 'tmin', 'temperature', 'co2']
+    final_data = processed_data[columns_to_keep]
+    row_count = bulk_insert_weather_data(db, final_data)
+    
+    return {"message": f"Number of rows ingested into database: {row_count}"}
     
 def delete_weather_data(session: SessionDep, station_type: str, mindate: datetime, maxdate: datetime):
     """
@@ -421,3 +377,65 @@ def get_dates_by_treatments(
     }
 
     return response
+
+def check_existing_data(session, weather_id, min_date, max_date):
+    # More efficient count query with exists
+    exists_query = select(1).where(
+        WeatherData.weather_id == weather_id,
+        WeatherData.date > min_date,
+        WeatherData.date < max_date
+    ).exists()
+    
+    return session.query(exists_query).scalar()
+
+# Vectorized operations instead of row-by-row processing
+def process_weather_data(data, station_type, weather_id):
+    # Convert dates once using vectorized operations
+    date_objects = pd.to_datetime(data['date'])
+    data['jday'] = date_objects.dt.strftime('%j')
+    data['hour'] = date_objects.dt.strftime('%H')
+    data['date'] = date_objects.dt.strftime('%Y-%m-%d')
+    
+    # Rename columns with a single operation
+    data.rename(columns={
+        "air_temperature": "temperature", 
+        "relative_humidity": "rh", 
+        "wind_speed": "wind", 
+        "shortwave_radiation": "srad", 
+        "precipitation": "rain"
+    }, inplace=True)
+    
+    # Apply calculations with vectorized operations
+    data['srad'] = data['srad'] * 3600 / 1000000
+    data['rh'] = data['rh'] * 100
+    
+    # Add station columns
+    data['stationtype'] = station_type
+    data['weather_id'] = weather_id
+    
+    # Fill missing columns with default values
+    for col in ['tmax', 'tmin', 'co2']:
+        if col not in data.columns:
+            data[col] = 0.00
+            
+    return data
+
+def bulk_insert_weather_data(session, data):
+    # Convert DataFrame directly to list of dicts - more efficient than row iteration
+    records = data.to_dict(orient='records')
+    
+    # Filter out invalid records
+    valid_records = [
+        record for record in records 
+        if not any(pd.isna(record[col]) for col in ['jday', 'hour', 'srad', 'wind', 'rh', 'rain', 'tmax', 'tmin', 'temperature', 'co2'])
+    ]
+    
+    # Use chunking for very large datasets to avoid memory issues
+    chunk_size = 5000
+    for i in range(0, len(valid_records), chunk_size):
+        chunk = valid_records[i:i+chunk_size]
+        session.bulk_insert_mappings(WeatherData, chunk)
+        session.flush()  # Flush but don't commit until all chunks are processed
+        
+    session.commit()
+    return len(valid_records)
