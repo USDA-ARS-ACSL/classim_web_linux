@@ -572,7 +572,7 @@ def WriteSoiData(soilname, field_name, field_path,session,current_user_id):
     soil_hydrology_list = read_soilhydroDB(soilname,session,current_user_id)
     NCount = len(soil_hydrology_list)               
     CODEC = "UTF-8"    
-    sandcontent=[]    
+    sandcontent= 0  
     filename = os.path.join(field_path, f"{soilname}.soi")
 
     try:
@@ -624,7 +624,6 @@ def WriteSoiData(soilname, field_name, field_path,session,current_user_id):
 
     except IOError:
         print(f"Could not open file: {filename}")
-    
     return sandcontent
 
 
