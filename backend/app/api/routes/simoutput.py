@@ -54,7 +54,6 @@ def read_exp_data(
 
             initCond = readOpDetails(jj[0], jj[1], session)
             plantDensity = initCond[0][3]
-            print("plantDensity+++++++++++++++++++++", plantDensity)
             eomult = initCond[0][8]
             rowSP = initCond[0][9]
             cultivar = initCond[0][10]

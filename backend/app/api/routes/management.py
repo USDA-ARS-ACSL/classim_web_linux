@@ -882,7 +882,6 @@ def update_operation_date(
         operation_meta.odate = op_date
     if tillageType != "otherOp":
         tillageopData = session.get(TillageOp, op_id)
-        print("tillage+++++++++++++++++++++++++++++++", tillageopData)
         tillageopData.tillage= tillageType
         session.add(tillageopData)
     # if tillageType is not None:

@@ -442,7 +442,7 @@ def WriteWeather(experiment,treatmentname,stationtype,weather,field_path,tempVar
     return hourly_flag, edate
 
 
-def WriteSoluteFile(soilname, field_path, session):
+def WriteSoluteFile(soilname, field_path, session, current_user_id):
     # Writes the SOLUTE FILE
     CODEC = "UTF-8"
     filename = os.path.join(field_path, "NitrogenDefault.sol")
@@ -450,7 +450,7 @@ def WriteSoluteFile(soilname, field_path, session):
     try:
         with open(filename, 'w', encoding=CODEC) as fout:
             # Read soil texture and solute data
-            soiltexture_list = read_soiltextureDB(soilname, session)  # Read soil file content
+            soiltexture_list = read_soiltextureDB(soilname, session, current_user_id)  # Read soil file content
             solute_tuple = read_soluteDB(session, 1)  # Read solute file content
             TextureCl = []  # Empty list for textures
 
@@ -542,9 +542,9 @@ def WriteTimeFileData(treatmentname, experimentname, cropname, stationtype,
         print(f"Could not open file: {filename}")
 
 
-def WriteNitData(soilname, field_name, field_path, rowSpacing,session):
+def WriteNitData(soilname, field_name, field_path, rowSpacing,session,current_user_id):
     # Writes Soil Nitrogen parameters into *.nit FILE
-    soilnitrogen_list = read_soilnitrogenDB(soilname,session)
+    soilnitrogen_list = read_soilnitrogenDB(soilname,session, current_user_id)
     NCount = len(soilnitrogen_list)        
     MaxX = rowSpacing / 100  # Maximum width of grid
 
@@ -606,7 +606,7 @@ def WriteSoiData(soilname, field_name, field_path,session,current_user_id):
         # Writing additional data to the .dat file
         filename = os.path.join(field_path, f"{field_name}.dat")
         with open(filename, 'w', encoding=CODEC) as fout:
-            soil_OM_list = read_soilOMDB(soilname,session)     
+            soil_OM_list = read_soilOMDB(soilname,session, current_user_id)     
             NCount = len(soil_OM_list)
             fout.write(" Matnum      sand     silt    clay     bd     om   TH33       TH1500 \n") 
             for rrow in range(NCount):
@@ -746,15 +746,12 @@ def WriteIrrigation(field_name,field_path, simulationname, o_t_exid,session):
     for item in values:
         if item == 'Sprinkler':
             irrAmtlist = getIrrigationData(simulationname, o_t_exid, session)
-            print(irrAmtlist, "irrAmtlist++++++++++++++++++++++++++++++++++++++++++++++++")
             NCountS = len(irrAmtlist)
         elif item == 'FloodH':
             floodlistH = getFloodHData(simulationname, o_t_exid, session)
-            print(floodlistH, "floodlistH++++++++++++++++++++++++++++++++++++++++++++++++")
             NCountH = len(floodlistH)
         elif item == 'FloodR':
             floodlistR = getFloodRData(simulationname, o_t_exid, session)
-            print(floodlistR, "floodlistR++++++++++++++++++++++++++++++++++++++++++++++++")
             NCountR = len(floodlistR)
 
     try:

@@ -291,7 +291,7 @@ def WriteLayerGas(soilname, field_name, field_path, rowSpacing, rootWeightPerSla
 
 
 
-def WriteIni(cropname,experiment,treatmentname, site, soil, field_path,waterStressFlag, nitroStressFlag,session):
+def WriteIni(cropname,experiment,treatmentname, site, soil, field_path,waterStressFlag, nitroStressFlag,session, current_user_id):
     '''
     lcrop,lexperiment,ltreatmentname,field_name,lsoilname,
     Get data from operation, soil_long
@@ -350,7 +350,7 @@ def WriteIni(cropname,experiment,treatmentname, site, soil, field_path,waterStre
     tsite_tuple = extract_sitedetails(site,session)  # Get site details
 
     # Maximum profile depth
-    maxSoilDepth = read_soillongDB_maxdepth(soil,session)
+    maxSoilDepth = read_soillongDB_maxdepth(soil,session, current_user_id)
     RowSP = rowSpacing
 
     # Write INI file
@@ -546,7 +546,7 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
     # Includes initial, management and fertilizer
     rowSpacing, rootWeightPerSlab, cultivar = WriteIni(lcrop, lexperiment, ltreatmentname, field_name,
                                                        lsoilname, field_path, waterStressFlag,
-                                                       nitroStressFlag, session)
+                                                       nitroStressFlag, session, current_user_id)
     if cultivar != "fallow":
         WriteCropVariety(lcrop, cultivar, field_name, field_path, session,current_user_id)
     else:
@@ -555,12 +555,12 @@ def prepare_and_execute( simulation_name, session: Any, current_user_id):
         copyFile(src_file, dest_file)
     WriteDripIrrigationFile(field_name, field_path)
     hourly_flag, edate = WriteWeather(lexperiment, ltreatmentname, lstationtype, lweather, field_path, ltempVar, lrainVar, lCO2Var,current_user_id, session)
-    WriteSoluteFile(lsoilname, field_path, session)
+    WriteSoluteFile(lsoilname, field_path, session, current_user_id)
     WriteGasFile(field_path, session)
     hourlyFlag = 1
     WriteTimeFileData(ltreatmentname, lexperiment, lcrop, lstationtype, hourlyFlag, field_name, field_path, hourly_flag, 0, session)
-    WriteNitData(lsoilname, field_name, field_path, rowSpacing, session)
-    WriteLayerGas(lsoilname, field_name, field_path, rowSpacing, rootWeightPerSlab, session,current_user_id)
+    WriteNitData(lsoilname, field_name, field_path, rowSpacing, session, current_user_id)
+    WriteLayerGas(lsoilname, field_name, field_path, rowSpacing, rootWeightPerSlab, session, current_user_id)
     surfResType = WriteManagement(lcrop, lexperiment, ltreatmentname, field_name, field_path, rowSpacing, session)
     irrType = irrigationInfo(lcrop, lexperiment, ltreatmentname, session)
     WriteMulchGeo(field_path, surfResType, session)
