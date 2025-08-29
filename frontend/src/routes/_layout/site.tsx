@@ -490,35 +490,35 @@ const SimpleMap = () => {
         Click here to watch the Site Tab video tutorial
       </Link>
 
-      {/* Alert for user guidance */}
-      <Alert status="info" mt={4} mb={4}>
-        <AlertIcon />
-        <Box>
-          <Text>Click anywhere on the map, Darg the marker or Use search Box</Text>
-        </Box>
-      </Alert>
-
       {/* Move dropdown above map for better UX */}
       {!sitesLoading && sites && (
         <Box mb={4}>
-          <FormLabel fontWeight="bold" mb={1}>
-            Select Site or Add a New Site
-          </FormLabel>
-          <Select
-            maxW="sm"
-            placeholder="Select from list"
-            value={selectedOption}
-            id="dropdown"
-            onChange={handleDropdownChange}
-            isDisabled={isLoading}
-          >
-            <option value="new">Add a new site</option>
-            {sites.data.map((eachSite) => (
-              <option key={eachSite.id} value={eachSite.id}>
-                {eachSite.sitename}
-              </option>
-            ))}
-          </Select>
+          <Flex alignItems="center" gap={4}>
+            <Box flex="1">
+              <FormLabel fontWeight="bold" mb={1}>
+                Select Site or Add a New Site
+              </FormLabel>
+              <Select
+                maxW="sm"
+                placeholder="Select from list"
+                value={selectedOption}
+                id="dropdown"
+                onChange={handleDropdownChange}
+                isDisabled={isLoading}
+              >
+                <option value="new">Add a new site</option>
+                {sites.data.map((eachSite) => (
+                  <option key={eachSite.id} value={eachSite.id}>
+                    {eachSite.sitename}
+                  </option>
+                ))}
+              </Select>
+            </Box>
+            <Alert status="info" py={2} px={3} fontSize="sm" maxW="md" borderRadius="md">
+              <AlertIcon boxSize="4" />
+              <Text fontSize="xs">Click anywhere on the map, Drag the marker or Use search Box</Text>
+            </Alert>
+          </Flex>
         </Box>
       )}
 
