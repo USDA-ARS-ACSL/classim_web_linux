@@ -317,7 +317,6 @@ def getMaturityDate(sim_id:int ,session:SessionDep):
     result= session.execute(query, {'id': sim_id})
 
     row = result.fetchone()
-    print("getMaturityDate+++++++++++", row)
     if row[0] is not None:
         try:
             rlist = row[0].strftime('%m/%d/%Y')
@@ -370,7 +369,6 @@ def getMaizeAgronomicData(sim_id, date, session:SessionDep):
         'id': sim_id,
         'time': harvestDate+'%',
     })
-    print(f"select (max(earDM)*.86), max(shootDM), max(NUpt) from g01_maize where g01_maize_id={sim_id} and Date_Time <= {harvestDate}")
     c1row = result.fetchone()
     if c1row != None:
         rlist = c1row
@@ -651,9 +649,10 @@ def read_soilhydroDB(soilname, session: SessionDep,current_user_id) -> Any:
             query = text("""
                 SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
                 FROM soil_long 
-                WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id and owner_id= :owner)
+                WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id )
             """)
-            result = session.execute(query, {'soilname': soilname, 'owner':current_user_id})
+            print("query", query, current_user_id, soilname)
+            result = session.execute(query, {'soilname': soilname, 'user_id':current_user_id})
         rlist = result.fetchall()
     return rlist
 
@@ -737,7 +736,6 @@ def getFloodRData(o_t_exid,session: SessionDep):
         ORDER BY o.odate ASC
     """)
     result = session.execute(query, {'o_t_exid': o_t_exid})
-    print(query, o_t_exid)
     c1row = result.fetchall()
     # print("c1row",c1row)
     if c1row != None:
