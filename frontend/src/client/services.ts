@@ -51,26 +51,13 @@ import type {
   OperationsPublic,
   OperationRequest,
   OperationDateResponse,
-  FertilizerClass,
-  PGRChemical,
-  SurfResType,
-  IrrigationClass,
   OperationDataCreate,
-  FertilizationOp,
-  PGRApplType,
-  PGRUnit,
-  SurfResApplType,
-  PGROp,
-  SrOp,
-  IrrigationOp,
-  CultivarCropPublic,
   InitCondOp,
   InitCondOpDataUpdate,//this is used to update (creation will heppen when treatment is created) the simulation start operation
   TillageTypes,
   DownloadMessage,
   TillageOpResponse,
   TreatmentDataCopy,
-  OperationPublic,
   ExpOtData,
   OperationDataUpdate,
   OperationData,
@@ -1543,7 +1530,8 @@ export type TDataDeleteOperation = {
 export type TDataCropName = {
   cropName: string;
 }
-export class ManagementService {
+export class ManagementService 
+{
   /**
    * Read Crops
    * Retrieve Crops.
@@ -1651,38 +1639,6 @@ export class ManagementService {
     });
   }
 
-  public static getExperimentByName(
-    data: TDataExperimentByName
-  ): CancelablePromise<ExperimentsPublic> {
-    const { cropName, experimentName } = data;
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/experiment/{cropName}/{experimentName}",
-      path: {
-        cropName,
-        experimentName,
-      },
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-  public static getTreatmentSummary(
-    data: TDataTreatment
-  ): CancelablePromise<TreatmentsPublic> {
-    const { exid } = data;
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/treatment/{exid}",
-      path: {
-        exid,
-      },
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
 
   public static getTreatmentById(
     data: {tid :number}
@@ -1763,30 +1719,6 @@ export class ManagementService {
     });
   }
 
-  public static getMeDateOfFirstOperationDB(
-    data: TDataOperationFirstDate
-  ): CancelablePromise<OperationDateResponse> {
-    const { requestBody } = data;
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/management/get_first_operation_date",
-      body: requestBody,
-      mediaType: "application/json",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-  
-  public static readFertilizationClass(): CancelablePromise<FertilizerClass[]> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/fertilizerClass",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
 
   public static readTillageTypeDB(): CancelablePromise<TillageTypes> {
     return __request(OpenAPI, {
@@ -1798,143 +1730,24 @@ export class ManagementService {
     });
   }
 
-  public static readExperiments(): CancelablePromise<ExperimentsPublic[]> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/experimentList",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
 
-  public static readPGRChemicalDB(): CancelablePromise<PGRChemical[]> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/pgrChemical",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-  public static readSurfResTypeDB(): CancelablePromise<SurfResType[]> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/surfResType",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-
-  public static readIrrigationType(): CancelablePromise<IrrigationClass[]> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/irrigationType",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-  
-
-  public static readPGRAppTypeDB(): CancelablePromise<PGRApplType[]> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/pgrApplType",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-  public static readPGRAppUnitDB(): CancelablePromise<PGRUnit[]> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/pgrUnit",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-  public static readSurfResApplTypeDB(): CancelablePromise<SurfResApplType[]> {
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/surfResApplicationType",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-  public static submitOperation(
-    data: TDataCreateOperation
-  ): CancelablePromise<OperationDataCreate> {
-    const { requestBody } = data;
-    alert(requestBody.operation_record)
+//   public static submitOperation(
+//     data: TDataCreateOperation
+//   ): CancelablePromise<OperationDataCreate> {
+//     const { requestBody } = data;
+//     alert(requestBody.operation_record)
     
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/management/operation",
-      body: requestBody,
-      mediaType: "application/json",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
+//     return __request(OpenAPI, {
+//       method: "POST",
+//       url: "/api/v1/management/operation",
+//       body: requestBody,
+//       mediaType: "application/json",
+//       errors: {
+//         422: `Validation Error`,
+//       },
+//     });
+//   }
 
-  public static getFertilizationByOperation(
-    data: TDataOperationForms
-  ): CancelablePromise<FertilizationOp> {
-    const { opid } = data;
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/operation/fertilization/{opid}",
-      path: {
-        opid,
-      },
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-  public static getOperationData(
-    data: TDataOperationForms
-  ): CancelablePromise<OperationPublic> {
-    const { opid } = data;
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/operationData/{opid}",
-      path: {
-        opid,
-      },
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
-
-  public static getPGRByOperation(
-    data: TDataOperationForms
-  ): CancelablePromise<PGROp> {
-    const { opid } = data;
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/operation/PGR/{opid}",
-      path: {
-        opid,
-      },
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
 
   public static getSimulationStart(
     data: TDataOperationForms
@@ -1968,37 +1781,7 @@ export class ManagementService {
     });
   }
 
-  public static getSRByOperation(
-    data: TDataOperationForms
-  ): CancelablePromise<SrOp> {
-    const { opid } = data;
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/operation/SR/{opid}",
-      path: {
-        opid,
-      },
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
 
-  public static getIrrigationByOperation(
-    data: TDataOperationForms
-  ): CancelablePromise<IrrigationOp> {
-    const { opid } = data;
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/operation/Irrigation/{opid}",
-      path: {
-        opid,
-      },
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
 
   public static deleteOperation(
     data: TDataDeleteOperation
@@ -2014,22 +1797,6 @@ export class ManagementService {
         422: `Validation Error`,
       },
     });
-  }
-
-  public static getCultivarByCrop(
-    data: TDataCropName
-  ): CancelablePromise<CultivarCropPublic> {
-    const { cropName } = data;
-    return __request(OpenAPI, {
-      method: "GET",
-      url: "/api/v1/management/operation/simulation/{cropName}",
-      path: {
-        cropName,
-      },
-      errors: {
-        422: `Validation Error`,
-      },
-    })
   }
 
 
@@ -2067,20 +1834,6 @@ export class ManagementService {
       });
     }
   
-  public static copyTreatment(
-    data: TDataCopy
-  ): CancelablePromise<TreatmentDataCopy> {
-    const { requestBody } = data;
-    return __request(OpenAPI, {
-      method: "POST",
-      url: "/api/v1/management/treatment/copy",
-      body: requestBody,
-      mediaType: "application/json",
-      errors: {
-        422: `Validation Error`,
-      },
-    });
-  }
 
   /**
    * Create or update Operation (calls /operation)
