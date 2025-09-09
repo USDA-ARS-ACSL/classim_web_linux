@@ -533,7 +533,7 @@ const Simulation: React.FC = () => {
       }
       {/* Additional inputs */}
       <SimpleGrid columns={2} spacing={2} py={5} alignItems="center">
-        <FormControl>
+        {/* <FormControl>
           <FormLabel>Expert System</FormLabel>
           <HStack>
         <input
@@ -548,7 +548,7 @@ const Simulation: React.FC = () => {
         />
         <Text>Enable Expert System</Text>
           </HStack>
-        </FormControl>
+        </FormControl> */}
         {expertSystem && (
             <FormControl>
           <FormLabel>Select Date</FormLabel>

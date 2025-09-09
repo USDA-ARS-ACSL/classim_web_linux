@@ -867,7 +867,7 @@ async def get_simulation_results(
         cutlivar_simStart_check = is_all_cultivar_zero(tid, session)
 
         if not cutlivar_simStart_check:
-            return {"id": -1, "message": "Please add cultivar for this experiment. Management-> experiment->treatment->cultivar."}
+            return {"id": -1, "message": "Please add cultivar for this experiment. Management-> experiment->treatment -> Simulation start -> cultivar."}
         # Only check these key operations
         key_ops = ['Simulation Start', 'Sowing', 'Harvest', 'Simulation End']
         op_dates = []

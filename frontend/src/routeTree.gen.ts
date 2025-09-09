@@ -26,7 +26,6 @@ import { Route as LayoutSeasonalOutputImport } from './routes/_layout/seasonalOu
 import { Route as LayoutSeasonalImport } from './routes/_layout/seasonal'
 import { Route as LayoutRotationBuilderOutputImport } from './routes/_layout/rotationBuilderOutput'
 import { Route as LayoutRotationBuilderImport } from './routes/_layout/rotationBuilder'
-import { Route as LayoutManagementoldImport } from './routes/_layout/management_old'
 import { Route as LayoutManagementImport } from './routes/_layout/management'
 import { Route as LayoutItemsImport } from './routes/_layout/items'
 import { Route as LayoutExpertsystemImport } from './routes/_layout/expertsystem'
@@ -111,11 +110,6 @@ const LayoutRotationBuilderOutputRoute =
 
 const LayoutRotationBuilderRoute = LayoutRotationBuilderImport.update({
   path: '/rotationBuilder',
-  getParentRoute: () => LayoutRoute,
-} as any)
-
-const LayoutManagementoldRoute = LayoutManagementoldImport.update({
-  path: '/management_old',
   getParentRoute: () => LayoutRoute,
 } as any)
 
@@ -215,10 +209,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutManagementImport
       parentRoute: typeof LayoutImport
     }
-    '/_layout/management_old': {
-      preLoaderRoute: typeof LayoutManagementoldImport
-      parentRoute: typeof LayoutImport
-    }
     '/_layout/rotationBuilder': {
       preLoaderRoute: typeof LayoutRotationBuilderImport
       parentRoute: typeof LayoutImport
@@ -274,7 +264,6 @@ export const routeTree = rootRoute.addChildren([
     LayoutExpertsystemRoute,
     LayoutItemsRoute,
     LayoutManagementRoute,
-    LayoutManagementoldRoute,
     LayoutRotationBuilderRoute,
     LayoutRotationBuilderOutputRoute,
     LayoutSeasonalRoute,
