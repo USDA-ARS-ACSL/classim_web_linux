@@ -69,6 +69,13 @@ interface OperationFormProps {
   onOperationSaved?: () => void;
 }
 
+
+const getOperationTypeLabel = (type: string) => {
+  if (type === "s_residue") return "Surface Residue";
+  if (type === "fertilization") return "Fertilization";
+  if (type === "irrgationType") return "Irrigation";
+  return type.charAt(0).toUpperCase() + type.slice(1);
+};
 const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, treatmentId, operationID = -10, initialData, hideDropdown, editMode = false, onOperationSaved }) => {
   // Set default class to 'Manure' if isFert
   const isFert = operationType === "fertilization";
@@ -282,7 +289,11 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
     <Modal isOpen onClose={onClose} size="lg">
       <ModalOverlay />
       <ModalContent>
-        <ModalHeader>{editMode ? `Edit ${String(operationType)} Operation` : `Create ${String(operationType)} Operation`}</ModalHeader>
+        <ModalHeader>
+          {editMode
+            ? `Edit ${getOperationTypeLabel(operationType)} Operation`
+            : `Create ${getOperationTypeLabel(operationType)} Operation`}
+        </ModalHeader>
         <ModalCloseButton />
         <ModalBody>
           <VStack spacing={4} align="stretch">
@@ -736,7 +747,7 @@ const OperationCreateForm = ({ treatmentId, operationID = -10, editMode = false,
           <option value="">Select Operation</option>
           {Object.keys(dropdownData).map((key) => (
             <option key={key} value={key}>
-              {key}
+              {getOperationTypeLabel(key)}
             </option>
           ))}
         </Select>
