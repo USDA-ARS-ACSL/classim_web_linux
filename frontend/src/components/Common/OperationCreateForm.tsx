@@ -122,7 +122,13 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
       if (!formData.class) errors.class = "Fertilization Class is mandatory.";
       // if (!formData.date) errors.date = "Date is mandatory.";
       if (!formData.depth) errors.depth = "Fertilizer Depth is mandatory.";
+      if (!formData.depth || Number(formData.depth) <= 0 || Number(formData.depth) >= 30) {
+        errors.depth = "Fertilizer Depth must be a between 0-30.";
+      }
       if (!formData.n) errors.n = "Nitrogen (N) is mandatory.";
+      if (!formData.n || Number(formData.n) <= 0 || Number(formData.n) > 6000) {
+        errors.n = "Nitrogen (N) must be between 0-6000.";
+      }
       if ((formData.class === "Manure" || formData.class === "Litter") && !formData.carbon) {
         errors.carbon = "Carbon (C) is mandatory for Manure or Litter.";
       }

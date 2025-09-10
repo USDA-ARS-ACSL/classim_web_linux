@@ -974,13 +974,14 @@ const cropManager = () => {
                             />
                           )}
                           {["Surface Residue", "Irrigation", "Fertilizer"].includes(op.name) && (
-                            <Button
-                              size="sm"
-                              colorScheme="blue"
+                            <IconButton
+                              aria-label="Edit date"
+                              icon={<FiEdit />}
+                              size="xs"
+                              variant="ghost"
                               onClick={() => handleEditOperation(op.op_id)}
-                            >
-                              Edit
-                            </Button>
+                            />
+          
                           )}
                         </HStack>
                       </HStack>
