@@ -16,6 +16,7 @@ import {
   VStack,
   HStack,
   useToast,
+  FormErrorMessage,
 } from "@chakra-ui/react";
 import CustomDatePicker from "./CustomDatePicker";
 import { ManagementService } from "../../client/services";
@@ -52,9 +53,9 @@ type OperationFormData = {
   irrType?: IrrigationType;
   rate?: string;
   startDate?: string;
-  startTime?: string;
+  startH?: string;
   endDate?: string;
-  endTime?: string;
+  stopH?: string;
 };
 
 interface OperationFormProps {
@@ -76,6 +77,7 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
   );
   const [dropdownData, setDropdownData] = useState<any>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const toast = useToast();
 
   const isRes = operationType === "s_residue";
@@ -105,11 +107,101 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const validateFields = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    // Fertilization validation
+    if (isFert) {
+      if (!formData.class) errors.class = "Fertilization Class is mandatory.";
+      // if (!formData.date) errors.date = "Date is mandatory.";
+      if (!formData.depth) errors.depth = "Fertilizer Depth is mandatory.";
+      if (!formData.n) errors.n = "Nitrogen (N) is mandatory.";
+      if ((formData.class === "Manure" || formData.class === "Litter") && !formData.carbon) {
+        errors.carbon = "Carbon (C) is mandatory for Manure or Litter.";
+      }
+    }
+
+    // Surface Residue validation
+    if (isRes) {
+      // if (!formData.date) errors.date = "Date is mandatory.";
+      if (!formData.residue) errors.residue = "Surface Residue is mandatory.";
+      if (!formData.appType) errors.appType = "Application Type is mandatory.";
+      if (!formData.appValue) errors.appValue = "Application Value is mandatory.";
+    }
+
+    // Irrigation validation
+    if (isIrr) {
+      if (!formData.irrType) errors.irrType = "Irrigation Type is mandatory.";
+      if (formData.irrType === "Drip" || formData.irrType === "Furrow") {
+        if (!formData.depth) errors.depth = "Depth is mandatory.";
+      }
+      if (formData.irrType === "Sprinkler") {
+        // if (!formData.date) errors.date = "Date is mandatory.";
+        if (!formData.rate) errors.rate = "Amount of Irrigation is mandatory.";
+      }
+      if (formData.irrType === "FloodH") {
+        if (!formData.depth) errors.depth = "Pond Depth is mandatory.";
+        // if (!formData.startDate) errors.startDate = "Start Date is mandatory.";
+        if (!formData.startH) errors.startH = "Start Time is mandatory.";
+        // if (!formData.endDate) errors.endDate = "End Date is mandatory.";
+        if (!formData.stopH) errors.stopH = "End Time is mandatory.";
+      }
+      if (formData.irrType === "FloodR") {
+        if (!formData.depth) errors.depth = "Pond Depth is mandatory.";
+        if (!formData.rate) errors.rate = "Rate is mandatory.";
+        // if (!formData.startDate) errors.startDate = "Start Date is mandatory.";
+        if (!formData.startH) errors.startH = "Start Time is mandatory.";
+        // if (!formData.endDate) errors.endDate = "End Date is mandatory.";
+        if (!formData.stopH) errors.stopH = "End Time is mandatory.";
+      }
+    }
+
+    setFieldErrors(errors);
+    if (Object.keys(errors).length > 0) {
+      toast({
+        title: "Validation Error",
+        description: Object.values(errors).join("\n"),
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+    }
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSave = async () => {
     setIsSubmitting(true);
     try {
-      if (isFert && !formData.date) {
-        alert("Date is required for fertilization.");
+      if (!validateFields()) {
+        setIsSubmitting(false);
+        return;
+      }
+      // Use today's date in MM/DD/YYYY format if date is empty
+      let dateToUse = formData.date;
+      if ((isRes || isFert || isIrr) && !formData.date) {
+        const today = new Date();
+        dateToUse = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
+        setFormData((prev) => ({ ...prev, date: dateToUse }));
+      }
+      if (isIrr && (formData.irrType === "FloodH" || formData.irrType === "FloodR")) {
+        if (!formData.startDate) {
+         const today = new Date();
+        dateToUse = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
+        setFormData((prev) => ({ ...prev, startDate: dateToUse }));
+      }
+      if (!formData.endDate) {
+        const today = new Date();
+        dateToUse = `${String(today.getMonth() + 1).padStart(2, "0")}/${String(today.getDate()).padStart(2, "0")}/${today.getFullYear()}`;
+        setFormData((prev) => ({ ...prev, endDate: dateToUse }));
+      }
+        console.log("Updated formData with default dates:", formData);
+      }
+      if (isRes && !formData.appType) {
+        alert("Please select Application Type");
+              setIsSubmitting(false);
+        return;
+    }
+      if ((isRes || isFert || isIrr) && !dateToUse) {
         setIsSubmitting(false);
         return;
       }
@@ -119,18 +211,17 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
       } else if (isRes) {
         classValue = "Rye";
       }
-      // Build payload with only relevant date fields
       let dateFields: any = {};
       if (isIrr) {
         dateFields = {
           startDate: formData.startDate || "",
           endDate: formData.endDate || "",
-          startTime: formData.startTime || "",
-          endTime: formData.endTime || "",
+          startH: formData.startH || "",
+          stopH: formData.stopH || "",
         };
       } else {
         dateFields = {
-          date: formData.date || "",
+          date: dateToUse || "",
         };
       }
       const payload = {
@@ -146,8 +237,16 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
       await ManagementService.createOrUpdateOperation({ requestBody: payload });
       if (onOperationSaved) onOperationSaved();
       onClose();
-    } catch (error) {
-      console.error("Failed to save operation", error);
+    } catch (error: any) {
+      // Show error message from server in toast if available
+      const serverMsg = error.body?.detail || error.message || "Failed to save operation.";
+      toast({
+        title: "Error",
+        description: serverMsg,
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -176,6 +275,9 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
     }
   };
 
+  // Helper to check if a field has an error
+  const hasError = (field: string) => !!fieldErrors[field];
+
   return (
     <Modal isOpen onClose={onClose} size="lg">
       <ModalOverlay />
@@ -185,9 +287,10 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
         <ModalBody>
           <VStack spacing={4} align="stretch">
 
+            {/* Example for Fertilization Class */}
             {!hideDropdown && isFert && (
               <>
-                <FormControl>
+                <FormControl isInvalid={hasError("class")}>
                   <FormLabel>Fertilization Class</FormLabel>
                   <Select
                     value={formData.class || ""}
@@ -200,47 +303,98 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                       </option>
                     ))}
                   </Select>
+                  <FormErrorMessage>{fieldErrors.class}</FormErrorMessage>
                 </FormControl>
               </>
             )}
             {isFert && (
               <>
-                <FormControl isRequired>
+                <FormControl isRequired isInvalid={hasError("date")}>
                   <FormLabel>Date</FormLabel>
                   <CustomDatePicker
                     date={formData.date || ""}
                     onDateChange={(value: string) => handleChange("date", value)}
                   />
+                  <FormErrorMessage>{fieldErrors.date}</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={hasError("depth")}>
                   <FormLabel>Fertilizer Depth (CM)</FormLabel>
-                  <Input value={formData.depth || ""} onChange={(e) => handleChange("depth", e.target.value)} />
+                  <Input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={formData.depth || ""}
+                    onKeyDown={(e) => {
+                      if (e.key === "-" || e.key === "e") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^\d*\.?\d*$/.test(val)) {
+                        handleChange("depth", val);
+                      }
+                    }}
+                  />
+                  <FormErrorMessage>{fieldErrors.depth}</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={hasError("n")}>
                   <FormLabel>Nitrogen (N) (kg/ha)</FormLabel>
-                  <Input value={formData.n || ""} onChange={(e) => handleChange("n", e.target.value)} />
+                  <Input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={formData.n || ""}
+                    onKeyDown={(e) => {
+                      if (e.key === "-" || e.key === "e") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^\d*\.?\d*$/.test(val)) {
+                        handleChange("n", val);
+                      }
+                    }}
+                  />
+                  <FormErrorMessage>{fieldErrors.n}</FormErrorMessage>
                 </FormControl>
                 {(formData.class === "Manure" || formData.class === "Litter") ? (
-                  <FormControl>
+                  <FormControl isInvalid={hasError("carbon")}>
                     <FormLabel>Carbon (C) (kg/ha)</FormLabel>
                     <Input
+                      type="number"
+                      min="0"
+                      step="any"
                       value={formData.carbon || ""}
-                      onChange={(e) => handleChange("carbon", e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "-" || e.key === "e") {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*\.?\d*$/.test(val)) {
+                          handleChange("carbon", val);
+                        }
+                      }}
                     />
+                    <FormErrorMessage>{fieldErrors.carbon}</FormErrorMessage>
                   </FormControl>
                 ) : null}
               </>
             )}
             {isRes && (
               <>
-                <FormControl>
+                <FormControl isInvalid={hasError("date")}>
                   <FormLabel>Date</FormLabel>
                   <CustomDatePicker
                     date={formData.date || ""}
                     onDateChange={(value: string) => handleChange("date", value)}
                   />
+                  <FormErrorMessage>{fieldErrors.date}</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={hasError("residue")}>
                   <FormLabel>Surface Residue</FormLabel>
                   <Select
                     value={formData.residue || ""}
@@ -252,23 +406,42 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                       </option>
                     ))}
                   </Select>
+                  <FormErrorMessage>{fieldErrors.residue}</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl isInvalid={hasError("appType")}>
                   <FormLabel>Application Type</FormLabel>
                   <Select
                     value={formData.appType || ""}
+                    required
                     onChange={(e) => handleChange("appType", e.target.value)}
                   >
-                    <option value="Mass">Mass</option>
-                    <option value="Thickness">Thickness</option>
+                    <option value="">Select Application Type</option>
+                    <option value="Mass">Mass (kg/ha)</option>
+                    <option value="Thickness">Thickness (cm)</option>
                   </Select>
+                  <FormErrorMessage>{fieldErrors.appType}</FormErrorMessage>
                 </FormControl>
-                <FormControl>
+                <FormControl isRequired isInvalid={hasError("appValue")}>
                   <FormLabel>Application Value</FormLabel>
                   <Input
+                    type="number"
+                    min="0"
+                    step="any"
                     value={formData.appValue || ""}
-                    onChange={(e) => handleChange("appValue", e.target.value)}
+                    placeholder="Enter value"
+                    onKeyDown={(e) => {
+                      if (e.key === "-" || e.key === "e") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onChange={(e) => {
+                      const val = e.target.value;
+                      if (/^\d*\.?\d*$/.test(val)) {
+                        handleChange("appValue", val);
+                      }
+                    }}
                   />
+                  <FormErrorMessage>{fieldErrors.appValue}</FormErrorMessage>
                 </FormControl>
               </>
             )}
@@ -291,12 +464,47 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                   </Select>
                 </FormControl>
                 {/* Drip and Furrow: only Depth */}
-                {(formData.irrType === "Drip" || formData.irrType === "Furrow") && (
+                {(formData.irrType === "Drip" ) && (
+                  <FormControl>
+                    <FormLabel>Rate</FormLabel>
+                    <Input
+                      type="number"
+                      min="0"
+                      step="any"
+                      value={formData.depth || ""}
+                      onKeyDown={(e) => {
+                        if (e.key === "-" || e.key === "e") {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*\.?\d*$/.test(val)) {
+                          handleChange("depth", val);
+                        }
+                      }}
+                    />
+                  </FormControl>
+                )}
+                {( formData.irrType === "Furrow") && (
                   <FormControl>
                     <FormLabel>Pond Depth (cm)</FormLabel>
                     <Input
+                      type="number"
+                      min="0"
+                      step="any"
                       value={formData.depth || ""}
-                      onChange={(e) => handleChange("depth", e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "-" || e.key === "e") {
+                          e.preventDefault();
+                        }
+                      }}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        if (/^\d*\.?\d*$/.test(val)) {
+                          handleChange("depth", val);
+                        }
+                      }}
                     />
                   </FormControl>
                 )}
@@ -313,20 +521,47 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                     <FormControl>
                       <FormLabel>Amount of Irrigation</FormLabel>
                       <Input
+                        type="number"
+                        min="0"
+                        step="any"
                         value={formData.rate || ""}
-                        onChange={(e) => handleChange("rate", e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "-" || e.key === "e") {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^\d*\.?\d*$/.test(val)) {
+                            handleChange("rate", val);
+                          }
+                        }}
                       />
                     </FormControl>
                   </>
                 )}
                 {/* FloodH: Pond Depth, Start Date, Start Time, End Date, End Time */}
+                {console.log("Rendering FloodH/FloodR with formData:", formData)}
                 {formData.irrType === "FloodH" && (
                   <>
                     <FormControl>
                       <FormLabel>Pond Depth (cm)</FormLabel>
                       <Input
+                        type="number"
+                        min="0"
+                        step="any"
                         value={formData.depth || ""}
-                        onChange={(e) => handleChange("depth", e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "-" || e.key === "e") {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^\d*\.?\d*$/.test(val)) {
+                            handleChange("depth", val);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormControl>
@@ -340,8 +575,8 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                       <FormLabel>Start Time</FormLabel>
                       <Input
                         type="time"
-                        value={formData.startTime || ""}
-                        onChange={(e) => handleChange("startTime", e.target.value)}
+                        value={formData.startH || ""}
+                        onChange={(e) => handleChange("startH", e.target.value)}
                       />
                     </FormControl>
                     <FormControl>
@@ -355,8 +590,8 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                       <FormLabel>End Time</FormLabel>
                       <Input
                         type="time"
-                        value={formData.endTime || ""}
-                        onChange={(e) => handleChange("endTime", e.target.value)}
+                        value={formData.stopH || ""}
+                        onChange={(e) => handleChange("stopH", e.target.value)}
                       />
                     </FormControl>
                   </>
@@ -367,8 +602,21 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                     <FormControl>
                       <FormLabel>Pond Depth (cm)</FormLabel>
                       <Input
+                        type="number"
+                        min="0"
+                        step="any"
                         value={formData.depth || ""}
-                        onChange={(e) => handleChange("depth", e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "-" || e.key === "e") {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^\d*\.?\d*$/.test(val)) {
+                            handleChange("depth", val);
+                          }
+                        }}
                       />
                     </FormControl>
                     <FormControl>
@@ -382,8 +630,8 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                       <FormLabel>Start Time</FormLabel>
                       <Input
                         type="time"
-                        value={formData.startTime || ""}
-                        onChange={(e) => handleChange("startTime", e.target.value)}
+                        value={formData.startH || ""}
+                        onChange={(e) => handleChange("startH", e.target.value)}
                       />
                     </FormControl>
                     <FormControl>
@@ -397,15 +645,28 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                       <FormLabel>End Time</FormLabel>
                       <Input
                         type="time"
-                        value={formData.endTime || ""}
-                        onChange={(e) => handleChange("endTime", e.target.value)}
+                        value={formData.stopH || ""}
+                        onChange={(e) => handleChange("stopH", e.target.value)}
                       />
                     </FormControl>
                     <FormControl>
                       <FormLabel>Rate</FormLabel>
                       <Input
+                        type="number"
+                        min="0"
+                        step="any"
                         value={formData.rate || ""}
-                        onChange={(e) => handleChange("rate", e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "-" || e.key === "e") {
+                            e.preventDefault();
+                          }
+                        }}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (/^\d*\.?\d*$/.test(val)) {
+                            handleChange("rate", val);
+                          }
+                        }}
                       />
                     </FormControl>
                   </>

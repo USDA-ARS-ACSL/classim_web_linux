@@ -529,18 +529,18 @@ const cropManager = () => {
             irrType: "FloodH",
             depth: data.irrigation_floodH.pondDepth,
             startDate: data.irrigation_floodH.startDate,
-            startTime: data.irrigation_floodH.startTime,
+            startH: data.irrigation_floodH.startH,
             endDate: data.irrigation_floodH.endDate,
-            endTime: data.irrigation_floodH.endTime,
+            stopH: data.irrigation_floodH.stopH,
           };
         } else if (data.irrigation_floodR) {
           initialData = {
             irrType: "FloodR",
             depth: data.irrigation_floodR.pondDepth,
             startDate: data.irrigation_floodR.startDate,
-            startTime: data.irrigation_floodR.startTime,
+            startH: data.irrigation_floodR.startH,
             endDate: data.irrigation_floodR.endDate,
-            endTime: data.irrigation_floodR.endTime,
+            stopH: data.irrigation_floodR.stopH,
             rate: data.irrigation_floodR.rate,
           };
         }

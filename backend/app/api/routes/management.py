@@ -16,7 +16,6 @@ from datetime import datetime, timedelta
 from sqlalchemy.sql import text
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import SQLAlchemyError
-from pydantic import BaseModel
 
 router = APIRouter()
 
@@ -581,17 +580,34 @@ def create_or_update_operation(
     session: SessionDep,
     current_user: CurrentUser,
     data: Any = Body(...)
-) -> bool:
-    print(data)
+) -> Any:
     data = data.get("data", data)  # Unwrap if payload is wrapped in 'data'
-    if data["operationType"] == "fertilization" :
-        opName="Fertilizer"
-        date=data["date"]
-    elif data["operationType"] == "s_residue":
-        opName="Surface Residue"
-        date=data["date"]
-    elif data["operationType"] == "irrgationType":
-        opName="Irrigation"
+
+    # --- Validation ---
+    required_fields = {
+        "fertilization": ["treatmentId", "class", "date", "depth", "n"],
+        "s_residue": ["treatmentId", "class", "date", "appType", "appValue"],
+        "irrgationType": ["treatmentId", "irrType", "date"]
+    }
+    op_type = data.get("operationType")
+    missing = []
+    if op_type in required_fields:
+        for field in required_fields[op_type]:
+            if not data.get(field):
+                missing.append(field)
+    if missing:
+        raise HTTPException(
+                status_code=400, detail=f"Missing required fields: {', '.join(missing)}"
+            )
+    # --- Existing logic ---
+    if op_type == "fertilization":
+        opName = "Fertilizer"
+        date = data["date"]
+    elif op_type == "s_residue":
+        opName = "Surface Residue"
+        date = data["date"]
+    elif op_type == "irrgationType":
+        opName = "Irrigation"
         date = data.get("date", "")
 
     op_id = data.get("operationID", -10)
@@ -601,37 +617,31 @@ def create_or_update_operation(
         session.commit()
         session.refresh(new_op)
         op_id = new_op.opID
-        print(data.get("class"), "class not found")
-        if data["operationType"] == "fertilization" :
-            fert_op = FertilizationOp(opID=op_id, **dict(zip(["fertilizationClass", "depth"], [data.get("class"), data.get("depth")])) )
+        if op_type == "fertilization":
+            fert_op = FertilizationOp(opID=op_id, **dict(zip(["fertilizationClass", "depth"], [data.get("class"), data.get("depth")])))
             session.add(fert_op)
-            if data["n"] and int(data["n"])>0:
+            if data["n"] and float(data["n"]) > 0:
                 fertNut_op_nit = FertNutOp(opID=op_id, nutrient="Nitrogen (N)", nutrientQuantity=float(data["n"]))
-                session.add(fertNut_op_nit)            
-            if data.get("carbon") and int(data.get("carbon"))>0:
+                session.add(fertNut_op_nit)
+            if data.get("carbon") and float(data["carbon"]) > 0:
                 fertNut_op_nit = FertNutOp(opID=op_id, nutrient="Carbon (C)", nutrientQuantity=float(data["carbon"]))
                 session.add(fertNut_op_nit)
-        elif data["operationType"] == "s_residue":
-            try:
-                appType=data["appType"]
-            except:
-                appType="Mass"
-            SR_op = SR_Op(opID=op_id, **dict(zip(["residueType", "applicationType", "applicationTypeValue"], [data["class"],appType, data["appValue"]])))
+        elif op_type == "s_residue":
+            appType = data.get("appType", "Mass")
+            SR_op = SR_Op(opID=op_id, **dict(zip(["residueType", "applicationType", "applicationTypeValue"], [data["class"], appType, data["appValue"]])))
             session.add(SR_op)
-        elif data["operationType"] == "irrgationType":
+        elif op_type == "irrgationType":
             irr_type = data.get("irrType")
             if irr_type in ["Drip", "Furrow"]:
-                # Insert into IrrigPivotOp (Drip/Furrow)
                 depth = data.get("depth")
                 irrAmt_op = IrrigPivotOp(opID=op_id, irrigationClass=irr_type, AmtIrrAppl=depth)
                 session.add(irrAmt_op)
             elif irr_type == "FloodH":
-                # Insert into irrig_floodH
                 pondDepth = data.get("depth")
                 irrStartD = data.get("startDate")
-                startH = data.get("startTime")
+                startH = data.get("startH")
                 irrStopD = data.get("endDate")
-                stopH = data.get("endTime")
+                stopH = data.get("stopH")
                 irrig_floodH = IrrigFloodH(
                     opID=op_id,
                     irrigationClass=irr_type,
@@ -643,13 +653,12 @@ def create_or_update_operation(
                 )
                 session.add(irrig_floodH)
             elif irr_type == "FloodR":
-                # Insert into irrig_floodR
                 pondDepth = data.get("depth")
                 rate = data.get("rate")
                 irrStartD = data.get("startDate")
-                startH = data.get("startTime")
+                startH = data.get("startH")
                 irrStopD = data.get("endDate")
-                stopH = data.get("endTime")
+                stopH = data.get("stopH")
                 irrig_floodR = IrrigFloodR(
                     opID=op_id,
                     irrigationClass=irr_type,
@@ -662,25 +671,22 @@ def create_or_update_operation(
                 )
                 session.add(irrig_floodR)
             elif irr_type == "Sprinkler":
-                # Insert into IrrigPivotOp (Sprinkler)
                 rate = data.get("rate")
                 irrAmt_op = IrrigPivotOp(opID=op_id, irrigationClass=irr_type, AmtIrrAppl=rate)
                 session.add(irrAmt_op)
-
         session.commit()
-    else:        
+    else:
         op = session.get(Operation, op_id)
         if not op:
             raise HTTPException(status_code=404, detail="Operation not found")
-        # Update Operation main fields
         op.o_t_exid = data["treatmentId"]
-        if data["operationType"] == "fertilization":
+        if op_type == "fertilization":
             op.name = "Fertilizer"
             op.odate = data["date"]
-        elif data["operationType"] == "s_residue":
+        elif op_type == "s_residue":
             op.name = "Surface Residue"
             op.odate = data["date"]
-        elif data["operationType"] == "irrgationType":
+        elif op_type == "irrgationType":
             op.name = "Irrigation"
             op.odate = data.get("date", "")
         session.add(op)
@@ -729,9 +735,9 @@ def create_or_update_operation(
                     floodH.irrigationClass = irr_type
                     floodH.pondDepth = data.get("depth")
                     floodH.irrStartD = data.get("startDate")
-                    floodH.startH = data.get("startTime")
+                    floodH.startH = data.get("startH")
                     floodH.irrStopD = data.get("endDate")
-                    floodH.stopH = data.get("endTime")
+                    floodH.stopH = data.get("stopH")
                     session.add(floodH)
             elif irr_type == "FloodR":
                 floodR = session.exec(select(IrrigFloodR).where(IrrigFloodR.opID == op_id)).first()
@@ -740,9 +746,9 @@ def create_or_update_operation(
                     floodR.pondDepth = data.get("depth")
                     floodR.rate = data.get("rate")
                     floodR.irrStartD = data.get("startDate")
-                    floodR.startH = data.get("startTime")
+                    floodR.startH = data.get("startH")
                     floodR.irrStopD = data.get("endDate")
-                    floodR.stopH = data.get("endTime")
+                    floodR.stopH = data.get("stopH")
                     session.add(floodR)
             elif irr_type == "Sprinkler":
                 irrAmt_op = session.exec(select(IrrigPivotOp).where(IrrigPivotOp.opID == op_id)).first()
