@@ -41,10 +41,10 @@ function Weather() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedStation, setSelectedStation] = useState("");
   const [stationName, setStationName] = useState<string>(""); // State to store the station name
-  const [averageWind, setAverageWind] = useState<number | null>(null);
-  const [averageRainRate, setAverageRainRate] = useState<number | null>(null);
+  const [averageWind, setAverageWind] = useState<number | null>(0);
+  const [averageRainRate, setAverageRainRate] = useState<number | null>(3);
   const [averageCO2, setAverageCO2] = useState<number | null>(420); // Default to 1
-  const [nContentRainfall, setNContentRainfall] = useState<number | null>(null);
+  const [nContentRainfall, setNContentRainfall] = useState<number | null>(0);
   const [selectedStationData, setSelectedStationData] = useState<any>(null);
   const [tdata, setTData] = useState<WeatherDataCreate[]>([]);
   const [site, setSite] = useState<string>("");
@@ -79,10 +79,10 @@ function Weather() {
       setSelectedStation("0");
       setStationName("");
       setSite("");
-      setAverageWind(null);
-      setAverageRainRate(null);
+      setAverageWind(0);
+      setAverageRainRate(3);
       setAverageCO2(420);
-      setNContentRainfall(null);
+      setNContentRainfall(0);
     }
     // console.log(selectedStationData)
   }, [selectedStationData]);
@@ -272,10 +272,10 @@ function Weather() {
       setSite(selectedStationData.site?.toString() || "");
     } else {
       // Reset fields if no station is selected
-      setAverageWind(null);
-      setAverageRainRate(null);
+      setAverageWind(0);
+      setAverageRainRate(3.0);
       setAverageCO2(420);
-      setNContentRainfall(null);
+      setNContentRainfall(0);
       setSite("");
       setImportType("");
     }
