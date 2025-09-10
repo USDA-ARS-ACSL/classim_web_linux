@@ -71,7 +71,7 @@ interface OperationFormProps {
 
 
 const getOperationTypeLabel = (type: string) => {
-  if (type === "s_residue") return "Surface Residue";
+  if (type === "s_residue") return "Surface rye mulch residue";
   if (type === "fertilization") return "Fertilization";
   if (type === "irrgationType") return "Irrigation";
   return type.charAt(0).toUpperCase() + type.slice(1);
