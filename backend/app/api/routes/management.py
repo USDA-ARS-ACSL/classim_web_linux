@@ -85,11 +85,11 @@ def create_experiment(
 
 @router.get("/experiment/{cropName}", response_model=ExperimentsPublic)
 def read_experiment_by_cropname(
-    session: SessionDep, cropName: str, skip: int = 0, limit: int = 100
+    session: SessionDep, cropName: str, current_user: CurrentUser,
 ) -> Any:
-    count_statement = select(func.count()).select_from(Experiment).filter(Experiment.crop == cropName)
+    count_statement = select(func.count()).select_from(Experiment).filter(Experiment.crop == cropName, Experiment.owner_id == current_user.id)
     count = session.exec(count_statement).one()
-    statement = select(Experiment).filter(Experiment.crop == cropName)
+    statement = select(Experiment).filter(Experiment.crop == cropName, Experiment.owner_id == current_user.id)
     experiments = session.exec(statement).all()
     return ExperimentsPublic(data=experiments, count=count)
 
@@ -104,19 +104,19 @@ def delete_experiment(session: SessionDep, current_user: CurrentUser, exid: int)
 
 @router.get("/experiment/{cropName}/{experimentName}", response_model=ExperimentsPublic)
 def read_experiment_by_cropname_and_experimentname(
-    session: SessionDep, cropName: str, experimentName: str, skip: int = 0, limit: int = 100,
+    session: SessionDep, cropName: str, experimentName: str,current_user: CurrentUser,
 ) -> Any:
-    statement = select(Experiment).where(Experiment.crop == cropName, Experiment.name == experimentName)
+    statement = select(Experiment).where(Experiment.crop == cropName, Experiment.name == experimentName, Experiment.owner_id == current_user.id)
     experiment = session.exec(statement).one_or_none()
     count = 1 if experiment else 0
     return ExperimentsPublic(data=[experiment] if experiment else [], count=count)
 
 @router.get("/treatment/{exid}", response_model=TreatmentsPublic)
 def read_treatment_by_experimentId(
-    session: SessionDep, exid: int, skip: int = 0, limit: int = 100
+    session: SessionDep, exid: int, 
 ) -> Any:
     """To get treatments based on experiment ID.. """
-    count_statement = select(func.count()).select_from(Treatment).filter(Treatment.t_exid == exid)
+    count_statement = select(func.count()).select_from(Treatment).filter(Treatment.t_exid == exid, Treatment.owner_id == 1)
     count = session.exec(count_statement).one()
     statement = select(Treatment).filter(Treatment.t_exid == exid)
     treatments = session.exec(statement).all()
@@ -125,18 +125,18 @@ def read_treatment_by_experimentId(
 
 @router.get("/treatmentbyid/{tid}", response_model=TreatmentsPublic)
 def read_treatment_by_experimentId(
-    session: SessionDep, tid: int, skip: int = 0, limit: int = 100
+    session: SessionDep, tid: int, current_user: CurrentUser,
 ) -> Any:
     """To get treatments based on experiment ID.. """
-    count_statement = select(func.count()).select_from(Treatment).filter(Treatment.tid == tid)
+    count_statement = select(func.count()).select_from(Treatment).filter(Treatment.tid == tid, Treatment.owner_id == current_user.id)
     count = session.exec(count_statement).one()
-    statement = select(Treatment).filter(Treatment.tid == tid)
+    statement = select(Treatment).filter(Treatment.tid == tid, Treatment.owner_id == current_user.id)
     treatments = session.exec(statement).all()
     return TreatmentsPublic(data=treatments, count=count)
 
 @router.delete("/treatment/{tid}")
 def delete_treatment(session: SessionDep, current_user: CurrentUser, tid: int) -> Message:
-    treatment = session.get(Treatment, tid)
+    treatment = session.get(Treatment, tid).filter(Treatment.owner_id == current_user.id).one_or_none()
     if not treatment:
         raise HTTPException(status_code=404, detail="Treatment not found")
     session.delete(treatment)
@@ -167,7 +167,7 @@ def create_treatment(
 
 @router.get("/experiment/experiment/id/{exid}", response_model=ExperimentsPublic)
 def get_treatment(session: SessionDep, current_user: CurrentUser, exid: int) -> Message:
-    statement = select(Experiment).where(Experiment.exid == exid)
+    statement = select(Experiment).where(Experiment.exid == exid, Experiment.owner_id == current_user.id)
     experiment = session.exec(statement).all()
 
     if not experiment:
