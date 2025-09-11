@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import Highcharts from "highcharts";
 import HighchartsReact from "highcharts-react-official";
 import { OpenAPI } from "../../../client";
+import { useToast } from "@chakra-ui/react";
 
 interface DataPoint {
   x: number;
@@ -23,9 +24,38 @@ const cropKeys: Record<string, string[]> = {
   cotton: ["LAI", "PlantDM", "Yield", "Nodes"],
 };
 
+// Add display names and units for each crop key
+const cropKeyMeta: Record<string, Record<string, { name: string; unit: string }>> = {
+  maize: {
+    SoilT: { name: "Soil Temperature", unit: "°C" },
+    SolRad: { name: "Solar Radiation", unit: "MJ/m²" },
+    TotLeafDM: { name: "Total Leaf Dry Matter", unit: "kg/ha" },
+    ETdmd: { name: "Evapotranspiration Demand", unit: "mm" },
+  },
+  soybean: {
+    LAI: { name: "Leaf Area Index", unit: "" },
+    totalDM: { name: "Total Dry Matter", unit: "kg/ha" },
+    podDM: { name: "Pod Dry Matter", unit: "kg/ha" },
+    Tr_act: { name: "Actual Transpiration", unit: "mm" },
+  },
+  potato: {
+    LAI: { name: "Leaf Area Index", unit: "" },
+    totalDM: { name: "Total Dry Matter", unit: "kg/ha" },
+    tuberDM: { name: "Tuber Dry Matter", unit: "kg/ha" },
+    "Tr-Pot": { name: "Transpiration - Potato", unit: "mm" },
+  },
+  cotton: {
+    LAI: { name: "Leaf Area Index", unit: "" },
+    PlantDM: { name: "Plant Dry Matter", unit: "kg/ha" },
+    Yield: { name: "Yield", unit: "kg/ha" },
+    Nodes: { name: "Nodes", unit: "" },
+  },
+};
+
 const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID, crop }) => {
   const [data, setData] = useState<DataPoint[]>([]);
   const xRef = useRef<number>(0);
+  const toast = useToast();
 
   useEffect(() => {
     const eventSource = new EventSource(
@@ -37,6 +67,18 @@ const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID, crop }) =
     };
 
     eventSource.onmessage = (event: MessageEvent) => {
+      // Handle run_completed event
+      if (event.data === "run_completed") {
+        toast({
+          title: "Simulation Completed",
+          description: "The simulation has finished successfully.",
+          status: "success",
+          duration: 4000,
+          isClosable: true,
+        });
+        eventSource.close();
+        return;
+      }
       try {
         const line = event.data.trim();
         const obj = JSON.parse(line.replace("data:", "").trim());
@@ -65,7 +107,7 @@ const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID, crop }) =
       console.log("Closing SSE connection...");
       eventSource.close();
     };
-  }, [simulationID, crop]);
+  }, [simulationID, crop, toast]);
 
   if (data.length === 0) {
     return <p>Waiting for data...</p>;
@@ -73,39 +115,42 @@ const GraphComponent: React.FC<GraphComponentProps> = ({ simulationID, crop }) =
 
   const keysToPlot = cropKeys[crop] || Object.keys(data[0] || {});
 
-  const generateChartOptions = (key: string) => ({
-    chart: {
-      type: "line",
-      height: 180,
-      animation: false,
-    },
-    title: {
-      text: key,
-    },
-    xAxis: {
-      title: { text: "Time" },
-      max: MAX_POINTS,
-    },
-    yAxis: {
-      title: { text: key },
-    },
-    plotOptions: {
-      series: {
-        marker: { enabled: false },
-        lineWidth: 1,
+  const generateChartOptions = (key: string) => {
+    const meta = cropKeyMeta[crop]?.[key] || { name: key, unit: "" };
+    return {
+      chart: {
+        type: "line",
+        height: 180,
         animation: false,
       },
-    },
-    series: [
-      {
-        name: key,
-        data: data.map((point) => [point.x, point[key]]),
+      title: {
+        text: meta.unit ? `${meta.name} (${meta.unit})` : meta.name,
       },
-    ],
-    legend: {
-      enabled: false,
-    },
-  });
+      xAxis: {
+        title: { text: "Time (days)" }, // Change as needed
+        max: MAX_POINTS,
+      },
+      yAxis: {
+        title: { text: meta.unit ? `${meta.name} (${meta.unit})` : meta.name },
+      },
+      plotOptions: {
+        series: {
+          marker: { enabled: false },
+          lineWidth: 1,
+          animation: false,
+        },
+      },
+      series: [
+        {
+          name: meta.name,
+          data: data.map((point) => [point.x, point[key]]),
+        },
+      ],
+      legend: {
+        enabled: false,
+      },
+    };
+  };
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: "1fr", gap: "20px" }}>
