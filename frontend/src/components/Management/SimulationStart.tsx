@@ -159,7 +159,7 @@ const SimulationStart: React.FC<SimulationProps> = ({
       rowSpacing: rowSpacing,
       cultivar: cultivar,
       seedpieceMass: seedpieceMass, // TODO: Replace with actual value if available
-      odate: date,
+      odate: toInputDateFormat(date),
       // treatmentid removed from here
     };
     console.log({ treatmentid: treatmentId, requestBody });

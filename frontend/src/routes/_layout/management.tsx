@@ -485,6 +485,7 @@ const cropManager = () => {
 
   // Save edited date (for now, just update local state)  handleDateSave(op.name, editedDate, op.op_id)
   const handleDateSave = (opName: string, opDate: string, op_id:number, tillageType:string) => {
+    opDate = toInputDateFormat(opDate);
     // Call mutation to update the backend
     if (tillageType === "No tillage") {
         opDate=""; // Set date to null if "No Tillage"

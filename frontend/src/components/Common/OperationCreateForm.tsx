@@ -225,10 +225,11 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
       let dateFields: any = {};
       if (isIrr) {
         dateFields = {
-          startDate: formData.startDate || "",
-          endDate: formData.endDate || "",
+          startDate: toInputDateFormat(formData.startDate || ""),
+          endDate: toInputDateFormat(formData.endDate || ""),
           startH: formData.startH || "",
           stopH: formData.stopH || "",
+          date : toInputDateFormat(formData.date || ""),
         };
       } else {
         dateFields = {
