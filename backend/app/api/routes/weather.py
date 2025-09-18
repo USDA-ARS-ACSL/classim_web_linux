@@ -291,9 +291,9 @@ def get_treatments(
     skip: int = 0, 
     limit: int = 100
 ) -> Any:
-    
-    stmt = select(Treatment.name, Experiment.name).join(Experiment, Experiment.exid == Treatment.t_exid).filter(Experiment.crop == crop)
-    
+
+    stmt = select(Treatment.name, Experiment.name).join(Experiment, Experiment.exid == Treatment.t_exid).filter(Experiment.crop == crop, Treatment.owner_id == current_user.id)
+
     result = session.execute(stmt).fetchall()
 
     # Transforming the result into a list of dictionaries for better structure
