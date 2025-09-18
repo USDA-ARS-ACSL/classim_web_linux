@@ -420,7 +420,9 @@ def update_simulation_start(
 
     # Update the operation date if provided in the payload
     if hasattr(initCond_op, 'odate') and initCond_op.odate:
-        operation.odate = initCond_op.odate
+        date_obj = datetime.strptime(initCond_op.odate, '%Y-%m-%d').date()
+        date_str = date_obj.strftime('%m/%d/%Y')
+        operation.odate = date_str
         session.add(operation)
 
     # Update the InitCondOp record
@@ -544,7 +546,8 @@ def update_operation_date(
     treatmentid = data.treatmentid
     op_date = data.opDate
     tillageType = data.tillageType
-
+    date_obj = datetime.strptime(op_date, '%Y-%m-%d').date()
+    op_date = date_obj.strftime('%m/%d/%Y')
     if op_id is None:
         raise HTTPException(status_code=400, detail="Operation ID is required")
     operation_meta = session.get(Operation, op_id)
@@ -587,7 +590,7 @@ def create_or_update_operation(
     required_fields = {
         "fertilization": ["treatmentId", "class", "date", "depth", "n"],
         "s_residue": ["treatmentId", "class", "date", "appType", "appValue"],
-        "irrgationType": ["treatmentId", "irrType", "date"]
+        "irrgationType": ["treatmentId", "irrType"]
     }
     op_type = data.get("operationType")
     missing = []
@@ -603,12 +606,30 @@ def create_or_update_operation(
     if op_type == "fertilization":
         opName = "Fertilizer"
         date = data["date"]
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+        date = date_obj.strftime('%m/%d/%Y')
     elif op_type == "s_residue":
         opName = "Surface Residue"
         date = data["date"]
-    elif op_type == "irrgationType":
+        date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+        date = date_obj.strftime('%m/%d/%Y')
+    elif op_type == "irrgationType" :
+        date = ""
+        irr_type = data.get("irrType") 
         opName = "Irrigation"
-        date = data.get("date", "")
+        if irr_type == "FloodR" or irr_type == "FloodH":
+        
+            startDate = data.get("startDate", "")
+            endDate = data.get("endDate", "")
+            startDate_obj = datetime.strptime(startDate, '%Y-%m-%d').date()
+            startDate = startDate_obj.strftime('%m/%d/%Y')
+            endDate_obj = datetime.strptime(endDate, '%Y-%m-%d').date()
+            endDate = endDate_obj.strftime('%m/%d/%Y')
+            date = startDate
+        elif irr_type == "Sprinkler":
+            date = data.get("date", "")
+            date_obj = datetime.strptime(date, '%Y-%m-%d').date()
+            date = date_obj.strftime('%m/%d/%Y')
 
     op_id = data.get("operationID", -10)
     if op_id == -10:
@@ -638,9 +659,9 @@ def create_or_update_operation(
                 session.add(irrAmt_op)
             elif irr_type == "FloodH":
                 pondDepth = data.get("depth")
-                irrStartD = data.get("startDate")
+                irrStartD = startDate
                 startH = data.get("startH")
-                irrStopD = data.get("endDate")
+                irrStopD = endDate
                 stopH = data.get("stopH")
                 irrig_floodH = IrrigFloodH(
                     opID=op_id,
@@ -656,8 +677,12 @@ def create_or_update_operation(
                 pondDepth = data.get("depth")
                 rate = data.get("rate")
                 irrStartD = data.get("startDate")
+                date_obj = datetime.strptime(irrStartD, '%Y-%m-%d').date()
+                irrStartD = date_obj.strftime('%m/%d/%Y')
                 startH = data.get("startH")
                 irrStopD = data.get("endDate")
+                date_obj = datetime.strptime(irrStopD, '%Y-%m-%d').date()
+                irrStopD = date_obj.strftime('%m/%d/%Y')
                 stopH = data.get("stopH")
                 irrig_floodR = IrrigFloodR(
                     opID=op_id,
@@ -682,13 +707,11 @@ def create_or_update_operation(
         op.o_t_exid = data["treatmentId"]
         if op_type == "fertilization":
             op.name = "Fertilizer"
-            op.odate = data["date"]
         elif op_type == "s_residue":
             op.name = "Surface Residue"
-            op.odate = data["date"]
         elif op_type == "irrgationType":
             op.name = "Irrigation"
-            op.odate = data.get("date", "")
+        op.odate = date
         session.add(op)
 
         # Update child tables (same as in if block, but update instead of insert)
@@ -734,9 +757,9 @@ def create_or_update_operation(
                 if floodH:
                     floodH.irrigationClass = irr_type
                     floodH.pondDepth = data.get("depth")
-                    floodH.irrStartD = data.get("startDate")
+                    floodH.irrStartD = startDate
                     floodH.startH = data.get("startH")
-                    floodH.irrStopD = data.get("endDate")
+                    floodH.irrStopD = endDate
                     floodH.stopH = data.get("stopH")
                     session.add(floodH)
             elif irr_type == "FloodR":
@@ -745,9 +768,9 @@ def create_or_update_operation(
                     floodR.irrigationClass = irr_type
                     floodR.pondDepth = data.get("depth")
                     floodR.rate = data.get("rate")
-                    floodR.irrStartD = data.get("startDate")
+                    floodR.irrStartD = startDate
                     floodR.startH = data.get("startH")
-                    floodR.irrStopD = data.get("endDate")
+                    floodR.irrStopD = endDate
                     floodR.stopH = data.get("stopH")
                     session.add(floodR)
             elif irr_type == "Sprinkler":
@@ -778,7 +801,6 @@ def get_full_operation_by_id(
         fert_nutrients = session.exec(select(FertNutOp).where(FertNutOp.opID == opid)).all()
         result["fertilization"] = fert_op
         result["fertilization_nutrients"] = fert_nutrients
-    print(result)
     # Try to fetch Surface Residue
     sr_op = session.exec(select(SR_Op).where(SR_Op.opID == opid)).first()
     if sr_op:
@@ -790,10 +812,16 @@ def get_full_operation_by_id(
     # Try to fetch FloodH
     floodH = session.exec(select(IrrigFloodH).where(IrrigFloodH.opID == opid)).first()
     if floodH:
-        result["irrigation_floodH"] = floodH
+        floodH_dict = floodH.dict() if hasattr(floodH, "dict") else dict(floodH)
+        floodH_dict["startDate"] = floodH_dict.pop("irrStartD", None)
+        floodH_dict["endDate"] = floodH_dict.pop("irrStopD", None)
+        result["irrigation_floodH"] = floodH_dict
     # Try to fetch FloodR
     floodR = session.exec(select(IrrigFloodR).where(IrrigFloodR.opID == opid)).first()
     if floodR:
-        result["irrigation_floodR"] = floodR
+        floodR_dict = floodR.dict() if hasattr(floodR, "dict") else dict(floodR)
+        floodR_dict["startDate"] = floodR_dict.pop("irrStartD", None)
+        floodR_dict["endDate"] = floodR_dict.pop("irrStopD", None)
+        result["irrigation_floodR"] = floodR_dict
     
     return result

@@ -17,18 +17,28 @@ import {
   CultivarTabApis,
 } from "../../client";
 import useCustomToast from "../../hooks/useCustomToast";
-import CustomDatePicker from "../Common/CustomDatePicker";
+
+// Helper to convert MM/DD/YYYY to YYYY-MM-DD
+function toInputDateFormat(dateStr: string | null): string {
+  if (!dateStr) return "";
+  if (dateStr.includes("-")) return dateStr;
+  const [month, day, year] = dateStr.split("/");
+  if (month && day && year) {
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  }
+  return dateStr;
+}
 
 interface SimulationProps {
   treatmentId: number;
   onClose: () => void;
-  onSaved?: (newDate: string) => void; // <-- add this
+  onSaved?: (newDate: string) => void;
 }
 
 const SimulationStart: React.FC<SimulationProps> = ({
   treatmentId,
   onClose,
-  onSaved, // <-- add this
+  onSaved,
 }) => {
   const [cultivar, setCultivar] = useState<string>("");
   const [eachCropCultivars, seteachCropCultivars] = useState<CultivarCropPublic[]>(
@@ -189,7 +199,11 @@ const SimulationStart: React.FC<SimulationProps> = ({
       <VStack spacing={4} align="stretch">
         <FormControl>
           <FormLabel>Date</FormLabel>
-          <CustomDatePicker date={date} onDateChange={setDate} />
+          <Input
+            type="date"
+            value={toInputDateFormat(date)}
+            onChange={(e) => setDate(e.target.value)}
+          />
         </FormControl>
         <FormControl>
           <FormLabel>Cultivars for {cropName}</FormLabel>
@@ -222,7 +236,7 @@ const SimulationStart: React.FC<SimulationProps> = ({
             onChange={(e) => setSeedDepth(Number(e.target.value))}
           />
         </FormControl>
-                {cropName === "potato" && (
+        {cropName === "potato" && (
           <FormControl>
             <FormLabel>Seed Piece Mass (g)</FormLabel>
             <Input

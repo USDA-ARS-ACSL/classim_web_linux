@@ -23,7 +23,8 @@ import {
   Icon,
   IconButton,
   ModalBody,
-  ModalFooter
+  ModalFooter,
+  FormLabel
   // useBreakpointValue
 } from "@chakra-ui/react"
 import { HiDotsVertical } from "react-icons/hi";
@@ -52,7 +53,7 @@ import { useDisclosure } from "@chakra-ui/react"; // For modal control
 import { CheckIcon, CloseIcon } from "@chakra-ui/icons";
 import OperationUI from "../../components/Common/OperationCreateForm";
 import { OperationForm } from "../../components/Common/OperationCreateForm";
-import CustomDatePicker from "../../components/Common/CustomDatePicker";
+// import CustomDatePicker from "../../components/Common/CustomDatePicker";
 
 const managementApi = {
   getCrops: async () => {
@@ -129,6 +130,15 @@ const managementApi = {
   },
 }
 
+function toInputDateFormat(dateStr: string) {
+  // Converts "MM/DD/YYYY" to "YYYY-MM-DD"
+  if (!dateStr || dateStr.includes("-")) return dateStr;
+  const [month, day, year] = dateStr.split("/");
+  if (month && day && year) {
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  }
+  return dateStr;
+}
 const cropManager = () => {
 
   const toast = useToast();
@@ -519,11 +529,20 @@ const cropManager = () => {
       } else if (data.irrigation_pivot || data.irrigation_floodH || data.irrigation_floodR) {
         operationType = "irrgationType";
         if (data.irrigation_pivot) {
+          if (data.irrigation_pivot.irrigationClass === "Drip" || data.irrigation_pivot.irrigationClass === "Furrow") {
           initialData = {
-            irrType: "Sprinkler",
+            irrType: data.irrigation_pivot.irrigationClass,
+            date: data.operation.odate,
+            depth: data.irrigation_pivot.AmtIrrAppl,
+          
+        }
+          } else {
+            initialData = {           
+              irrType: data.irrigation_pivot.irrigationClass,
             date: data.operation.odate,
             rate: data.irrigation_pivot.AmtIrrAppl,
-          };
+            }
+          }
         } else if (data.irrigation_floodH) {
           initialData = {
             irrType: "FloodH",
@@ -886,10 +905,10 @@ const cropManager = () => {
                 />
               </HStack>
               {operations.length > 0 ? (
-                operations.map((op) => (
+                operations.map((op, idx) => (
                   op.name !== "" && (
                     <Box
-                      key={op.name}
+                      key={`${op.name}-${op.op_id}-${idx}`} // <-- Make key unique
                       p={4}
                       borderWidth="0px"
                       borderRadius="md"
@@ -918,9 +937,11 @@ const cropManager = () => {
                           ) : isEditableOp(op.name) ? (
                             editingOp === op.name ? (
                               <HStack>
-                                <CustomDatePicker
-                                  date={editedDate}
-                                  onDateChange={(val: string) => setEditedDate(val)}
+                                <Input
+                                  type="date"
+                                  value={toInputDateFormat(editedDate) || ""}
+                                  onChange={(e) => setEditedDate(e.target.value)}
+                                  width="auto"
                                 />
                                 <IconButton
                                   aria-label="Save date"
@@ -929,7 +950,7 @@ const cropManager = () => {
                                   colorScheme="green"
                                   variant="solid"
                                   onClick={() => {
-                                    handleDateSave(op.name, editedDate, op.op_id,"otherOp");
+                                    handleDateSave(op.name, editedDate, op.op_id, "otherOp");
                                     setEditingOp(null);
                                   }}
                                 />
@@ -1031,9 +1052,12 @@ const cropManager = () => {
                   <ModalHeader>Edit Tillage Operation</ModalHeader>
                   <ModalCloseButton />
                   <ModalBody>
-                    <CustomDatePicker
-                      date={tillageOp?.date || ""}
-                      onDateChange={(val: string) => setTillageOp({ ...tillageOp, date: val })}
+                    <FormLabel>Date</FormLabel>
+                    <Input
+                      type="date"
+                      value={toInputDateFormat(tillageOp?.date || "")}
+                      onChange={(e) => setTillageOp({ ...tillageOp, date: e.target.value })}
+                      width="auto"
                     />
                     <Box mt={4}>
                       <Text mb={1}>Tillage Type</Text>

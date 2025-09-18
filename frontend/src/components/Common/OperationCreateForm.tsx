@@ -18,7 +18,6 @@ import {
   useToast,
   FormErrorMessage,
 } from "@chakra-ui/react";
-import CustomDatePicker from "./CustomDatePicker";
 import { ManagementService } from "../../client/services";
 
 // Helper to fetch dropdown data from backend
@@ -137,7 +136,6 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
     // Surface Residue validation
     if (isRes) {
       // if (!formData.date) errors.date = "Date is mandatory.";
-      if (!formData.residue) errors.residue = "Surface Residue is mandatory.";
       if (!formData.appType) errors.appType = "Application Type is mandatory.";
       if (!formData.appValue) errors.appValue = "Application Value is mandatory.";
     }
@@ -328,9 +326,10 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
               <>
                 <FormControl isRequired isInvalid={hasError("date")}>
                   <FormLabel>Date</FormLabel>
-                  <CustomDatePicker
-                    date={formData.date || ""}
-                    onDateChange={(value: string) => handleChange("date", value)}
+                  <Input
+                    type="date"
+                    value={toInputDateFormat(formData.date || "")}
+                    onChange={(e) => handleChange("date", e.target.value)}
                   />
                   <FormErrorMessage>{fieldErrors.date}</FormErrorMessage>
                 </FormControl>
@@ -405,9 +404,10 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
               <>
                 <FormControl isInvalid={hasError("date")}>
                   <FormLabel>Date</FormLabel>
-                  <CustomDatePicker
-                    date={formData.date || ""}
-                    onDateChange={(value: string) => handleChange("date", value)}
+                  <Input
+                    type="date"
+                    value={toInputDateFormat(formData.date || "")}
+                    onChange={(e) => handleChange("date", e.target.value)}
                   />
                   <FormErrorMessage>{fieldErrors.date}</FormErrorMessage>
                 </FormControl>
@@ -472,8 +472,11 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                       handleChange("irrType", e.target.value as IrrigationType);
                       handleChange("class", e.target.value as IrrigationType);
                     }}
+                    isDisabled={editMode} // <-- Disable in edit mode
                   >
+                    
                     {dropdownData.irrgationType && dropdownData.irrgationType.map((item: string) => (
+                      
                       <option key={item} value={item}>
                         {item}
                       </option>
@@ -530,9 +533,10 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                   <>
                     <FormControl>
                       <FormLabel>Date</FormLabel>
-                      <CustomDatePicker
-                        date={formData.date || ""}
-                        onDateChange={(value: string) => handleChange("date", value)}
+                      <Input
+                        type="date"
+                        value={toInputDateFormat(formData.date || "")}
+                        onChange={(e) => handleChange("date", e.target.value)}
                       />
                     </FormControl>
                     <FormControl>
@@ -583,9 +587,10 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                     </FormControl>
                     <FormControl>
                       <FormLabel>Start Date</FormLabel>
-                      <CustomDatePicker
-                        date={formData.startDate || ""}
-                        onDateChange={(value: string) => handleChange("startDate", value)}
+                      <Input
+                        type="date"
+                        value={toInputDateFormat(formData.startDate ||  "")}
+                        onChange={(e) => handleChange("startDate", e.target.value)}
                       />
                     </FormControl>
                     <FormControl>
@@ -598,9 +603,10 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                     </FormControl>
                     <FormControl>
                       <FormLabel>End Date</FormLabel>
-                      <CustomDatePicker
-                        date={formData.endDate || ""}
-                        onDateChange={(value: string) => handleChange("endDate", value)}
+                      <Input
+                        type="date"
+                        value={toInputDateFormat(formData.endDate || "")}
+                        onChange={(e) => handleChange("endDate", e.target.value)}
                       />
                     </FormControl>
                     <FormControl>
@@ -638,9 +644,10 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                     </FormControl>
                     <FormControl>
                       <FormLabel>Start Date</FormLabel>
-                      <CustomDatePicker
-                        date={formData.startDate || ""}
-                        onDateChange={(value: string) => handleChange("startDate", value)}
+                      <Input
+                        type="date"
+                        value={toInputDateFormat(formData.startDate || "")}
+                        onChange={(e) => handleChange("startDate", e.target.value)}
                       />
                     </FormControl>
                     <FormControl>
@@ -653,9 +660,10 @@ const OperationForm: React.FC<OperationFormProps> = ({ operationType, onClose, t
                     </FormControl>
                     <FormControl>
                       <FormLabel>End Date</FormLabel>
-                      <CustomDatePicker
-                        date={formData.endDate || ""}
-                        onDateChange={(value: string) => handleChange("endDate", value)}
+                      <Input
+                        type="date"
+                        value={toInputDateFormat(formData.endDate || "")}
+                        onChange={(e) => handleChange("endDate", e.target.value)}
                       />
                     </FormControl>
                     <FormControl>
@@ -775,3 +783,13 @@ const OperationCreateForm = ({ treatmentId, operationID = -10, editMode = false,
 
 export default OperationCreateForm;
 export { OperationForm };
+
+function toInputDateFormat(dateStr: string) {
+  // Converts "MM/DD/YYYY" to "YYYY-MM-DD"
+  if (!dateStr || dateStr.includes("-")) return dateStr;
+  const [month, day, year] = dateStr.split("/");
+  if (month && day && year) {
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}`;
+  }
+  return dateStr;
+}

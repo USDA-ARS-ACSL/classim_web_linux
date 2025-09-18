@@ -31,9 +31,9 @@ INSERT INTO "fertNutrient" ("fertilizationClass","Nutrient") VALUES ('Litter','C
 INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (1,'Center pivot','Center pivot');
 INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (2,'Drip','Drip');
 INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (3,'Furrow','Furrow');
-INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (4,'Flood','FloodH');
-INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (5,'Flood','FloodR');
-INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (6,'Flood','Sprinkler');
+INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (4,'FloodH','FloodH');
+INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (5,'FloodR','FloodR');
+INSERT INTO "irrigationType" ("id","irrigation","description") VALUES (6,'Sprinkler','Sprinkler');
 INSERT INTO "mulchDecomp" ("nutrient","contactFraction","alphaFeeding","carbMass","cellMass","lignMass","carbNMass","cellNMass","lignNMass","carbDecomp","cellDecomp","lignDecomp") VALUES ('Rye',0.6,0.1,0.2,0.7,0.1,0.08,0.01,0.01,0.425,0.24,0.0228);
 INSERT INTO "mulchGeo" ("nutrient","minHoriSize","diffusionRestriction","longWaveRadiationCtrl","decompositionCtrl","deltaRShort","deltaRLong","omega","epsilonMulch","alphaMulch","maxStepInPicardIteration","toleranceHead","rhoMulch","poreSpace","maxPondingDepth") VALUES ('Rye',2.0,0.0,0.0,1.0,0.3,0.3,0.6,1.0,0.3,10.0,0.01,400000.0,0.8,1.0);
 INSERT INTO "PGRApplType" ("id","applicationType","code") VALUES (1,'Banded',0);
