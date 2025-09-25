@@ -91,14 +91,23 @@ def create_soil_table(
     *, session: SessionDep, current_user: CurrentUser, cultivarCotton_in: CultivarCottonCreate
 ) -> Message:
     """
-    Create new soil.
+    Create new cotton cultivar.
     """
-    #print(cultivarCotton_in)
-    cultivarCottonData = CultivarCottondata.model_validate(cultivarCotton_in,update={"owner_id": current_user.id})
+    # Check for unique hybridname per user
+    existing = session.exec(
+        select(CultivarCottondata).where(
+            (CultivarCottondata.hybridname == cultivarCotton_in.hybridname) &
+            (CultivarCottondata.owner_id == current_user.id)
+        )
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Cultivar name must be unique for this user")
+    cultivarCottonData = CultivarCottondata.model_validate(cultivarCotton_in, update={"owner_id": current_user.id})
     session.add(cultivarCottonData)
     session.commit()
     session.refresh(cultivarCottonData)
     return Message(message="Cultivar Created successfully")
+
 #cutlivar maize apis
 @router.get("/geteach/maize/{id}",response_model=CultivarMaizesPublic)
 def download(
@@ -142,10 +151,18 @@ def create_soil_table(
     *, session: SessionDep, current_user: CurrentUser, cultivarMaize_in: CultivarMaizeCreate
 ) -> Message:
     """
-    Create new soil.
+    Create new maize cultivar.
     """
-    #print(cultivarMaize_in)
-    cultivarMaizeData = CultivarMaizedata.model_validate(cultivarMaize_in,update={"owner_id": current_user.id})
+    # Check for unique hybridname per user
+    existing = session.exec(
+        select(CultivarMaizedata).where(
+            (CultivarMaizedata.hybridname == cultivarMaize_in.hybridname) &
+            (CultivarMaizedata.owner_id == current_user.id)
+        )
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Cultivar name must be unique for this user")
+    cultivarMaizeData = CultivarMaizedata.model_validate(cultivarMaize_in, update={"owner_id": current_user.id})
     session.add(cultivarMaizeData)
     session.commit()
     session.refresh(cultivarMaizeData)
@@ -194,10 +211,18 @@ def create_soil_table(
     *, session: SessionDep, current_user: CurrentUser, cultivarPotato_in: CultivarPotatoCreate
 ) -> Message:
     """
-    Create new soil.
+    Create new potato cultivar.
     """
-    #print(cultivarPotato_in)
-    cultivarPotatoData = CultivarPotatodata.model_validate(cultivarPotato_in,update={"owner_id": current_user.id})
+    # Check for unique hybridname per user
+    existing = session.exec(
+        select(CultivarPotatodata).where(
+            (CultivarPotatodata.hybridname == cultivarPotato_in.hybridname) &
+            (CultivarPotatodata.owner_id == current_user.id)
+        )
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Cultivar name must be unique for this user")
+    cultivarPotatoData = CultivarPotatodata.model_validate(cultivarPotato_in, update={"owner_id": current_user.id})
     session.add(cultivarPotatoData)
     session.commit()
     session.refresh(cultivarPotatoData)
@@ -246,10 +271,18 @@ def create_soil_table(
     *, session: SessionDep, current_user: CurrentUser, cultivarSoybean_in: CultivarSoybeanCreate
 ) -> Message:
     """
-    Create new soil.
+    Create new soybean cultivar.
     """
-    #print(cultivarSoybean_in)
-    cultivarSoybeanData = CultivarSoybeandata.model_validate(cultivarSoybean_in,update={"owner_id": current_user.id})
+    # Check for unique hybridname per user
+    existing = session.exec(
+        select(CultivarSoybeandata).where(
+            (CultivarSoybeandata.hybridname == cultivarSoybean_in.hybridname) &
+            (CultivarSoybeandata.owner_id == current_user.id)
+        )
+    ).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Cultivar name must be unique for this user")
+    cultivarSoybeanData = CultivarSoybeandata.model_validate(cultivarSoybean_in, update={"owner_id": current_user.id})
     session.add(cultivarSoybeanData)
     session.commit()
     session.refresh(cultivarSoybeanData)
