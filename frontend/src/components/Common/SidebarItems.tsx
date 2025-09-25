@@ -1,24 +1,26 @@
 import { Box, Flex, Icon, Text, useColorModeValue } from "@chakra-ui/react"
 import { useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
-import { FiBriefcase, FiHome, FiSettings, FiUsers } from "react-icons/fi"
+import { FiInfo, FiUsers } from "react-icons/fi"
+import { MdAssessment, MdDashboard, MdManageAccounts, MdQuestionAnswer, MdTimeline } from "react-icons/md"
+import { FaMapMarkedAlt, FaUserGraduate } from "react-icons/fa"
+import { GiGroundSprout, GiPlantSeed } from "react-icons/gi"
+import { WiDayCloudy } from "react-icons/wi"
 
 import type { UserPublic } from "../../client"
 
 const items = [
-  { icon: FiHome, title: "Dashboard", path: "/" },
-  { icon: FiHome, title: "Site", path: "/site" },
-  { icon: FiHome, title: "Soil", path: "/soil" },
-  { icon: FiBriefcase, title: "Weather", path: "/weather" },
-  { icon: FiSettings, title: "Cultivar", path: "/cultivar" },
-  { icon: FiHome, title: "Management", path: "/management" },
-  { icon: FiHome, title: "Seasonal Run", path: "/seasonal" },
-  // { icon: FiBriefcase, title: "Rotation Builder", path: "/rotationBuilder" },
-  { icon: FiSettings, title: "Seasonal Output", path: "/seasonalOutput" },
-  // { icon: FiSettings, title: "Rotation Output", path: "/rotationBuilderOutput" },
-  { icon: FiSettings, title: "About", path: "/about" },
-  { icon: FiSettings, title: "Expert System", path: "/expertsystem" }, // Added Expert System
-  { icon: FiSettings, title: "Update FAQs", path: "/faqmanager" } // Added Expert System
+  { icon: MdDashboard, title: "Dashboard", path: "/" },
+  { icon: FaMapMarkedAlt, title: "Site", path: "/site" },
+  { icon: GiGroundSprout, title: "Soil", path: "/soil" },
+  { icon: WiDayCloudy, title: "Weather", path: "/weather" },
+  { icon: GiPlantSeed, title: "Cultivar", path: "/cultivar" },
+  { icon: MdManageAccounts, title: "Management", path: "/management" },
+  { icon: MdTimeline, title: "Seasonal Run", path: "/seasonal" },
+  { icon: MdAssessment, title: "Seasonal Output", path: "/seasonalOutput" },
+  { icon: FiInfo, title: "About", path: "/about" },
+  { icon: FaUserGraduate, title: "Expert System", path: "/expertsystem" },
+  { icon: MdQuestionAnswer, title: "Update FAQs", path: "/faqmanager" }
 ]
 
 interface SidebarItemsProps {
