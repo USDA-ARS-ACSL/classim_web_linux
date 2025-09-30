@@ -102,41 +102,103 @@ def readOpDetails(operationid: int, operationName: str, session: SessionDep) -> 
     Output: 
         List of tuples with operation info
     '''
-    rlist = [] 
-    query = """
-    SELECT o."opID", name, odate, {columns}
-    FROM operations o
-    {join_clause}
-    WHERE o."opID" = :operationid
-    """
-
-    columns = ""
-    join_clause = ""
+    rlist = []
     if operationName == 'Simulation Start':
-        columns = """pop, autoirrigation, xseed, yseed, cec, eomult, "rowSpacing", cultivar, "seedpieceMass" """
-        join_clause = """JOIN "initCondOp" ico ON o."opID" = ico."opID" """
+        query = text("""
+            SELECT o."opID", name, odate, pop, autoirrigation, xseed, yseed, cec, eomult, "rowSpacing", cultivar, "seedpieceMass"
+            FROM operations o
+            JOIN "initCondOp" ico ON o."opID" = ico."opID"
+            WHERE o."opID" = :operationid
+        """)
+        result = session.execute(query, {'operationid': operationid})
+        rlist = result.fetchall()
     elif operationName == 'Tillage':
-        columns = "tillage"
-        join_clause = """JOIN "tillageOp" t ON o."opID" = t."opID" """
+        query = text("""
+            SELECT o."opID", name, odate, tillage
+            FROM operations o
+            JOIN "tillageOp" t ON o."opID" = t."opID"
+            WHERE o."opID" = :operationid
+        """)
+        result = session.execute(query, {'operationid': operationid})
+        rlist = result.fetchall()
     elif operationName == 'Fertilizer':
-        columns = """ "fertilizationClass", depth, nutrient, "nutrientQuantity" """
-        join_clause = """JOIN "fertilizationOp" fo ON o."opID" = fo."opID" JOIN "fertNutOp" fno ON o."opID" = fno."opID" """
+        query = text("""
+            SELECT o."opID", name, odate, "fertilizationClass", depth, nutrient, "nutrientQuantity"
+            FROM operations o
+            JOIN "fertilizationOp" fo ON o."opID" = fo."opID"
+            JOIN "fertNutOp" fno ON o."opID" = fno."opID"
+            WHERE o."opID" = :operationid
+        """)
+        result = session.execute(query, {'operationid': operationid})
+        rlist = result.fetchall()
     elif operationName == 'Plant Growth Regulator':
-        columns = """ "PGRChemical", po."applicationType", bandwidth, "applicationRate", po."PGRUnit", pat.code as appTypeCode, pu.code as appUnitCode"""
-        join_clause = """JOIN "PGROp" po ON o."opID" = po."opID" JOIN "PGRApplType" pat ON po."applicationType" = pat."applicationType" JOIN "PGRUnit" pu ON po."PGRUnit" = pu."PGRUnit" """
+        query = text("""
+            SELECT o."opID", name, odate, "PGRChemical", po."applicationType", bandwidth, "applicationRate", po."PGRUnit", pat.code as appTypeCode, pu.code as appUnitCode
+            FROM operations o
+            JOIN "PGROp" po ON o."opID" = po."opID"
+            JOIN "PGRApplType" pat ON po."applicationType" = pat."applicationType"
+            JOIN "PGRUnit" pu ON po."PGRUnit" = pu."PGRUnit"
+            WHERE o."opID" = :operationid
+        """)
+        result = session.execute(query, {'operationid': operationid})
+        rlist = result.fetchall()
     elif operationName == "Surface Residue":
-        columns = """ "residueType", "applicationType", "applicationTypeValue" """
-        join_clause = """JOIN "surfResOp" sro ON o."opID" = sro."opID" """
+        query = text("""
+            SELECT o."opID", name, odate, "residueType", "applicationType", "applicationTypeValue"
+            FROM operations o
+            JOIN "surfResOp" sro ON o."opID" = sro."opID"
+            WHERE o."opID" = :operationid
+        """)
+        result = session.execute(query, {'operationid': operationid})
+        rlist = result.fetchall()
     elif operationName == "Irrigation":
-        columns = """ "irrigationClass", "AmtIrrAppl" """
-        join_clause = """JOIN "Irrig_pivotOp" Iro ON o."opID" = Iro."opID" """
+        # First, get irrigationClass
+        query_class = text("""
+            SELECT "irrigationClass" FROM "irrigationDetails" WHERE "opID" = :operationid
+        """)
+        result_class = session.execute(query_class, {'operationid': operationid})
+        irrigation_class_row = result_class.fetchone()
+        if irrigation_class_row:
+            irrigation_class = irrigation_class_row[0]
+            if irrigation_class == 'Sprinkler':
+                query = text("""
+                    SELECT o."opID", name, "irrigationClass", odate, "AmtIrrAppl"
+                    FROM operations o
+                    JOIN "Irrig_pivotOp" Iro ON o."opID" = Iro."opID"
+                    WHERE o."opID" = :operationid
+                """)
+            elif irrigation_class == 'FloodH':
+                query = text("""
+                    SELECT o."opID", name, "irrigationClass", "pondDepth", "irrStartD", "startH", "irrStopD", "stopH"
+                    FROM operations o
+                    JOIN "irrig_floodH" Iro ON o."opID" = Iro."opID"
+                    WHERE o."opID" = :operationid
+                """)
+            elif irrigation_class == 'FloodR':
+                query = text("""
+                    SELECT o."opID", name, "irrigationClass", "pondDepth", rate, "irrStartD", "startH", "irrStopD", "stopH"
+                    FROM operations o
+                    JOIN "irrig_floodR" Iro ON o."opID" = Iro."opID"
+                    WHERE o."opID" = :operationid
+                """)
+            else:
+                query = text("""
+                    SELECT o."opID", name, odate FROM operations o WHERE o."opID" = :operationid
+                """)
+            result = session.execute(query, {'operationid': operationid})
+            rlist = result.fetchall()
+        else:
+            query = text("""
+                SELECT o."opID", name, odate FROM operations o WHERE o."opID" = :operationid
+            """)
+            result = session.execute(query, {'operationid': operationid})
+            rlist = result.fetchall()
     else:
-        columns = ""
-    
-    query = query.format(columns=columns, join_clause=join_clause)
-    query = text(query)
-    result = session.execute(query, {'operationid': operationid})
-    rlist = result.fetchall()
+        query = text("""
+            SELECT o."opID", name, odate FROM operations o WHERE o."opID" = :operationid
+        """)
+        result = session.execute(query, {'operationid': operationid})
+        rlist = result.fetchall()
     return rlist
 
 

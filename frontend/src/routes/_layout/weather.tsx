@@ -11,6 +11,19 @@ import {
   Container,
   Tooltip,
   IconButton,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
 } from "@chakra-ui/react";
 import { DownloadIcon } from "@chakra-ui/icons";
 import { useEffect, useRef, useState } from "react";
@@ -49,6 +62,7 @@ function Weather() {
   const [tdata, setTData] = useState<WeatherDataCreate[]>([]);
   const [site, setSite] = useState<string>("");
   const [importType, setImportType] = useState<string>("");  
+  const [showPreview, setShowPreview] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const showToast = useCustomToast();
@@ -98,12 +112,22 @@ function Weather() {
     setImportType(selectedVal);
   };
 
+  // Show preview modal after parsing CSV
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
-      console.log("File selected:", file.name);
       setSelectedFile(file);
-      parseCSV(file);
+      Papa.parse<WeatherDataCreate>(file, {
+        header: true,
+        skipEmptyLines: true,
+        dynamicTyping: true,
+        complete: function (results: ParseResult<WeatherDataCreate>) {
+          const data = results.data;
+          if (validateAndSetData(data)) {
+            setShowPreview(true); // Show preview modal
+          }
+        },
+      });
     } else {
       setSelectedFile(null);
     }
@@ -168,72 +192,66 @@ function Weather() {
   }, [selectedFile]);
 
   const handleUpload = async () => {
+    setShowPreview(false); // Hide preview modal
     if (selectedFile) {
-      const userConfirmed = window.confirm(
-        "Would you like to proceed with the ingestion of the data?"
-      );
-      if (userConfirmed) {
-        // console.log("User confirmed ingestion of data.");
-        // Process the data before submitting
-        const processedData: WeatherDataCreate[] = [];
+      // Remove window.confirm here!
+      // Process the data before submitting
+      const processedData: WeatherDataCreate[] = [];
 
-        tdata.forEach((row) => {
-          let dateString: string | null = null;
-          let jday: number | null = null;
+      tdata.forEach((row) => {
+        let dateString: string | null = null;
+        let jday: number | null = null;
 
-          if (row.date !== null && row.date !== undefined) {
-            const date = new Date(row.date);
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, "0");
-            const day = String(date.getDate()).padStart(2, "0");
+        if (row.date !== null && row.date !== undefined) {
+          const date = new Date(row.date);
+          const year = date.getFullYear();
+          const month = String(date.getMonth() + 1).padStart(2, "0");
+          const day = String(date.getDate()).padStart(2, "0");
 
-            // dateString = `${year}-${month}-${day}`;
-            dateString = `${month}/${day}/${year}`;
-            jday = Math.floor(date.getTime() / (1000 * 60 * 60 * 24)); // Calculate Julian day
-          }
+          // dateString = `${year}-${month}-${day}`;
+          dateString = `${month}/${day}/${year}`;
+          jday = Math.floor(date.getTime() / (1000 * 60 * 60 * 24)); // Calculate Julian day
+        }
 
-          const processedRow: WeatherDataCreate = {
-            id: 0, // Assign appropriate value for 'id'
-            stationtype: selectedStationData?.stationtype ?? "", // Assign appropriate value for 'stationtype'
-            weather_id: selectedStation, // Assign appropriate value for 'weather_id'
-            date: dateString,
-            jday: jday ?? 0, // Assign a default value for 'jday' if it's null
-            // Assign values for other properties
-            hour: row.hour ?? null,
-            srad: row.srad ?? null,
-            wind: row.wind ?? null,
-            rh: row.rh ?? null,
-            rain: row.rain ?? null,
-            tmax: row.tmax ?? null,
-            tmin: row.tmin ?? null,
-            temperature: row.temperature ?? null,
-            co2: row.co2 ?? null,
-          };
-
-          // Push the processed row to 'processedData'
-          processedData.push(processedRow);
-        });
-        // Create the request body
-        const data: TDataCreateWeatherTable = {
-          requestBody: processedData,
+        const processedRow: WeatherDataCreate = {
+          id: 0, // Assign appropriate value for 'id'
+          stationtype: selectedStationData?.stationtype ?? "", // Assign appropriate value for 'stationtype'
+          weather_id: selectedStation, // Assign appropriate value for 'weather_id'
+          date: dateString,
+          jday: jday ?? 0, // Assign a default value for 'jday' if it's null
+          // Assign values for other properties
+          hour: row.hour ?? null,
+          srad: row.srad ?? null,
+          wind: row.wind ?? null,
+          rh: row.rh ?? null,
+          rain: row.rain ?? null,
+          tmax: row.tmax ?? null,
+          tmin: row.tmin ?? null,
+          temperature: row.temperature ?? null,
+          co2: row.co2 ?? null,
         };
 
-        try {
-          // Submit the processed data
-          await WeatherService.submitWeatherTable(data);
-          showToast(
-            "Data Submitted",
-            "The weather data has been successfully submitted.",
-            "success"
-          );
-        } catch (error) {
-          // console.log(error);
-          showToast(
-            "Submission Error",
-            "There was an error submitting the data.",
-            "error"
-          );
-        }
+        // Push the processed row to 'processedData'
+        processedData.push(processedRow);
+      });
+      // Create the request body
+      const data: TDataCreateWeatherTable = {
+        requestBody: processedData,
+      };
+      try {
+        // Submit the processed data
+        await WeatherService.submitWeatherTable(data);
+        showToast(
+          "Data Submitted",
+          "The weather data has been successfully submitted.",
+          "success"
+        );
+      } catch (error) {
+        showToast(
+          "Submission Error",
+          "There was an error submitting the data.",
+          "error"
+        );
       }
     }
   };
@@ -873,6 +891,43 @@ const sampleCsvUrl = URL.createObjectURL(sampleCsvBlob);
       <NextPreviousButtons />
       
       <FaqComponent tabname='weather' />
+      {/* Preview Modal */}
+      <Modal isOpen={showPreview} onClose={() => setShowPreview(false)} size="xl">
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Preview Weather Data (First 15 Records)</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <Box maxHeight="350px" overflowY="auto">
+              <Table size="sm">
+                <Thead>
+                  <Tr>
+                    {tdata.length > 0 &&
+                      Object.keys(tdata[0]).map((key) => <Th key={key}>{key}</Th>)}
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {tdata.slice(0, 15).map((row, idx) => (
+                    <Tr key={idx}>
+                      {Object.values(row).map((val, i) => (
+                        <Td key={i}>{val as any}</Td>
+                      ))}
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="blue" mr={3} onClick={handleUpload}>
+              Confirm & Upload
+            </Button>
+            <Button variant="ghost" onClick={() => setShowPreview(false)}>
+              Cancel
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
     </Container>
   );
 }
