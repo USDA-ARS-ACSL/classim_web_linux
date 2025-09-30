@@ -133,18 +133,18 @@ function Weather() {
     }
   };
 
-  const parseCSV = (file: File) => {
-    Papa.parse<WeatherDataCreate>(file, {
-      header: true,
-      skipEmptyLines: true,
-      dynamicTyping: true,
-      complete: function (results: ParseResult<WeatherDataCreate>) {
-        // Skip the header row by using the data directly from results.data
-        const data = results.data;
-        validateAndSetData(data);
-      },
-    });
-  };
+  // const parseCSV = (file: File) => {
+  //   Papa.parse<WeatherDataCreate>(file, {
+  //     header: true,
+  //     skipEmptyLines: true,
+  //     dynamicTyping: true,
+  //     complete: function (results: ParseResult<WeatherDataCreate>) {
+  //       // Skip the header row by using the data directly from results.data
+  //       const data = results.data;
+  //       validateAndSetData(data);
+  //     },
+  //   });
+  // };
 
   const validateAndSetData = (csvData: WeatherDataCreate[]) => {
     const requiredColumns = ["date", "srad", "rain"];
