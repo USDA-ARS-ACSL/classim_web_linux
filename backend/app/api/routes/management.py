@@ -136,7 +136,9 @@ def read_treatment_by_experimentId(
 
 @router.delete("/treatment/{tid}")
 def delete_treatment(session: SessionDep, current_user: CurrentUser, tid: int) -> Message:
-    treatment = session.get(Treatment, tid).filter(Treatment.owner_id == current_user.id).one_or_none()
+    treatment = session.exec(
+        select(Treatment).where(Treatment.tid == tid, Treatment.owner_id == current_user.id)
+    ).one_or_none()
     if not treatment:
         raise HTTPException(status_code=404, detail="Treatment not found")
     session.delete(treatment)
