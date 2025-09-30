@@ -5,8 +5,8 @@ from app.models import (
     CropsMetasPublic, CropsMeta, ExperimentCreate, Experiment, 
     ExperimentsPublic, IrrigationType, Message, TreatmentsPublic, Treatment, Operation, 
     TreatmentCreate, OperationCreate, InitCondOp, TillageOp, FertilizationOp, 
-    FertNutOp, PGROp, SR_Op, IrrigPivotOp, OperationsPublic, OperationDateResponse,
-    FertilizationClass, PGRChemical, SurfResType, FertilizationWithNutrients, PGRApplType,
+    FertNutOp, PGROp, SR_Op, IrrigPivotOp, OperationsPublic, 
+    FertilizationClass, PGRChemical, SurfResType, IrrigationDetails,
     PGRUnit, SurfResApplType, IrrigationClass, TreatmentPublic ,CultivarMaizedata,
     CultivarPotatodata, CultivarSoybeandata, TillageType, TreatmentCopy, InitCondOpUpdateRequest,
     OperationData, IrrigFloodH, IrrigFloodR, TillageTypesPublic
@@ -656,6 +656,8 @@ def create_or_update_operation(
             session.add(SR_op)
         elif op_type == "irrgationType":
             irr_type = data.get("irrType")
+            irrigationdetails = IrrigationDetails(opID=op_id, irrigationClass=irr_type,o_t_exid=data["treatmentId"])
+            session.add(irrigationdetails)
             if irr_type in ["Drip", "Furrow"]:
                 depth = data.get("depth")
                 irrAmt_op = IrrigPivotOp(opID=op_id, irrigationClass=irr_type, AmtIrrAppl=depth)

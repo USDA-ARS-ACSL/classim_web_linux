@@ -953,6 +953,11 @@ class IrrigPivotOp(SQLModel, table=True):
     irrigationClass: str | None = None
     AmtIrrAppl: int | None = None
 
+class IrrigationDetails(SQLModel, table=True):
+    __tablename__="irrigationDetails"
+    opID : int | None = Field(default=None, primary_key=True)
+    o_t_exid: int | None = None
+    irrigationClass: str | None = None
 
 class SimData(BaseModel):
     site: str
