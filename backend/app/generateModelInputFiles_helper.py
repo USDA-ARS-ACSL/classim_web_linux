@@ -748,10 +748,10 @@ def WriteIrrigation(field_name,field_path, simulationname, o_t_exid,session):
             irrAmtlist = getIrrigationData(simulationname, o_t_exid, session)
             NCountS = len(irrAmtlist)
         elif item == 'FloodH':
-            floodlistH = getFloodHData(simulationname, o_t_exid, session)
+            floodlistH = getFloodHData(o_t_exid, session)
             NCountH = len(floodlistH)
         elif item == 'FloodR':
-            floodlistR = getFloodRData(simulationname, o_t_exid, session)
+            floodlistR = getFloodRData( o_t_exid, session)
             NCountR = len(floodlistR)
 
     try:
