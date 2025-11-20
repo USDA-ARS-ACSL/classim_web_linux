@@ -783,7 +783,14 @@ def WriteIrrigation(field_name,field_path, simulationname, o_t_exid,session):
                 fout.write(f"{NCountH:5d}\n")
                 fout.write("Ponding Depth (cm)        Irrigation start date         and  hour/         Irrigation stop date         and hour/ -          one line for each application\n")
                 for record_tuple in floodlistH:
-                    fout.write(f"{record_tuple[0]:-10.2f}      '{record_tuple[1]:-14s}'         {record_tuple[2]:-14s}         '{record_tuple[3]:-14s}'         {record_tuple[4]:-14s}\n")
+                    for record_tuple in floodlistH:
+                        fout.write(
+                            f"{record_tuple[0]:10.2f}"
+                            f"'{record_tuple[1].strip():14s}'"
+                            f"{record_tuple[2]:14s}"
+                            f"'{record_tuple[3].strip():14s}'"
+                            f"{record_tuple[4]:14s}\n"
+                        )
             else:
                 fout.write("0\n")
                 fout.write("No flood Irrigation\n")
@@ -797,7 +804,7 @@ def WriteIrrigation(field_name,field_path, simulationname, o_t_exid,session):
                 fout.write(f"{NCountR:5d}\n")
                 fout.write("Ponding Depth (cm)       rate (cm/day)     Irrigation start date        and  hour/             Irrigation stop date        and hour/ -          one line for each application\n")
                 for record_tuple in floodlistR:
-                    fout.write(f"{record_tuple[0]:-10.2f}      {record_tuple[1]:-14d}       '{record_tuple[2]:-14s}'        {record_tuple[3]:-14s}         '{record_tuple[4]:-14s}'         {record_tuple[5]:-14s}\n")
+                    fout.write(f"{record_tuple[0]:10.2f}      {record_tuple[1]:14d}       '{record_tuple[2]:14s}'        {record_tuple[3]:14s}         '{record_tuple[4]:14s}'         {record_tuple[5]:14s}\n")
             else:
                 fout.write("0\n")
                 fout.write("No flood Irrigation\n")
