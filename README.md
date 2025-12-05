@@ -33,3 +33,4 @@ these were the files I changed.
         modified:   frontend/.env
         modified:   frontend/Dockerfile
         modified:   frontend/nginx.conf
+now https is working
