@@ -1,0 +1,25 @@
+[ req ]
+default_bits       = 2048
+prompt             = no
+default_md         = sha256
+distinguished_name = req_distinguished_name
+req_extensions     = v3_req
+
+[ req_distinguished_name ]
+C  = US
+ST = MD
+L  = Beltsville
+O  = USDA
+OU = ARS
+CN = ARSMDBE3142ACSL
+
+[ v3_req ]
+keyUsage = critical, digitalSignature, keyEncipherment
+extendedKeyUsage = clientAuth, serverAuth
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = ARSMDBE3142ACSL
+DNS.2 = ARSMDBE3142ACSL.usda.net
+IP.1 = 10.19.48.121
+

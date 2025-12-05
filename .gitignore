@@ -22,3 +22,4 @@ backend/executables/gossym
 backend/executables/spudsim
 backend/testcer.py
 frontend/src/components/Common/CustomDatePicker.jsx
+.env.swp
