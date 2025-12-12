@@ -22,10 +22,4 @@ FROM nginx:1
 COPY --from=build-stage /app/dist/ /usr/share/nginx/html
 
 
-COPY ./ARSMDBE3142ACSL.pem /etc/nginx/ssl/ARSMDBE3142ACSL.pem
-COPY ./USDAroot.cer /etc/nginx/ssl/USDAroot.cer
-COPY ./ARSMDBE3142ACSL-2026-certnew.p7b /etc/nginx/ssl/ARSMDBE3142ACSL-2026-certnew.p7b
-COPY ./ARSMDBE3142ACSL.key /etc/nginx/ssl/ARSMDBE3142ACSL.key
-
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
-COPY ./nginx-backend-not-found.conf /etc/nginx/extra-conf.d/backend-not-found.conf
