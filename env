@@ -1,5 +1,6 @@
-# Domain for local development
-DOMAIN=localhost
+# Domain
+# This would be set to the production domain with an env var on deployment
+DOMAIN=ARSMDBE3142ACSL:8443
 
 # Environment: local, staging, production
 ENVIRONMENT=local
@@ -8,7 +9,7 @@ PROJECT_NAME="Full Stack FastAPI Project"
 STACK_NAME=full-stack-fastapi-project
 
 # Backend
-BACKEND_CORS_ORIGINS="http://localhost,http://localhost:80,http://127.0.0.1,http://127.0.0.1:80"
+BACKEND_CORS_ORIGINS="http://10.19.48.121:8085,http://arsmdbe3142acsl:8085,http://arsmdbe3142acsl,https://10.19.48.121:8085,https://arsmdbe3142acsl:8085,https://arsmdbe3142acsl"
 SECRET_KEY=usdaarsacslclassim2025
 FIRST_SUPERUSER=admin@example.com
 FIRST_SUPERUSER_PASSWORD=changethis
@@ -23,8 +24,8 @@ SMTP_TLS=True
 SMTP_SSL=False
 SMTP_PORT=587
 
-# Postgres - Use 'db' as the server name for Docker networking
-POSTGRES_SERVER=db
+# Postgres
+POSTGRES_SERVER=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=app
 POSTGRES_USER=postgres

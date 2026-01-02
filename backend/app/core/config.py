@@ -37,7 +37,7 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[misc]
     @property
     def server_host(self) -> str:
-        # Use HTTPS for anything other than local development
+        # Use HTTP for local development, HTTPS for staging/production
         if self.ENVIRONMENT == "local":
             return f"http://{self.DOMAIN}"
         return f"https://{self.DOMAIN}"
