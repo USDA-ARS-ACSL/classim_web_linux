@@ -1,0 +1,167 @@
+I'll help you create a plan to add login.gov via OIDC authentication. Let me first gather comprehensive context about the current authentication system and requirements. 
+
+Research current auth system
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/core/security.py)
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/core/config.py#1-1), lines 1 to 100
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/models.py#1-1), lines 1 to 100
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/api/routes)
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/api/main.py)
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/api/deps.py#1-1), lines 1 to 50
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/api/deps.py#45-45), lines 45 to 63
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/api/routes/login.py#1-1), lines 1 to 100
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/api/routes/users.py#1-1), lines 1 to 100
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/crud.py#1-1), lines 1 to 50
+
+Searched for regex `Token|OAuth|OIDC|OpenID|JWT` (`**/backend/app/models.py`), 8 results
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/pyproject.toml)
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/frontend/src/hooks/useAuth.ts)
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/frontend/src/routes/login.tsx#1-1), lines 1 to 100
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/frontend/package.json)
+
+Searched codebase for "Token TokenPayload NewPassword Message models", 17 results
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/frontend/src/routes/register.tsx#1-1), lines 1 to 100
+
+Searched for text `OAuth` (`**/frontend/src/client/**`), 1 result
+
+Searched for regex `(class Token|class TokenPayload|class NewPassword|class Message).*:` (`**/backend/app/models.py`), 4 results
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/models.py#105-105), lines 105 to 130
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/frontend/src/client/index.ts)
+
+Searched for regex `(Authorization|Bearer|token|OpenAPI)` (`**/frontend/src/client/**`), 20 results
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/frontend/src/client/core/OpenAPI.ts#1-1), lines 1 to 30
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/frontend/src/client/core/OpenAPI.ts#30-30), lines 30 to 58
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/frontend/src/main.tsx)
+
+Searched for regex `(oauth|oidc|openid|authlib|requests-oauthlib)`, 8 results
+
+Read [](file:///c%3A/Users/Dennis.Timlin/source/classim_web_linux/backend/app/core/config.py#100-100), lines 100 to 122
+
+## Plan: Add Login.gov OIDC Authentication
+
+Replace the current password-based authentication with login.gov OIDC while maintaining the existing JWT token system for session management. This approach leverages the current infrastructure while adding government-grade authentication.
+
+### Steps
+
+1. **Extend user model and database** - Add OIDC fields (`oidc_sub`, `login_gov_id`) to User model and create migration script
+2. **Add OIDC dependencies and configuration** - Install `authlib` in pyproject.toml, add OIDC settings to config.py
+3. **Implement OIDC authentication routes** - Create `/auth/login`, `/auth/callback`, `/auth/logout` endpoints in api/routes using login.gov discovery
+4. **Update frontend authentication flow** - Modify useAuth.ts to handle OIDC redirects, update login component 
+5. **Configure OIDC client settings** - Set up login.gov application registration, configure redirect URIs and environment variables
+
+### Further Considerations
+
+1. **Migration strategy**: Keep existing password auth as fallback for admin/development users, or completely replace it?
+2. **User data mapping**: How to handle existing user accounts - merge by email or require re-registration?
+3. **Environment configuration**: Development vs production login.gov environments (sandbox vs production)?
+REVISED PLAN -remove existing accounts
+revised plan since existing accounts can be removed
+## Plan: Replace Authentication with Login.gov OIDC
+
+Completely replace the current password-based authentication with login.gov OIDC authentication. Since existing user accounts can be deleted, we can simplify by removing password authentication entirely and implementing a clean OIDC-only system.
+
+### Steps
+
+1. **Remove password authentication components** - Delete password hashing from security.py, remove password fields from User model, clean up registration/password reset routes
+2. **Add OIDC dependencies and configuration** - Install `authlib` in pyproject.toml, replace auth settings in config.py with OIDC configuration
+3. **Implement OIDC authentication system** - Replace login endpoints in api/routes with `/auth/login`, `/auth/callback`, `/auth/logout` using login.gov
+4. **Update User model for OIDC** - Replace `hashed_password` with `oidc_sub` and `login_gov_email` fields, create fresh database migration
+5. **Replace frontend authentication** - Update useAuth.ts for OIDC flow, replace login.tsx with login.gov redirect, remove registration components
+
+### Further Considerations
+
+1. **Database reset**: Since accounts are deletable, should we create a fresh database schema or migration script?
+2. **Development environment**: Use login.gov sandbox for development testing, or implement a dev-mode bypass?
+3. **Admin access**: How to handle initial admin user creation through OIDC flow?
+
+changes made:
+I've successfully replaced the password-based authentication system with login.gov OIDC authentication. Here's what was implemented:
+
+Backend Changes
+Dependencies Updated - Replaced python-jose and passlib with authlib and requests for OIDC support in pyproject.toml
+
+Configuration Enhanced - Added comprehensive OIDC settings to config.py:
+
+Login.gov sandbox discovery URL
+Client ID/secret configuration
+Admin email list for automatic privileges
+Environment validation
+User Model Redesigned - Updated models.py to use OIDC fields:
+
+Replaced hashed_password with oidc_sub
+Added UserCreateOIDC for OIDC user creation
+Removed password-related models
+Authentication Routes Replaced - Completely rewrote login.py:
+
+/auth/login - Initiates OIDC flow to login.gov
+/auth/callback - Handles OIDC callback and user creation
+/auth/logout - Cleans up authentication state
+CSRF protection with state validation
+CRUD Operations Updated - Modified crud.py:
+
+Added create_user_oidc() for OIDC user creation
+Added get_user_by_oidc_sub() for OIDC lookups
+Removed password authentication functions
+Security Module Simplified - Updated security.py:
+
+Removed password hashing functions
+Added state token generation for OIDC
+Simplified JWT handling
+Frontend Changes
+Authentication Hook Redesigned - Completely updated useAuth.ts:
+
+Added OIDC redirect handling
+URL parameter processing for tokens/errors
+Simplified login flow with login.gov redirect
+Login Page Replaced - Modernized login.tsx:
+
+Single "Sign in with login.gov" button
+Clean, government-standard interface
+Error handling for OIDC flow
+Client Services Updated - Modified services.ts:
+
+Removed password-related API endpoints
+Added logout endpoint
+Cleaned up type definitions
+Removed Legacy Routes - Deleted password-based authentication files:
+
+register.tsx
+recover-password.tsx
+reset-password.tsx
+
+Next Steps to Go Live
+1. Environment Configuration
+Set these environment variables for your application:
+
+2. Login.gov Registration
+Register your application at developers.login.gov
+Use sandbox environment for testing: https://idp.int.identitysandbox.gov
+Configure redirect URI: https://yourdomain.com/api/v1/auth/callback
+3. Database Migration
+Since you're resetting the database with a new Docker image, the new schema will be automatically applied.
+
+4. Testing
+Build and deploy new Docker image
+Test OIDC flow with login.gov sandbox accounts
+Verify admin user creation from configured email list
+The implementation provides a secure, government-compliant authentication system that automatically handles user creation and admin privileges through login.gov OIDC.
+

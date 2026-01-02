@@ -12,23 +12,18 @@ class UserBase(SQLModel):
     full_name: str | None = None
 
 
-# Properties to receive via API on creation
-class UserCreate(UserBase):
-    password: str
-
-
-# TODO replace email str with EmailStr when sqlmodel supports it
-class UserRegister(SQLModel):
+# Properties to receive via API on creation (OIDC)
+class UserCreateOIDC(SQLModel):
     email: str
-    password: str
     full_name: str | None = None
+    oidc_sub: str
 
 
 # Properties to receive via API on update, all are optional
 # TODO replace email str with EmailStr when sqlmodel supports it
 class UserUpdate(UserBase):
     email: str | None = None  # type: ignore
-    password: str | None = None
+    full_name: str | None = None
 
 
 # TODO replace email str with EmailStr when sqlmodel supports it
@@ -37,15 +32,10 @@ class UserUpdateMe(SQLModel):
     email: str | None = None
 
 
-class UpdatePassword(SQLModel):
-    current_password: str
-    new_password: str
-
-
 # Database model, database table inferred from class name
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    hashed_password: str
+    oidc_sub: str = Field(unique=True, index=True)  # OIDC subject identifier
     items: list["Item"] = Relationship(back_populates="owner")
     sites: list["Site"] = Relationship(back_populates="owner")
     soils: list["Soil"] = Relationship(back_populates="owner")

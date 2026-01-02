@@ -1,10 +1,9 @@
-import { useMutation, useQuery } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 import { AxiosError } from "axios"
 import {
-  type Body_login_login_access_token as AccessToken,
   type ApiError,
   LoginService,
   type UserPublic,
@@ -18,24 +17,56 @@ const isLoggedIn = () => {
 const useAuth = () => {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
+  
   const { data: user, isLoading } = useQuery<UserPublic | null, Error>({
     queryKey: ["currentUser"],
     queryFn: UsersService.readUserMe,
     enabled: isLoggedIn(),
   })
 
-  const login = async (data: AccessToken) => {
-    const response = await LoginService.loginAccessToken({
-      formData: data,
-    })
-    localStorage.setItem("access_token", response.access_token)
+  // Handle OAuth callback token from URL params
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search)
+    const token = urlParams.get("token")
+    const error = urlParams.get("error")
+    
+    if (token) {
+      localStorage.setItem("access_token", token)
+      // Remove token from URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+      // Invalidate queries to fetch user data
+      queryClient.invalidateQueries({ queryKey: ["currentUser"] })
+      navigate({ to: "/" })
+    } else if (error) {
+      setError(getErrorMessage(error))
+      // Remove error from URL
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  }, [navigate, queryClient])
+
+  const getErrorMessage = (errorCode: string) => {
+    switch (errorCode) {
+      case "missing_parameters":
+        return "Authentication failed: Missing required parameters"
+      case "invalid_state":
+        return "Authentication failed: Invalid state parameter"
+      case "auth_failed":
+        return "Authentication failed: Unable to connect to USDA eAuth"
+      case "internal_error":
+        return "Authentication failed: Internal server error"
+      default:
+        return `Authentication failed: ${errorCode}`
+    }
+  }
+
+  const initiateOIDCLogin = () => {
+    // Redirect to backend OIDC endpoint (USDA eAuth)
+    window.location.href = "/api/v1/auth/login"
   }
 
   const loginMutation = useMutation({
-    mutationFn: login,
-    onSuccess: () => {
-      navigate({ to: "/" })
-    },
+    mutationFn: initiateOIDCLogin,
     onError: (err: ApiError) => {
       let errDetail = (err.body as any)?.detail
 
@@ -51,9 +82,20 @@ const useAuth = () => {
     },
   })
 
-  const logout = () => {
-    localStorage.removeItem("access_token")
-    navigate({ to: "/login" })
+  const logout = async () => {
+    try {
+      // Call backend logout endpoint
+      if (isLoggedIn()) {
+        await LoginService.logout()
+      }
+    } catch (error) {
+      console.error("Logout error:", error)
+    } finally {
+      // Always clear local storage and redirect
+      localStorage.removeItem("access_token")
+      queryClient.clear()
+      navigate({ to: "/login" })
+    }
   }
 
   return {
@@ -63,6 +105,7 @@ const useAuth = () => {
     isLoading,
     error,
     resetError: () => setError(null),
+    initiateOIDCLogin,
   }
 }
 

@@ -31,6 +31,26 @@ class Settings(BaseSettings):
     SECRET_KEY: str = secrets.token_urlsafe(32)
     # 60 minutes * 24 hours * 8 days = 8 days
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
+    
+    # USDA eAuth OIDC Configuration (connects to login.gov via gateway)
+    OIDC_CLIENT_ID: str | None = None
+    OIDC_PRIVATE_KEY: str | None = None  # PEM format private key
+    OIDC_PRIVATE_KEY_PATH: str | None = None  # Path to private key file
+    
+    # USDA eAuth Gateway Endpoints for CLASSIM Application
+    OIDC_DISCOVERY_URL: str = "https://gateway.cert.eauth.usda.gov/affwebservices/CASSO/oidc/USDA_REE_ARS_CLASSIM_V0/.well-known/openid-configuration"
+    OIDC_ISSUER: str = "https://gateway.cert.eauth.usda.gov/affwebservices/CASSO/oidc/USDA_REE_ARS_CLASSIM_V0"
+    OIDC_AUTHORIZATION_ENDPOINT: str = "https://gateway.cert.eauth.usda.gov/affwebservices/CASSO/oidc/USDA_REE_ARS_CLASSIM_V0/authorize"
+    OIDC_TOKEN_ENDPOINT: str = "https://gateway.cert.eauth.usda.gov/affwebservices/CASSO/oidc/USDA_REE_ARS_CLASSIM_V0/token"
+    OIDC_USERINFO_ENDPOINT: str = "https://gateway.cert.eauth.usda.gov/affwebservices/CASSO/oidc/USDA_REE_ARS_CLASSIM_V0/userinfo"
+    OIDC_JWKS_ENDPOINT: str = "https://gateway.cert.eauth.usda.gov/affwebservices/CASSO/oidc/USDA_REE_ARS_CLASSIM_V0/jwks"
+    OIDC_INTROSPECTION_ENDPOINT: str = "https://gateway.cert.eauth.usda.gov/affwebservices/CASSO/oidc/USDA_REE_ARS_CLASSIM_V0/introspect"
+    OIDC_REVOCATION_ENDPOINT: str = "https://gateway.cert.eauth.usda.gov/affwebservices/CASSO/oidc/USDA_REE_ARS_CLASSIM_V0/revoke"
+    
+    OIDC_REDIRECT_URI: str | None = None
+    OIDC_SCOPE: str = "openid email profile"
+    # Admin users (automatically granted admin privileges)
+    ADMIN_EMAILS: Annotated[list[str] | str, BeforeValidator(parse_cors)] = []
     DOMAIN: str = "localhost"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
 
@@ -82,19 +102,37 @@ class Settings(BaseSettings):
             self.EMAILS_FROM_NAME = self.PROJECT_NAME
         return self
 
-    EMAIL_RESET_TOKEN_EXPIRE_HOURS: int = 48
+    # OIDC configuration validation
+    @computed_field  # type: ignore[misc]
+    @property
+    def oidc_enabled(self) -> bool:
+        has_private_key = bool(self.OIDC_PRIVATE_KEY or self.OIDC_PRIVATE_KEY_PATH)
+        return bool(
+            self.OIDC_CLIENT_ID 
+            and has_private_key
+            and self.OIDC_REDIRECT_URI
+        )
 
     @computed_field  # type: ignore[misc]
     @property
-    def emails_enabled(self) -> bool:
-        return bool(self.SMTP_HOST and self.EMAILS_FROM_EMAIL)
+    def private_key_content(self) -> str | None:
+        """Get private key content from either direct value or file path"""
+        if self.OIDC_PRIVATE_KEY:
+            return self.OIDC_PRIVATE_KEY
+        elif self.OIDC_PRIVATE_KEY_PATH:
+            try:
+                with open(self.OIDC_PRIVATE_KEY_PATH, 'r') as f:
+                    return f.read()
+            except FileNotFoundError:
+                return None
+        return None
 
-    # TODO: update type to EmailStr when sqlmodel supports it
-    EMAIL_TEST_USER: str = "test@example.com"
-    # TODO: update type to EmailStr when sqlmodel supports it
-    FIRST_SUPERUSER: str
-    FIRST_SUPERUSER_PASSWORD: str
-    USERS_OPEN_REGISTRATION: bool = False
+    @computed_field  # type: ignore[misc]
+    @property
+    def admin_email_list(self) -> list[str]:
+        if isinstance(self.ADMIN_EMAILS, str):
+            return [email.strip() for email in self.ADMIN_EMAILS.split(",") if email.strip()]
+        return self.ADMIN_EMAILS or []
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:
         if value == "changethis":
@@ -111,9 +149,21 @@ class Settings(BaseSettings):
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
         self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
-        self._check_default_secret(
-            "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
-        )
+        
+        # Validate OIDC configuration for non-local environments
+        if self.ENVIRONMENT != "local" and not self.oidc_enabled:
+            missing_items = []
+            if not self.OIDC_CLIENT_ID:
+                missing_items.append("OIDC_CLIENT_ID")
+            if not (self.OIDC_PRIVATE_KEY or self.OIDC_PRIVATE_KEY_PATH):
+                missing_items.append("OIDC_PRIVATE_KEY or OIDC_PRIVATE_KEY_PATH")
+            if not self.OIDC_REDIRECT_URI:
+                missing_items.append("OIDC_REDIRECT_URI")
+            
+            raise ValueError(
+                f"OIDC configuration is required for non-local environments. "
+                f"Missing: {', '.join(missing_items)}"
+            )
 
         return self
 
