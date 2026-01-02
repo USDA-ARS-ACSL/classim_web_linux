@@ -29,4 +29,10 @@ up = start containers (use existing images)
 up --build = rebuild images AND start containers
 build --no-cache then up = force complete rebuild then start
 
+Git - depending on your setup you may or may not be using the same branch name localy as you are using
+on the server (local_dev). for example, my local branch name is main_dev for some reason (I will change it later maybe)
+to push changes to the server (I mapped origin to TFS) use
+git push origin main_dev:local_dev
+if you are already tracking the remote branch local_dev and you have the same names then git push will work
+
 
