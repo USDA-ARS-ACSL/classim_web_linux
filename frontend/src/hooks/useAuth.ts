@@ -25,13 +25,19 @@ const useAuth = () => {
     enabled: isLoggedIn(),
   })
 
-  // Handle OAuth callback token from URL params
+  // Handle OAuth callback from OIDC flow
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
-    const token = urlParams.get("token")
+    const code = urlParams.get("code")
+    const state = urlParams.get("state")
     const error = urlParams.get("error")
+    const token = urlParams.get("token") // Legacy token handling
     
-    if (token) {
+    if (code && state) {
+      // Handle OIDC authorization code callback
+      exchangeCodeForToken(code, state)
+    } else if (token) {
+      // Legacy direct token handling
       localStorage.setItem("access_token", token)
       // Remove token from URL
       window.history.replaceState({}, document.title, window.location.pathname)
@@ -44,6 +50,36 @@ const useAuth = () => {
       window.history.replaceState({}, document.title, window.location.pathname)
     }
   }, [navigate, queryClient])
+
+  const exchangeCodeForToken = async (code: string, state: string) => {
+    try {
+      // Call backend to exchange authorization code for tokens
+      const response = await fetch('/api/v1/auth/callback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ code, state }),
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        localStorage.setItem("access_token", data.access_token)
+        // Remove code and state from URL
+        window.history.replaceState({}, document.title, window.location.pathname)
+        // Invalidate queries to fetch user data
+        queryClient.invalidateQueries({ queryKey: ["currentUser"] })
+        navigate({ to: "/" })
+      } else {
+        const errorData = await response.json()
+        setError(errorData.detail || "Authentication failed")
+        window.history.replaceState({}, document.title, window.location.pathname)
+      }
+    } catch (err) {
+      setError("Network error during authentication")
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
+  }
 
   const getErrorMessage = (errorCode: string) => {
     switch (errorCode) {

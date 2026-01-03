@@ -6,6 +6,7 @@ from uuid import uuid4
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse, JSONResponse
 from authlib.integrations.requests_client import OAuth2Session
+from pydantic import BaseModel
 import requests
 
 from app import crud
@@ -15,6 +16,11 @@ from app.core.config import settings
 from app.models import Token, UserPublic, UserCreateOIDC
 
 router = APIRouter()
+
+
+class OIDCCallbackRequest(BaseModel):
+    code: str
+    state: str
 
 
 @router.get("/auth/login")
@@ -168,6 +174,103 @@ def auth_callback(
         print(f"USDA eAuth error: {e}")  # For debugging
         frontend_url = f"{settings.server_host}/login?error=internal_error"
         return RedirectResponse(url=frontend_url)
+
+
+@router.post("/auth/callback")
+def auth_callback_post(
+    request: Request,
+    session: SessionDep,
+    callback_data: OIDCCallbackRequest
+) -> JSONResponse:
+    """
+    Handle OIDC callback from frontend (POST method for fetch calls)
+    """
+    code = callback_data.code
+    state = callback_data.state
+    
+    # Verify state to prevent CSRF
+    stored_state = request.cookies.get("oauth_state")
+    if not stored_state or stored_state != state:
+        raise HTTPException(status_code=400, detail="Invalid state parameter")
+    
+    try:
+        # Exchange code for access token using client secret or private key JWT
+        if settings.OIDC_CLIENT_SECRET:
+            # Use client secret authentication
+            token_data = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": settings.OIDC_REDIRECT_URI,
+                "client_id": settings.OIDC_CLIENT_ID,
+                "client_secret": settings.OIDC_CLIENT_SECRET,
+            }
+        else:
+            # Fallback to private key JWT authentication
+            client_assertion = security.create_client_assertion(settings.OIDC_TOKEN_ENDPOINT)
+            token_data = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": settings.OIDC_REDIRECT_URI,
+                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                "client_assertion": client_assertion,
+            }
+        
+        token_response = requests.post(
+            settings.OIDC_TOKEN_ENDPOINT,
+            data=token_data,
+            headers={"Accept": "application/json"},
+            timeout=10
+        )
+        token_response.raise_for_status()
+        tokens = token_response.json()
+        
+        # Get user info from USDA eAuth
+        userinfo_response = requests.get(
+            settings.OIDC_USERINFO_ENDPOINT,
+            headers={"Authorization": f"Bearer {tokens['access_token']}"},
+            timeout=10
+        )
+        userinfo_response.raise_for_status()
+        userinfo = userinfo_response.json()
+        
+        # Create or get user
+        oidc_sub = userinfo.get("sub")
+        email = userinfo.get("email")
+        
+        # Handle name fields
+        full_name = (
+            userinfo.get("name") or 
+            userinfo.get("preferred_username") or
+            f"{userinfo.get('given_name', '')} {userinfo.get('family_name', '')}" or
+            f"{userinfo.get('first_name', '')} {userinfo.get('last_name', '')}"
+        )
+        
+        if not oidc_sub or not email:
+            raise HTTPException(status_code=400, detail="Missing required user information from USDA eAuth")
+        
+        # Create or retrieve user
+        user = crud.get_user_by_oidc_sub(session=session, oidc_sub=oidc_sub)
+        if not user:
+            user = crud.get_user_by_email(session=session, email=email)
+            if not user:
+                # Create new user
+                user_create = UserCreateOIDC(email=email, full_name=full_name.strip(), oidc_sub=oidc_sub)
+                user = crud.create_oidc_user(session=session, user_create=user_create)
+        
+        # Generate access token for our application
+        access_token = security.create_access_token(
+            subject=user.id,
+            expires_delta=timedelta(hours=24)
+        )
+        
+        return JSONResponse(content={"access_token": access_token})
+        
+    except requests.RequestException as e:
+        print(f"USDA eAuth request error: {e}")
+        raise HTTPException(status_code=400, detail="Authentication failed")
+    except Exception as e:
+        print(f"USDA eAuth error: {e}")
+        raise HTTPException(status_code=500, detail="Internal authentication error")
 
 
 @router.post("/auth/logout")
