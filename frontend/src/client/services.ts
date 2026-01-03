@@ -3,9 +3,15 @@ import { OpenAPI } from "./core/OpenAPI";
 import { request as __request } from "./core/request";
 
 import type {
+  Message,
+  Token,
   UserPublic,
+  UserCreate,
+  UserRegister,
+  UsersPublic,
   UserUpdate,
   UserUpdateMe,
+  UpdatePassword,
   ItemCreate,
   ItemPublic,
   ItemsPublic,

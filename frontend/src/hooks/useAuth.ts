@@ -60,9 +60,10 @@ const useAuth = () => {
     }
   }
 
-  const initiateOIDCLogin = () => {
+  const initiateOIDCLogin = async () => {
     // Redirect to backend OIDC endpoint (USDA eAuth)
     window.location.href = "/api/v1/auth/login"
+    return Promise.resolve()
   }
 
   const loginMutation = useMutation({
