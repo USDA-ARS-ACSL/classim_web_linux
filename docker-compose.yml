@@ -33,6 +33,7 @@ services:
     env_file:
       - .env
     environment:
+      - PROJECT_NAME=${PROJECT_NAME}
       - DOMAIN=${DOMAIN}
       - ENVIRONMENT=${ENVIRONMENT}
       - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
