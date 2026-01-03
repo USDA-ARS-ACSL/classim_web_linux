@@ -34,7 +34,8 @@ class Settings(BaseSettings):
     
     # USDA eAuth OIDC Configuration (connects to login.gov via gateway)
     OIDC_CLIENT_ID: str | None = None
-    OIDC_PRIVATE_KEY: str | None = None  # PEM format private key
+    OIDC_CLIENT_SECRET: str | None = None  # Client secret for authentication
+    OIDC_PRIVATE_KEY: str | None = None  # PEM format private key (alternative to client secret)
     OIDC_PRIVATE_KEY_PATH: str | None = None  # Path to private key file
     
     # USDA eAuth Gateway Endpoints for CLASSIM Application
@@ -106,10 +107,13 @@ class Settings(BaseSettings):
     @computed_field  # type: ignore[misc]
     @property
     def oidc_enabled(self) -> bool:
+        # Support both client secret and private key JWT authentication methods
+        has_client_secret = bool(self.OIDC_CLIENT_SECRET)
         has_private_key = bool(self.OIDC_PRIVATE_KEY or self.OIDC_PRIVATE_KEY_PATH)
+        
         return bool(
             self.OIDC_CLIENT_ID 
-            and has_private_key
+            and (has_client_secret or has_private_key)  # Either authentication method works
             and self.OIDC_REDIRECT_URI
         )
 

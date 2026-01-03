@@ -78,16 +78,26 @@ def auth_callback(
         return RedirectResponse(url=frontend_url)
     
     try:
-        # Exchange code for access token using private key JWT with USDA eAuth
-        client_assertion = security.create_client_assertion(settings.OIDC_TOKEN_ENDPOINT)
-        
-        token_data = {
-            "grant_type": "authorization_code",
-            "code": code,
-            "redirect_uri": settings.OIDC_REDIRECT_URI,
-            "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
-            "client_assertion": client_assertion,
-        }
+        # Exchange code for access token using client secret or private key JWT
+        if settings.OIDC_CLIENT_SECRET:
+            # Use client secret authentication (more common)
+            token_data = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": settings.OIDC_REDIRECT_URI,
+                "client_id": settings.OIDC_CLIENT_ID,
+                "client_secret": settings.OIDC_CLIENT_SECRET,
+            }
+        else:
+            # Fallback to private key JWT authentication
+            client_assertion = security.create_client_assertion(settings.OIDC_TOKEN_ENDPOINT)
+            token_data = {
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": settings.OIDC_REDIRECT_URI,
+                "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+                "client_assertion": client_assertion,
+            }
         
         token_response = requests.post(
             settings.OIDC_TOKEN_ENDPOINT,
