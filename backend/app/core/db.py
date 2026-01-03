@@ -2,7 +2,7 @@ from sqlmodel import Session, create_engine, select
 
 from app import crud
 from app.core.config import settings
-from app.models import User, UserCreate
+from app.models import User, UserCreateOIDC
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -26,9 +26,10 @@ def init_db(session: Session) -> None:
         select(User).where(User.email == settings.FIRST_SUPERUSER)
     ).first()
     if not user:
-        user_in = UserCreate(
+        # Create initial superuser for OIDC authentication
+        user_in = UserCreateOIDC(
             email=settings.FIRST_SUPERUSER,
-            password=settings.FIRST_SUPERUSER_PASSWORD,
-            is_superuser=True,
+            full_name="System Administrator",
+            oidc_sub=f"system-admin-{settings.FIRST_SUPERUSER}",  # Temporary OIDC sub for system admin
         )
-        user = crud.create_user(session=session, user_create=user_in)
+        user = crud.create_user_oidc(session=session, user_create=user_in, is_admin=True)
