@@ -133,6 +133,8 @@ def auth_callback(
     
     try:
         # Exchange code for access token using client secret or private key JWT
+        print(f"Starting token exchange with OIDC_TOKEN_ENDPOINT: {settings.OIDC_TOKEN_ENDPOINT}")  # Debug
+        
         if settings.OIDC_CLIENT_SECRET:
             # Use client secret authentication (more common)
             token_data = {
@@ -142,6 +144,7 @@ def auth_callback(
                 "client_id": settings.OIDC_CLIENT_ID,
                 "client_secret": settings.OIDC_CLIENT_SECRET,
             }
+            print(f"Using client secret auth. Client ID: {settings.OIDC_CLIENT_ID}")  # Debug
         else:
             # Fallback to private key JWT authentication
             client_assertion = security.create_client_assertion(settings.OIDC_TOKEN_ENDPOINT)
@@ -152,6 +155,9 @@ def auth_callback(
                 "client_assertion_type": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
                 "client_assertion": client_assertion,
             }
+            print(f"Using private key JWT auth")  # Debug
+        
+        print(f"Token request data: {token_data}")  # Debug (be careful with secrets in production)
         
         token_response = requests.post(
             settings.OIDC_TOKEN_ENDPOINT,
@@ -159,8 +165,14 @@ def auth_callback(
             headers={"Accept": "application/json"},
             timeout=10
         )
+        
+        print(f"Token response status: {token_response.status_code}")  # Debug
+        print(f"Token response text: {token_response.text}")  # Debug
+        
         token_response.raise_for_status()
         tokens = token_response.json()
+        
+        print(f"Token exchange successful. Getting userinfo from: {settings.OIDC_USERINFO_ENDPOINT}")  # Debug
         
         # Get user info from USDA eAuth
         userinfo_response = requests.get(
@@ -168,8 +180,14 @@ def auth_callback(
             headers={"Authorization": f"Bearer {tokens['access_token']}"},
             timeout=10
         )
+        
+        print(f"Userinfo response status: {userinfo_response.status_code}")  # Debug
+        print(f"Userinfo response text: {userinfo_response.text}")  # Debug
+        
         userinfo_response.raise_for_status()
         userinfo = userinfo_response.json()
+        
+        print(f"Userinfo: {userinfo}")  # Debug
         
         # Create or get user
         oidc_sub = userinfo.get("sub")
