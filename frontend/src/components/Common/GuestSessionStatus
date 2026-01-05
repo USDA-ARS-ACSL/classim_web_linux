@@ -1,0 +1,101 @@
+import { useState, useEffect } from 'react'
+import {
+  Box,
+  Alert,
+  AlertIcon,
+  Text,
+  Button,
+  HStack,
+  Progress,
+  VStack
+} from '@chakra-ui/react'
+import { FaClock, FaEnvelope } from 'react-icons/fa'
+import { client } from '../../client'
+
+interface SessionStatus {
+  session_id: string
+  guest_type: string
+  has_email: boolean
+  expires_at: string | null
+  is_valid: boolean
+  reports_sent: number
+  max_reports: number
+}
+
+export const GuestSessionStatus = () => {
+  const [status, setStatus] = useState<SessionStatus | null>(null)
+  const [timeLeft, setTimeLeft] = useState<string>('')
+
+  useEffect(() => {
+    const fetchStatus = async () => {
+      try {
+        const response = await client.GET('/api/v1/guest/session/status')
+        if (response.data) {
+          setStatus(response.data as SessionStatus)
+        }
+      } catch (error) {
+        console.error('Failed to fetch session status:', error)
+      }
+    }
+
+    fetchStatus()
+  }, [])
+
+  useEffect(() => {
+    if (!status?.expires_at) return
+
+    const interval = setInterval(() => {
+      const now = new Date()
+      const expires = new Date(status.expires_at!)
+      const diff = expires.getTime() - now.getTime()
+
+      if (diff <= 0) {
+        setTimeLeft('Expired')
+        clearInterval(interval)
+      } else {
+        const hours = Math.floor(diff / (1000 * 60 * 60))
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60))
+        setTimeLeft(`${hours}h ${minutes}m`)
+      }
+    }, 60000) // Update every minute
+
+    return () => clearInterval(interval)
+  }, [status])
+
+  if (!status) return null
+
+  const reportsUsed = (status.reports_sent / status.max_reports) * 100
+
+  return (
+    <Alert status={status.is_valid ? 'info' : 'warning'} variant="left-accent">
+      <AlertIcon as={FaClock} />
+      
+      <VStack align="start" spacing={2} flex={1}>
+        <HStack justify="space-between" width="100%">
+          <Text fontWeight="semibold">Guest Session Active</Text>
+          <Text fontSize="sm" color="gray.600">
+            {timeLeft ? `Expires in ${timeLeft}` : 'Checking...'}
+          </Text>
+        </HStack>
+
+        {status.has_email && (
+          <HStack spacing={2}>
+            <FaEnvelope />
+            <Text fontSize="sm">Email reports enabled</Text>
+          </HStack>
+        )}
+
+        <Box width="100%">
+          <Text fontSize="xs" color="gray.600" mb={1}>
+            Reports sent: {status.reports_sent}/{status.max_reports}
+          </Text>
+          <Progress 
+            value={reportsUsed} 
+            size="sm" 
+            colorScheme={reportsUsed > 80 ? 'red' : 'blue'}
+          />
+        </Box>
+      </VStack>
+    </Alert>
+  )
+}

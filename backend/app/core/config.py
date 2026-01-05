@@ -96,6 +96,15 @@ class Settings(BaseSettings):
     # TODO: update type to EmailStr when sqlmodel supports it
     EMAILS_FROM_EMAIL: str | None = None
     EMAILS_FROM_NAME: str | None = None
+    # Guest Access Configuration
+    GUEST_ACCESS_ENABLED: bool = True
+    GUEST_SESSION_HOURS: int = 24
+    GUEST_CLEANUP_TIME: str = "02:00"  # 2 AM cleanup
+    GUEST_MAX_REPORTS: int = 5  # Limit reports per guest session
+    
+    # Email settings for guest reports
+    GUEST_EMAIL_TEMPLATE_PATH: str = "email-templates/guest-report.html"
+    GUEST_EMAIL_FROM_NAME: str = "CLASSIM System"
 
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:

@@ -1,12 +1,17 @@
 from sqlmodel import Field, Relationship, SQLModel
 from pydantic import BaseModel
 from typing import Optional, List, Any
+from datetime import datetime, timezone
+from enum import Enum
 
+class GuestType(str, Enum):
+    ANONYMOUS = "anonymous"
+    EMAIL = "email"
 
 # Shared properties
 # TODO replace email str with EmailStr when sqlmodel supports it
 class UserBase(SQLModel):
-    email: str = Field(unique=True, index=True)
+    email: str | None = Field(default=None, index=True)  # Remove unique=True constraint
     is_active: bool = True
     is_superuser: bool = False
     full_name: str | None = None
@@ -26,20 +31,46 @@ class UserUpdate(UserBase):
     full_name: str | None = None
 
 
-# TODO replace email str with EmailStr when sqlmodel supports it
+
 class UserUpdateMe(SQLModel):
     full_name: str | None = None
     email: str | None = None
 
 
 # Database model, database table inferred from class name
+# Database model, database table inferred from class name
 class User(UserBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    oidc_sub: str = Field(unique=True, index=True)  # OIDC subject identifier
+    oidc_sub: str | None = Field(default=None, unique=True, index=True)  # Make nullable for guests
+    
+    # Guest-specific fields
+    is_guest: bool = Field(default=False)
+    guest_session_id: str | None = Field(default=None, unique=True, index=True)
+    guest_email: str | None = Field(default=None)  # Separate field for guest email
+    guest_type: str | None = Field(default=None)  # "anonymous" or "email"
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    expires_at: datetime | None = Field(default=None)
+    
+    # Relationships (keep existing ones)
     items: list["Item"] = Relationship(back_populates="owner")
     sites: list["Site"] = Relationship(back_populates="owner")
     soils: list["Soil"] = Relationship(back_populates="owner")
     stations: list["WeatherMeta"] = Relationship(back_populates="owner")
+    guest_reports: list["GuestReport"] = Relationship(back_populates="guest_user")
+
+
+class GuestReport(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    guest_user_id: int = Field(foreign_key="user.id")
+    report_type: str
+    report_data: str  # JSON string of report data
+    email_sent: bool = Field(default=False)
+    generated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    email_sent_at: datetime | None = Field(default=None)  # This one stays as-is
+    
+    # Relationship
+    guest_user: User | None = Relationship(back_populates="guest_reports")
+
 
 
 # Properties to return via API, id is always required
@@ -1456,7 +1487,29 @@ class Pastrun(Pastrunbase, table=True):
     owner_id:int
     status: int
    
+# Guest-specific models
+class GuestCreate(SQLModel):
+    email: str | None = None
 
+class GuestResponse(SQLModel):
+    access_token: str
+    token_type: str
+    guest_session_id: str
+    has_email: bool
+
+class AddEmailRequest(SQLModel):
+    email: str = Field(regex=r'^[^@]+@[^@]+\.[^@]+$')  # Basic email validation
+
+class SendReportRequest(SQLModel):
+    report_type: str
+    report_data: dict
+
+class GuestReportPublic(SQLModel):
+    id: int
+    report_type: str
+    generated_at: datetime
+    email_sent: bool
+    email_sent_at: datetime | None = None
 
 class PastrunsPublic(SQLModel):
     data: list[Pastrun]
