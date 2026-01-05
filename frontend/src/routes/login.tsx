@@ -77,7 +77,13 @@ function Login() {
           </VStack>
 
           {error && (
-           VStack spacing={3} width="full" maxW="300px">
+            <Alert status="error" mb={4}>
+              <AlertIcon />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
+
+          <VStack spacing={3} width="full" maxW="300px">
             <Button
               variant="primary"
               size="lg"
@@ -124,13 +130,7 @@ function Login() {
       <GuestAccessModal 
         isOpen={isGuestModalOpen} 
         onClose={() => setIsGuestModalOpen(false)} 
-      /
-          <Text fontSize="sm" color="gray.500" textAlign="center" maxW="md">
-            USDA eAuth provides secure access to USDA applications using login.gov authentication.
-            You'll be redirected to login.gov to sign in with your credentials.
-          </Text>
-        </VStack>
-      </Container>
+      />
     </>
   )
 }
