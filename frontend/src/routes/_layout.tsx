@@ -1,4 +1,4 @@
-import { Flex, Spinner, Box } from "@chakra-ui/react"
+import { Flex, Spinner } from "@chakra-ui/react"
 import { Outlet, createFileRoute, redirect } from "@tanstack/react-router"
 
 import Sidebar from "../components/Common/Sidebar"
