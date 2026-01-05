@@ -19,7 +19,7 @@ import {
 } from '@chakra-ui/react'
 import { FaUserSecret, FaEnvelope } from 'react-icons/fa'
 import { useNavigate } from '@tanstack/react-router'
-import { client } from '../../client'
+import { OpenAPI } from '../../client'
 
 interface GuestAccessModalProps {
   isOpen: boolean
@@ -38,19 +38,27 @@ export const GuestAccessModal = ({ isOpen, onClose }: GuestAccessModalProps) => 
     setError('')
 
     try {
-      const response = await client.POST('/api/v1/guest/create', {
-        body: { email: useEmail ? email : null }
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/guest/create`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email: useEmail ? email : null })
       })
 
-      if (response.data) {
-        // Store guest token and session info
-        localStorage.setItem('access_token', response.data.access_token)
-        localStorage.setItem('guest_session', response.data.guest_session_id)
-        localStorage.setItem('is_guest', 'true')
-        
-        onClose()
-        navigate({ to: '/' })
+      if (!response.ok) {
+        throw new Error('Failed to create guest session')
       }
+
+      const data = await response.json()
+
+      // Store guest token and session info
+      localStorage.setItem('access_token', data.access_token)
+      localStorage.setItem('guest_session', data.guest_session_id)
+      localStorage.setItem('is_guest', 'true')
+      
+      onClose()
+      navigate({ to: '/' })
     } catch (err: any) {
       setError(err.message || 'Failed to create guest session')
     } finally {
