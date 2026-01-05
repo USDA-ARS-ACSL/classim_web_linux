@@ -49,7 +49,7 @@ export const GuestAccessModal = ({ isOpen, onClose }: GuestAccessModalProps) => 
         localStorage.setItem('is_guest', 'true')
         
         onClose()
-        navigate({ to: '/dashboard' })
+        navigate({ to: '/' })
       }
     } catch (err: any) {
       setError(err.message || 'Failed to create guest session')

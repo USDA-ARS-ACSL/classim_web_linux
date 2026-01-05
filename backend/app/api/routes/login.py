@@ -39,9 +39,10 @@ def login_redirect(request: Request, response: Response) -> RedirectResponse:
         key="oauth_state", 
         value=state, 
         httponly=True, 
-        secure=settings.ENVIRONMENT != "local",
+        secure=False,  # Changed: Must be False for HTTP connections
         samesite="lax",
-        max_age=600  # 10 minutes
+        max_age=600,  # 10 minutes
+        domain=None  # Changed: Remove domain restriction to work with both hostnames
     )
     
     # Build authorization URL using USDA eAuth endpoints
