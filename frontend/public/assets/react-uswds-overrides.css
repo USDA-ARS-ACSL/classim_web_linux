@@ -1,0 +1,37 @@
+/* Custom styles to ensure proper USWDS integration with React */
+
+/* Hide submenu by default */
+.usa-nav-submenu-hidden {
+  display: none !important;
+}
+
+/* Ensure proper menu visibility */
+.usa-nav-submenu:not(.usa-nav-submenu-hidden) {
+  display: block !important;
+}
+
+/* Make sure USWDS styles apply to our React components */
+.usa-accordion-content-expanded {
+  display: block !important;
+}
+
+/* Override any Chakra UI styles that might conflict */
+.usa-header * {
+  box-sizing: border-box;
+}
+
+/* Ensure proper z-index for dropdowns */
+.usa-nav-submenu {
+  z-index: 1000;
+}
+
+/* Mobile menu adjustments */
+.usa-nav-open {
+  display: block !important;
+}
+
+/* Search field styling */
+.usa-search input[type="search"] {
+  background-color: white;
+  border: 1px solid #ccc;
+}
