@@ -14,7 +14,7 @@ import {
   Icon
 } from '@chakra-ui/react'
 import { FaEnvelope, FaPlus } from 'react-icons/fa'
-import { client } from '../../client'
+import { OpenAPI } from '../../client'
 
 export const AddEmailComponent = () => {
   const [email, setEmail] = useState('')
@@ -27,9 +27,19 @@ export const AddEmailComponent = () => {
     setError('')
 
     try {
-      await client.POST('/api/v1/guest/add-email', {
-        body: { email }
+      const token = localStorage.getItem('access_token')
+      const response = await fetch(`${OpenAPI.BASE}/api/v1/guest/add-email`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ email })
       })
+
+      if (!response.ok) {
+        throw new Error('Failed to add email')
+      }
       
       setSuccess(true)
       setEmail('')
@@ -54,43 +64,45 @@ export const AddEmailComponent = () => {
   return (
     <Card>
       <CardHeader>
-        <HStack>
-          <Icon as={FaEnvelope} color="green.500" />
-          <Heading size="md">Get Reports via Email</Heading>
-        </HStack>
+        <Heading size="md">
+          <HStack>
+            <Icon as={FaEnvelope} color="blue.500" />
+            <Text>Add Email for Reports</Text>
+          </HStack>
+        </Heading>
       </CardHeader>
       
       <CardBody>
-        <VStack spacing={4}>
-          <Text color="gray.600">
-            Add your email address to receive simulation reports and results.
+        <VStack spacing={4} align="stretch">
+          <Text fontSize="sm" color="gray.600">
+            Add your email address to receive simulation reports. We'll only use this 
+            for sending you reports - no spam, ever.
           </Text>
-          
+
           <Input
             type="email"
-            placeholder="Enter email address"
+            placeholder="Enter your email address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            isInvalid={!!error}
+            isInvalid={!isEmailValid && email.length > 0}
           />
-          
+
           {error && (
             <Alert status="error">
               <AlertIcon />
               <Text fontSize="sm">{error}</Text>
             </Alert>
           )}
-          
+
           <Button 
             onClick={handleAddEmail}
-            colorScheme="green" 
+            colorScheme="blue" 
             leftIcon={<FaPlus />}
-            width="100%"
             isLoading={isLoading}
             isDisabled={!isEmailValid}
             loadingText="Adding Email..."
           >
-            Add Email Address
+            Add Email
           </Button>
         </VStack>
       </CardBody>
