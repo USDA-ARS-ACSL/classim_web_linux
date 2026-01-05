@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import Annotated, Any
 import urllib.parse
 from uuid import uuid4
+import time
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse, JSONResponse
@@ -16,6 +17,15 @@ from app.core.config import settings
 from app.models import Token, UserPublic, UserCreateOIDC
 
 router = APIRouter()
+
+# Simple in-memory state storage for OIDC (use Redis in production)
+_oidc_states = {}
+
+def cleanup_expired_states():
+    """Clean up expired OIDC states"""
+    global _oidc_states
+    cutoff = time.time() - 600  # 10 minutes
+    _oidc_states = {k: v for k, v in _oidc_states.items() if v > cutoff}
 
 
 class OIDCCallbackRequest(BaseModel):
@@ -34,29 +44,24 @@ def login_redirect(request: Request, response: Response) -> RedirectResponse:
     # Generate state for CSRF protection
     state = security.generate_state_token()
     
-    # Get the request host to set cookie domain appropriately
-    host = request.headers.get("host", "").split(":")[0]  # Remove port if present
+    # Store state in memory (more reliable than cookies for domain issues)
+    cleanup_expired_states()
+    _oidc_states[state] = time.time()
     
-    # Store state in session/cookie for validation
-    # Try multiple cookie strategies to handle domain issues
-    cookie_kwargs = {
-        "key": "oauth_state", 
-        "value": state, 
-        "httponly": True, 
-        "secure": False,  # Must be False for HTTP connections
-        "samesite": "lax",
-        "max_age": 600,  # 10 minutes
-        "path": "/"  # Ensure cookie is available for all paths
-    }
+    # Also try to store in cookie as backup
+    host = request.headers.get("host", "").split(":")[0]
+    print(f"Setting cookie for host: {host}")  # Debug
     
-    # Set cookie without domain restriction first
-    response.set_cookie(**cookie_kwargs)
-    
-    # Also set with explicit domain if it's not localhost
-    if host and host != "localhost" and "." in host:
-        cookie_kwargs["key"] = "oauth_state_domain"
-        cookie_kwargs["domain"] = f".{host}"
-        response.set_cookie(**cookie_kwargs)
+    response.set_cookie(
+        key="oauth_state", 
+        value=state, 
+        httponly=True, 
+        secure=False,
+        samesite="lax",
+        max_age=600,
+        path="/",
+        domain=None  # Don't set domain to avoid conflicts
+    )
     
     # Build authorization URL using USDA eAuth endpoints
     params = {
@@ -68,6 +73,7 @@ def login_redirect(request: Request, response: Response) -> RedirectResponse:
     }
     
     auth_url = f"{settings.OIDC_AUTHORIZATION_ENDPOINT}?{urllib.parse.urlencode(params)}"
+    print(f"Redirecting to: {auth_url}")  # Debug
     return RedirectResponse(url=auth_url)
 
 
@@ -91,23 +97,39 @@ def auth_callback(
         frontend_url = f"{settings.server_host}/login?error=missing_parameters"
         return RedirectResponse(url=frontend_url)
     
-    # Verify state to prevent CSRF - try both cookie variants
-    stored_state = (
-        request.cookies.get("oauth_state") or 
-        request.cookies.get("oauth_state_domain")
-    )
+    # Verify state to prevent CSRF - check memory first, then cookies
+    cleanup_expired_states()
+    stored_state = None
+    
+    # Check in-memory state first (most reliable)
+    if state in _oidc_states:
+        stored_state = state
+        print(f"Found state in memory: {state}")  # Debug
+    else:
+        # Fallback to cookies
+        stored_state = (
+            request.cookies.get("oauth_state") or 
+            request.cookies.get("oauth_state_domain")
+        )
+        print(f"Checking cookies. Found: {stored_state}")  # Debug
+    
+    print(f"Request host: {request.headers.get('host')}")  # Debug
+    print(f"Available cookies: {list(request.cookies.keys())}")  # Debug
+    print(f"Received state: {state}")  # Debug
+    print(f"Stored state: {stored_state}")  # Debug
     
     if not stored_state:
-        # Debug: Log available cookies
-        print(f"No oauth_state cookie found. Available cookies: {list(request.cookies.keys())}")
+        print(f"No oauth_state found. Memory states: {list(_oidc_states.keys())}")  # Debug
         frontend_url = f"{settings.server_host}/login?error=missing_state_cookie"
         return RedirectResponse(url=frontend_url)
     
     if stored_state != state:
-        # Debug: Log state mismatch
         print(f"State mismatch. Stored: {stored_state}, Received: {state}")
         frontend_url = f"{settings.server_host}/login?error=invalid_state"
         return RedirectResponse(url=frontend_url)
+    
+    # Remove used state from memory
+    _oidc_states.pop(state, None)
     
     try:
         # Exchange code for access token using client secret or private key JWT
