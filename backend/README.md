@@ -168,6 +168,9 @@ $ docker compose exec backend bash
 ```
 
 * Alembic is already configured to import your SQLModel models from `./backend/app/models.py`.
+Your files represent the evolution of your CLASSIM database - from initial tables to adding features like weather data, soil information, and most recently your guest user support.
+
+When you run alembic upgrade head, it applies all pending migrations to bring your database to the latest version.
 
 * After changing a model (for example, adding a column), inside the container, create a revision, e.g.:
 

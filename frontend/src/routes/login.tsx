@@ -11,6 +11,7 @@ import {
   Divider,
   HStack,
   Icon,
+  Flex,
 } from "@chakra-ui/react"
 import { FaUserSecret } from "react-icons/fa"
 import {
@@ -21,6 +22,8 @@ import {
 import Logo from "../assets/images/usda-logo-color.svg"
 import useAuth, { isLoggedIn } from "../hooks/useAuth"
 import { GuestAccessModal } from "../components/Common/GuestAccessModal"
+import Header from "../components/Common/Header"
+import Footer from "../components/Common/Footer"
 
 export const Route = createFileRoute("/login")({
   component: Login,
@@ -48,13 +51,16 @@ function Login() {
   }
 
   return (
-    <>
+    <Flex direction="column" minH="100vh">
+      <Header labName="CLASSIM Research Lab" labLocation="Agricultural Research Service" />
+      
       <Container
-        h="100vh"
+        flex="1"
         maxW="sm"
         alignItems="stretch"
         justifyContent="center"
         centerContent
+        py={8}
       >
         <VStack spacing={6} align="center">
           <Image
@@ -127,10 +133,12 @@ function Login() {
         </VStack>
       </Container>
       
+      <Footer />
+      
       <GuestAccessModal 
         isOpen={isGuestModalOpen} 
         onClose={() => setIsGuestModalOpen(false)} 
       />
-    </>
+    </Flex>
   )
 }

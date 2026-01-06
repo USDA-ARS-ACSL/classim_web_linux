@@ -35,3 +35,9 @@ these were the files I changed.
         modified:   frontend/Dockerfile
         modified:   frontend/nginx.conf
 now https is working
+if you have errors when deploying using docker-compose up --build where the containers build but the front or backend cannot run because it cannot find the app folder with the shared folders, then use docker-compose down to shut down all the containers. It is always a good idea to run docker-compose down first before rebuilding
+
+to access the database"
+http://arsmdbe3142acsl:8080/?pgsql=db&username=postgres&db=app&ns=public
+
+the use of only :8080 with the url is not working now.
