@@ -47,7 +47,7 @@ class User(UserBase, table=True):
     is_guest: bool = Field(default=False)
     guest_session_id: str | None = Field(default=None, unique=True, index=True)
     guest_email: str | None = Field(default=None)  # Separate field for guest email
-    guest_type: str | None = Field(default=None)  # "anonymous" or "email"
+    guest_type: GuestType | None = Field(default=None)  # "anonymous" or "email"
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: datetime | None = Field(default=None)
     
