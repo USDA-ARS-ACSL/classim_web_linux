@@ -1,0 +1,52 @@
+/* Compact header/footer overrides - only what's needed */
+
+/* Reduce government banner padding */
+.usa-banner {
+  padding-bottom: 0.3rem !important;
+}
+
+.usa-banner-header {
+  padding-top: 0.3rem !important;
+  padding-bottom: 0.3rem !important;
+}
+
+/* More compact banner content when expanded */
+.usa-banner-content {
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+/* Reduce lab name section height */
+#LocationHeader {
+  padding: 0.5rem 1.5rem !important;
+  font-size: 1.1rem !important;
+  margin: 0 !important;
+}
+
+/* More compact navigation */
+.usa-nav-primary {
+  padding: 0.5rem 0 !important;
+}
+
+.usa-nav-link {
+  padding: 0.5rem 1rem !important;
+}
+
+/* Footer adjustments */
+.usa-footer-primary-link {
+  padding-top: 0.8rem !important;
+  padding-bottom: 0.8rem !important;
+}
+
+/* Mobile optimizations */
+@media screen and (max-width: 768px) {
+  .usa-banner-header {
+    padding-top: 0.2rem !important;
+    padding-bottom: 0.2rem !important;
+  }
+  
+  #LocationHeader {
+    font-size: 1rem !important;
+    padding: 0.3rem 1rem !important;
+  }
+}
