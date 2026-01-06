@@ -21,33 +21,50 @@
 .usa-navbar {
   height: auto !important;
   min-height: auto !important;
-  padding: 0.3rem 0 !important;
+  padding: 0.2rem 0 !important;
 }
 
 .usa-logo {
-  margin: 0.3rem 0 !important;
+  margin: 0.2rem 0 !important;
 }
 
+/* Make logo text much smaller */
 .usa-logo-text {
-  line-height: 1.2 !important;
-  font-size: 1.4rem !important;
+  line-height: 1.1 !important;
+  font-size: 1rem !important; /* Much smaller */
+}
+
+.usa-logo-text a {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
 }
 
 .usa-logo-text h6 {
   margin: 0.1rem 0 !important;
-  font-size: 1.1rem !important;
+  font-size: 0.85rem !important; /* Much smaller */
+  font-weight: 600 !important;
+}
+
+.usa-logo-text h6 a {
+  font-size: 0.85rem !important;
+}
+
+/* USDA logo smaller */
+.usda-logo-img {
+  height: 28px !important;
 }
 
 /* Reduce lab name section height */
 .usa-grid-full.usa-color-primary {
-  padding: 0.3rem 0 !important;
+  padding: 0.2rem 0 !important;
 }
 
 #LocationHeader {
-  padding: 0.3rem 1.5rem !important;
-  font-size: 1rem !important;
+  padding: 0.2rem 1rem !important;
+  font-size: 0.9rem !important; /* Smaller */
   margin: 0 !important;
-  line-height: 1.2 !important;
+  line-height: 1.1 !important;
+  font-weight: 600 !important;
 }
 
 /* More compact navigation */
@@ -56,22 +73,30 @@
 }
 
 .usa-nav {
-  padding-top: 0.3rem !important;
+  padding-top: 0.2rem !important;
   min-height: auto !important;
+  background-color: rgba(17, 46, 81, 0.95) !important; /* Dark blue with slight transparency */
 }
 
 .usa-nav-primary {
-  padding: 0.3rem 0 !important;
+  padding: 0.2rem 0 !important;
 }
 
 .usa-nav-link {
-  padding: 0.4rem 1rem !important;
-  font-size: 0.9rem !important;
+  padding: 0.3rem 0.8rem !important;
+  font-size: 0.8rem !important;
+  color: white !important;
+}
+
+.usa-nav-link:hover {
+  background-color: rgba(0, 113, 188, 0.8) !important;
 }
 
 /* Make header overall more compact */
 .usa-header {
   min-height: auto !important;
+  position: relative !important;
+  z-index: 10 !important;
 }
 
 .usa-header-basic {
@@ -86,7 +111,7 @@
 
 /* Fix UserMenu positioning - move it down to clear the header */
 div[style*="position: fixed"][style*="top: 1rem"] {
-  top: 8rem !important;
+  top: 6rem !important; /* Reduced since header is smaller */
 }
 
 /* Alternative: Target the UserMenu more specifically if the above doesn't work */
@@ -106,48 +131,66 @@ div[style*="position: fixed"][style*="top: 1rem"] {
   }
   
   .usa-navbar {
-    padding: 0.2rem 0 !important;
+    padding: 0.1rem 0 !important;
   }
   
   .usa-logo-text {
-    font-size: 1.1rem !important;
+    font-size: 0.9rem !important;
   }
   
   .usa-logo-text h6 {
-    font-size: 0.95rem !important;
+    font-size: 0.75rem !important;
+  }
+  
+  .usda-logo-img {
+    height: 24px !important;
   }
   
   #LocationHeader {
-    font-size: 0.9rem !important;
-    padding: 0.2rem 1rem !important;
+    font-size: 0.8rem !important;
+    padding: 0.1rem 0.8rem !important;
   }
 
   /* Mobile UserMenu positioning */
   div[style*="position: fixed"][style*="top: 1rem"] {
-    top: 6rem !important;
+    top: 4.5rem !important;
   }
 }
 
 /* Larger screens - still more compact */
 @media screen and (min-width: 951px) {
   .usa-navbar {
-    height: 4rem !important;
+    height: 3rem !important; /* Much smaller */
   }
   
   .usa-nav {
-    min-height: 3.5rem !important;
+    min-height: 2.5rem !important; /* Much smaller */
   }
   
   .usa-logo-text {
-    font-size: 1.5rem !important;
+    font-size: 1.1rem !important;
+    padding-left: 4rem !important; /* Adjust for smaller logo */
   }
   
   .usa-logo-text h6 {
-    font-size: 1.2rem !important;
+    font-size: 0.9rem !important;
   }
 
   /* Desktop UserMenu positioning */
   div[style*="position: fixed"][style*="top: 1rem"] {
-    top: 10rem !important;
+    top: 7rem !important;
   }
+}
+
+/* Login page specific fixes */
+body:has([data-route="/login"]) .usa-nav,
+.usa-nav {
+  background-color: #112e51 !important; /* Ensure dark blue background */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; /* Add shadow for better separation */
+}
+
+/* Ensure proper layering on login page */
+.usa-header {
+  background-color: white !important;
+  border-bottom: 1px solid #e0e0e0 !important;
 }
