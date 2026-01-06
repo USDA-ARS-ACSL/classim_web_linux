@@ -2,51 +2,152 @@
 
 /* Reduce government banner padding */
 .usa-banner {
-  padding-bottom: 0.3rem !important;
+  padding-bottom: 0.2rem !important;
 }
 
 .usa-banner-header {
-  padding-top: 0.3rem !important;
-  padding-bottom: 0.3rem !important;
+  padding-top: 0.2rem !important;
+  padding-bottom: 0.2rem !important;
+  min-height: auto !important;
 }
 
 /* More compact banner content when expanded */
 .usa-banner-content {
-  padding-top: 1rem !important;
-  padding-bottom: 1rem !important;
-}
-
-/* Reduce lab name section height */
-#LocationHeader {
-  padding: 0.5rem 1.5rem !important;
-  font-size: 1.1rem !important;
-  margin: 0 !important;
-}
-
-/* More compact navigation */
-.usa-nav-primary {
-  padding: 0.5rem 0 !important;
-}
-
-.usa-nav-link {
-  padding: 0.5rem 1rem !important;
-}
-
-/* Footer adjustments */
-.usa-footer-primary-link {
   padding-top: 0.8rem !important;
   padding-bottom: 0.8rem !important;
 }
 
+/* Reduce ARS logo section */
+.usa-navbar {
+  height: auto !important;
+  min-height: auto !important;
+  padding: 0.3rem 0 !important;
+}
+
+.usa-logo {
+  margin: 0.3rem 0 !important;
+}
+
+.usa-logo-text {
+  line-height: 1.2 !important;
+  font-size: 1.4rem !important;
+}
+
+.usa-logo-text h6 {
+  margin: 0.1rem 0 !important;
+  font-size: 1.1rem !important;
+}
+
+/* Reduce lab name section height */
+.usa-grid-full.usa-color-primary {
+  padding: 0.3rem 0 !important;
+}
+
+#LocationHeader {
+  padding: 0.3rem 1.5rem !important;
+  font-size: 1rem !important;
+  margin: 0 !important;
+  line-height: 1.2 !important;
+}
+
+/* More compact navigation */
+.usa-nav-container {
+  min-height: auto !important;
+}
+
+.usa-nav {
+  padding-top: 0.3rem !important;
+  min-height: auto !important;
+}
+
+.usa-nav-primary {
+  padding: 0.3rem 0 !important;
+}
+
+.usa-nav-link {
+  padding: 0.4rem 1rem !important;
+  font-size: 0.9rem !important;
+}
+
+/* Make header overall more compact */
+.usa-header {
+  min-height: auto !important;
+}
+
+.usa-header-basic {
+  min-height: auto !important;
+}
+
+/* Footer adjustments */
+.usa-footer-primary-link {
+  padding-top: 0.6rem !important;
+  padding-bottom: 0.6rem !important;
+}
+
+/* Fix UserMenu positioning - move it down to clear the header */
+div[style*="position: fixed"][style*="top: 1rem"] {
+  top: 8rem !important;
+}
+
+/* Alternative: Target the UserMenu more specifically if the above doesn't work */
+.chakra-menu__menu-button {
+  z-index: 1000 !important;
+}
+
 /* Mobile optimizations */
 @media screen and (max-width: 768px) {
+  .usa-banner {
+    padding-bottom: 0.1rem !important;
+  }
+  
   .usa-banner-header {
-    padding-top: 0.2rem !important;
-    padding-bottom: 0.2rem !important;
+    padding-top: 0.1rem !important;
+    padding-bottom: 0.1rem !important;
+  }
+  
+  .usa-navbar {
+    padding: 0.2rem 0 !important;
+  }
+  
+  .usa-logo-text {
+    font-size: 1.1rem !important;
+  }
+  
+  .usa-logo-text h6 {
+    font-size: 0.95rem !important;
   }
   
   #LocationHeader {
-    font-size: 1rem !important;
-    padding: 0.3rem 1rem !important;
+    font-size: 0.9rem !important;
+    padding: 0.2rem 1rem !important;
+  }
+
+  /* Mobile UserMenu positioning */
+  div[style*="position: fixed"][style*="top: 1rem"] {
+    top: 6rem !important;
+  }
+}
+
+/* Larger screens - still more compact */
+@media screen and (min-width: 951px) {
+  .usa-navbar {
+    height: 4rem !important;
+  }
+  
+  .usa-nav {
+    min-height: 3.5rem !important;
+  }
+  
+  .usa-logo-text {
+    font-size: 1.5rem !important;
+  }
+  
+  .usa-logo-text h6 {
+    font-size: 1.2rem !important;
+  }
+
+  /* Desktop UserMenu positioning */
+  div[style*="position: fixed"][style*="top: 1rem"] {
+    top: 10rem !important;
   }
 }
