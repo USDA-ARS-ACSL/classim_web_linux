@@ -103,11 +103,128 @@
   min-height: auto !important;
 }
 
-/* Footer adjustments */
-.usa-footer-primary-link {
-  padding-top: 0.6rem !important;
-  padding-bottom: 0.6rem !important;
+/* ========== FOOTER COMPRESSION - 3X SMALLER ========== */
+
+/* Overall footer container - much smaller */
+.usa-footer {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
 }
+
+.usa-footer-big {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+/* Top footer navigation - compress significantly */
+.usa-grid-full.usa-color-gray-light {
+  padding: 0.3rem 0 !important;
+}
+
+.usa-footer-nav {
+  padding: 0.2rem 0 !important;
+}
+
+.usa-footer-primary-link {
+  padding-top: 0.3rem !important;
+  padding-bottom: 0.3rem !important;
+  font-size: 0.8rem !important;
+  margin-bottom: 0 !important;
+}
+
+/* Middle footer section - much more compact */
+.usa-grid-full.usa-color-gray-dark {
+  padding: 0.3rem 0 !important;
+}
+
+/* Connect with ARS section */
+.usa-sign_up-header {
+  font-size: 0.9rem !important;
+  margin-bottom: 0.2rem !important;
+  margin-top: 0 !important;
+}
+
+/* Social links - smaller */
+#socialLink {
+  padding: 0.2rem 0 !important;
+}
+
+#socialLink img {
+  max-height: 20px !important;
+  margin: 0.1rem 0.2rem !important;
+  max-width: 20px !important;
+}
+
+#socialLink a {
+  display: inline-block !important;
+  margin: 0.1rem !important;
+}
+
+/* Newsletter signup - compact */
+.usa-sign_up {
+  padding: 0.2rem 0 !important;
+}
+
+.usa-sign_up-block {
+  padding: 0.2rem 0 !important;
+}
+
+.EmailSignup-Footer {
+  gap: 0.3rem !important;
+  align-items: center !important;
+}
+
+.usa-sign_up-block input {
+  font-size: 0.8rem !important;
+  padding: 0.3rem 0.5rem !important;
+  margin-bottom: 0.2rem !important;
+}
+
+.usa-sign_up-block button,
+#go {
+  padding: 0.3rem 0.8rem !important;
+  font-size: 0.8rem !important;
+  margin-top: 0.1rem !important;
+}
+
+/* Bottom footer section - very compact */
+.usa-footer-contact-links {
+  padding: 0.2rem 0 !important;
+}
+
+.usa-footer-contact-links ul {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.usa-footer-contact-links ul li {
+  padding: 0.1rem 0 !important;
+  font-size: 0.7rem !important;
+  line-height: 1.2 !important;
+}
+
+.usa-footer-contact-links a {
+  font-size: 0.7rem !important;
+}
+
+/* Remove excessive spacing */
+.usa-footer ul {
+  padding-bottom: 0.2rem !important;
+  margin-bottom: 0 !important;
+}
+
+.usa-footer .usa-unstyled-list {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Make footer content areas more compact */
+.usa-width-one-half,
+.usa-width-two-thirds {
+  padding: 0.2rem !important;
+}
+
+/* ========== END FOOTER COMPRESSION ========== */
 
 /* Fix UserMenu positioning - move it down to clear the header */
 div[style*="position: fixed"][style*="top: 1rem"] {
@@ -154,6 +271,26 @@ div[style*="position: fixed"][style*="top: 1rem"] {
   /* Mobile UserMenu positioning */
   div[style*="position: fixed"][style*="top: 1rem"] {
     top: 4.5rem !important;
+  }
+
+  /* Mobile footer - even more compact */
+  .usa-footer {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+
+  .usa-footer-primary-link {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0 !important;
+  }
+
+  .usa-sign_up-header {
+    font-size: 0.8rem !important;
+  }
+
+  #socialLink img {
+    max-height: 16px !important;
+    max-width: 16px !important;
   }
 }
 
