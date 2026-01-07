@@ -14,6 +14,9 @@ import useAuth from "../../hooks/useAuth"
 
 const UserMenu = () => {
   const { logout } = useAuth()
+  const isGuest =
+    localStorage.getItem("user_type") === "guest" ||
+    localStorage.getItem("is_guest") === "true"
 
   const handleLogout = async () => {
     logout()
@@ -37,9 +40,19 @@ const UserMenu = () => {
             isRound
           />
           <MenuList>
-            <MenuItem icon={<FiUser fontSize="18px" />} as={Link} to="settings">
-              My profile
-            </MenuItem>
+            {isGuest ? (
+              <MenuItem
+                icon={<FiUser fontSize="18px" />}
+                isDisabled
+                title="Guests cannot edit profile"
+              >
+                My profile
+              </MenuItem>
+            ) : (
+              <MenuItem icon={<FiUser fontSize="18px" />} as={Link} to="settings">
+                My profile
+              </MenuItem>
+            )}
             <MenuItem
               icon={<FiLogOut fontSize="18px" />}
               onClick={handleLogout}

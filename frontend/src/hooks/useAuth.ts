@@ -130,6 +130,11 @@ const useAuth = () => {
     } finally {
       // Always clear local storage and redirect
       localStorage.removeItem("access_token")
+      localStorage.removeItem("user_type")
+      localStorage.removeItem("guest_id")
+      localStorage.removeItem("guest_session_expires")
+      localStorage.removeItem("is_guest")
+      localStorage.removeItem("guest_session")
       queryClient.clear()
       navigate({ to: "/login" })
     }

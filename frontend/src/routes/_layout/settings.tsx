@@ -8,7 +8,7 @@ import {
   Tabs,
 } from "@chakra-ui/react"
 import { useQueryClient } from "@tanstack/react-query"
-import { createFileRoute } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 
 import type { UserPublic } from "../../client"
 import Appearance from "../../components/UserSettings/Appearance"
@@ -25,6 +25,14 @@ const tabsConfig = [
 
 export const Route = createFileRoute("/_layout/settings")({
   component: UserSettings,
+  beforeLoad: () => {
+    const isGuest =
+      localStorage.getItem("user_type") === "guest" ||
+      localStorage.getItem("is_guest") === "true"
+    if (isGuest) {
+      throw redirect({ to: "/" })
+    }
+  },
 })
 
 function UserSettings() {
