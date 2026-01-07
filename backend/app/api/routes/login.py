@@ -3,12 +3,15 @@ from typing import Annotated, Any
 import urllib.parse
 from uuid import uuid4
 import time
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse, JSONResponse
 from authlib.integrations.requests_client import OAuth2Session
 from pydantic import BaseModel
 import requests
+from jose import jwt, JWTError
+from jose.backends import RSAKey
 
 from app import crud
 from app.api.deps import CurrentUser, SessionDep
@@ -185,24 +188,58 @@ def auth_callback(
         print(f"Userinfo response text: {userinfo_response.text}")  # Debug
         
         userinfo_response.raise_for_status()
-        userinfo = userinfo_response.json()
         
-        print(f"Userinfo: {userinfo}")  # Debug
-        
-        # Create or get user
-        oidc_sub = userinfo.get("sub")
-        email = userinfo.get("email")
-        
-        # Handle name fields - USDA eAuth may provide different claim names
+        # Try JSON first
+        claims = None
+        ct = userinfo_response.headers.get("Content-Type", "")
+        body = userinfo_response.text.strip()
+
+        if "application/json" in ct:
+            claims = userinfo_response.json()
+        elif body.count(".") == 2:  # looks like a compact JWT
+            # Decode JWT using JWKS
+            jwks = requests.get(settings.OIDC_JWKS_ENDPOINT, timeout=10).json()
+            header = jwt.get_unverified_header(body)
+            kid = header.get("kid")
+            jwk = next((k for k in jwks.get("keys", []) if k.get("kid") == kid), None)
+            if not jwk:
+                raise HTTPException(status_code=400, detail="JWKS key not found")
+
+            public_key = RSAKey.from_jwk(json.dumps(jwk))
+            # Verify signature and issuer; relax audience if needed for userinfo
+            claims = jwt.decode(
+                body,
+                public_key,
+                algorithms=["RS256"],
+                options={"verify_aud": False},
+                issuer=settings.OIDC_ISSUER,
+            )
+        else:
+            raise HTTPException(status_code=400, detail="Unsupported userinfo response")
+
+        # Extract fields (USDA eAuth may not always include email in userinfo JWT)
+        oidc_sub = claims.get("sub")
+        email = claims.get("email") or claims.get("mail") or claims.get("emailaddress")  # try common alternatives
+        given = claims.get("given_name")
+        family = claims.get("family_name")
         full_name = (
-            userinfo.get("name") or 
-            userinfo.get("preferred_username") or
-            f"{userinfo.get('given_name', '')} {userinfo.get('family_name', '')}" or
-            f"{userinfo.get('first_name', '')} {userinfo.get('last_name', '')}"
+            claims.get("name")
+            or claims.get("preferred_username")
+            or (" ".join(filter(None, [given, family])) if (given or family) else None)
         )
-        
-        if not oidc_sub or not email:
-            raise HTTPException(status_code=400, detail="Missing required user information from USDA eAuth")
+
+        if not oidc_sub:
+            raise HTTPException(status_code=400, detail="Missing subject in userinfo")
+
+        # If email is absent, you have options:
+        # 1) Accept creating a user without email (your User model supports optional email).
+        #    Make UserCreateOIDC.email optional, or use a placeholder here.
+        if not email:
+            # Option A: placeholder email derived from sub
+            email = f"{oidc_sub}@example.invalid"
+            # Or, adjust UserCreateOIDC to allow None and handle downstream accordingly.
+
+        # Continue with user creation and token issuance
         
         # Check if user exists
         user = crud.get_user_by_oidc_sub(session=session, oidc_sub=oidc_sub)
