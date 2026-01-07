@@ -10,7 +10,14 @@ How to update certificates
 use the conf file to generate a csr and send this to IT you also need to generate a key file at the same time
 They will return a p7b and cer file. The p7b file contains intermediate certs which have to be extracted to a pem file
   
+generate a private key
+openssl genrsa -out ARSMDBE3142ACSL.usda.net.key 2048
 
+generate a csr
+
+openssl req -new -key ARSMDBE3142ACSL.usda.net.key -out ACSL3142ACSL2.csr -config classim.cnf
+
+after you get the new cert
 openssl pkcs7 -print_certs -in ARSMDBE3412ACSL.p7b -out chain.pem
 
 next copy the cer and pem file together to another pem file
@@ -23,8 +30,8 @@ I included the p7b file but I am not sure it is absolutely required.
 
 other changes I made to get the certificates to work:
 Docker files - check these for references to certificates. I also copied the certs to the cacert folder in the backend and the root folder in the frontend. Note that there are 
-copy commands in the docker files. there is also an nginx.conf file in the frontend that references the certs. I also added the http forwarding command here as well. in the .env 
-file I changed the domain name from a number to the name.
+copy commands in the docker files. there is also an nginx.conf file in the frontend that references the certs. I also added the http forwarding command here as 
+ changed the domain name from a number to the name.
 
 I changed both docker files to add the correct cert names, they are evident in the file
 these were the files I changed.
@@ -41,3 +48,41 @@ to access the database"
 http://arsmdbe3142acsl:8080/?pgsql=db&username=postgres&db=app&ns=public
 
 the use of only :8080 with the url is not working now.
+
+to debug the backend:
+Step 1: Run Backend Locally with Docker
+# On Windows, in your project directory
+cd backend
+docker build -t local-backend .
+docker run -p 8443:8443 -v $(pwd):/app local-backend
+
+Step 2: Modify Remote Frontend Configuration
+On your Linux server, temporarily update the frontend's API URL:
+# Create/modify .env file in frontend directory
+echo "VITE_API_URL=https://your-windows-ip:8443" > frontend/.env.local
+Or if using environment variables in docker-compose:
+frontend:
+  environment:
+    - VITE_API_URL=https://your-windows-ip:8443
+	
+Step 3: Configure Windows Firewall	
+# Allow inbound connections on port 8443
+New-NetFirewallRule -DisplayName "Backend Debug" -Direction Inbound -Port 8443 -Protocol TCP -Action Allow	
+
+Step 4: Rebuild/Restart Remote Frontend
+# On Linux server
+docker-compose down
+docker-compose up --build frontend
+
+Step 5: Access & Debug
+
+Browse to https://arsmdbe3142acsl.usda.net (remote frontend)
+OIDC login works normally (correct redirect URI)
+API calls hit your local Windows backend
+Set breakpoints in VS Code and debug!
+When done debugging, just revert the VITE_API_URL change and redeploy.
+
+Need help with any of these steps?
+
+Claude Sonnet 4 • 1x	
+
