@@ -214,14 +214,14 @@ async def download(
     # Construct URL and fetch data
     currentyear = datetime.now().year
     year = str(currentyear + 2)
-    url = f"https://weather.covercrop-data.org/hourly?lat={siteData.rlat}&lon={siteData.rlon}&start=2018-1-1&end={year}-12-31&1attributes=air_temperature,relative_humidity,wind_speed,shortwave_radiation,precipitation&output=csv&options=predicted"
+    url = f"https://weather.covercrop-data.org/hourly?email=classim@usda.gov&lat={siteData.rlat}&lon={siteData.rlon}&start=2018-1-1&end={year}-12-31&1attributes=air_temperature,relative_humidity,wind_speed,shortwave_radiation,precipitation&output=csv&options=predicted"
     
     # Add timeout to prevent hanging on slow external API
     try:
         # Use aiohttp for async requests - rename ClientSession variable to avoid collision
         headers = {'User-Agent': 'Mozilla/5.0'}
         async with ClientSession() as http_session:  # Renamed to http_session
-            async with http_session.get(url, headers=headers, timeout=30) as response:
+            async with http_session.get(url, headers=headers, timeout=45) as response:
                 if response.status != 200:
                     return {"error": f"API returned status {response.status}"}
                 content = await response.read()
