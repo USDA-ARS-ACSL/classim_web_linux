@@ -260,8 +260,13 @@ def auth_callback(
             user.id, expires_delta=access_token_expires
         )
         
-        # Redirect to frontend with token
-        frontend_url = f"{settings.server_host}/login?token={access_token}"
+        # Derive external host from the request (strip any port)
+        host = request.headers.get("host", "")
+        host_no_port = host.split(",")[0].split(":")[0]
+        scheme = "https"  # your site is HTTPS
+        frontend_base = f"{scheme}://{host_no_port}"
+
+        frontend_url = f"{frontend_base}/login?token={access_token}"
         response = RedirectResponse(url=frontend_url)
         
         # Clear both oauth state cookies
@@ -370,8 +375,13 @@ def auth_callback_post(
             user.id, expires_delta=access_token_expires
         )
         
-        # Redirect to frontend with token
-        frontend_url = f"{settings.server_host}/login?token={access_token}"
+        # Derive external host from the request (strip any port)
+        host = request.headers.get("host", "")
+        host_no_port = host.split(",")[0].split(":")[0]
+        scheme = "https"  # your site is HTTPS
+        frontend_base = f"{scheme}://{host_no_port}"
+
+        frontend_url = f"{frontend_base}/login?token={access_token}"
         response = RedirectResponse(url=frontend_url)
         
         # Clear both oauth state cookies
