@@ -10,8 +10,8 @@ from fastapi.responses import RedirectResponse, JSONResponse
 from authlib.integrations.requests_client import OAuth2Session
 from pydantic import BaseModel
 import requests
-from jose import jwt, JWTError
-from jose.backends import RSAKey
+import jwt
+from jwt.algorithms import RSAAlgorithm
 
 from app import crud
 from app.api.deps import CurrentUser, SessionDep
@@ -205,7 +205,7 @@ def auth_callback(
             if not jwk:
                 raise HTTPException(status_code=400, detail="JWKS key not found")
 
-            public_key = RSAKey.from_jwk(json.dumps(jwk))
+            public_key = RSAAlgorithm.from_jwk(json.dumps(jwk))
             # Verify signature and issuer; relax audience if needed for userinfo
             claims = jwt.decode(
                 body,
