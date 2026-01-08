@@ -32,7 +32,7 @@ services:
     ports:
       - "5678:5678"
       # optionally also expose the API:
-      # - "8443:8443"
+      - "8443:8443"
     volumes:
       - ./backend/:/app
     build:
