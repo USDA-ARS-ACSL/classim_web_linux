@@ -11,15 +11,28 @@ services:
 
   backend:
     restart: "no"
-    entrypoint: ["sh", "-lc"]
-    command: >
-      python -m pip install --quiet debugpy &&
-      python -m debugpy --listen 0.0.0.0:5678 --wait-for-client
-      -m uvicorn app.main:app --host 0.0.0.0 --port 8443
-      --ssl-certfile /usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem
-      --ssl-keyfile /usr/local/share/ca-certificates/ARSMDBE3142ACSL.key
+    entrypoint:
+      - python
+      - -m
+      - debugpy
+      - --listen
+      - 0.0.0.0:5678
+      - --wait-for-client
+      - -m
+      - uvicorn
+      - app.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8443"
+      - --ssl-certfile
+      - /usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem
+      - --ssl-keyfile
+      - /usr/local/share/ca-certificates/ARSMDBE3142ACSL.key
     ports:
       - "5678:5678"
+      # optionally also expose the API:
+      # - "8443:8443"
     volumes:
       - ./backend/:/app
     build:
