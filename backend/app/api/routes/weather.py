@@ -216,6 +216,7 @@ async def download(
     year = str(currentyear + 2)
     url = f"https://weather.covercrop-data.org/hourly?email=classim@usda.gov&lat={siteData.rlat}&lon={siteData.rlon}&start=2018-1-1&end={year}-12-31&1attributes=air_temperature,relative_humidity,wind_speed,shortwave_radiation,precipitation&output=csv&options=predicted"
     
+    logger.info("Weather fetch station_id=%s site=%s url=%s", id, sitename, url)
     # Add timeout to prevent hanging on slow external API
     try:
         # Use aiohttp for async requests - rename ClientSession variable to avoid collision
