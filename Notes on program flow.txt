@@ -1,0 +1,14 @@
+Call Chain
+
+Trigger: GET /seasonalsim/seasonRun/{simulation_name} starts a background task in seasonal.py:816.
+Task: Background job prepare_and_execute() (see seasonal.py:493) builds inputs and orchestrates the run.
+Call site: prepare_and_execute() invokes WriteRunFile(...) here: seasonal.py:569.
+Definition: WriteRunFile(cropname, soilname, field_name, cultivar, field_path, stationtype) is defined in generateModelInputFiles_helper.py:816.
+Endpoints
+
+Start IDs: POST /seasonalsim/seasonRun queues simulations and returns IDs (see seasonal.py:744).
+Launch run: GET /seasonalsim/seasonRun/{simulation_name} validates operation dates, then kicks off prepare_and_execute() which calls WriteRunFile.
+Stream output: GET /seasonalsim/simulationResp/{simulation_name} streams .g01 CSV updates to the UI (see seasonal.py:716).
+In short: the seasonal run page hits POST /seasonalsim/seasonRun then GET /seasonalsim/seasonRun/{id}; that GET starts prepare_and_execute(), which calls WriteRunFile().
+
+GPT-5 • 1x
