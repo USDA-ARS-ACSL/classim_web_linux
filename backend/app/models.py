@@ -573,7 +573,56 @@ class GridRatioPublic(GridRatioBase):
 class GridRatiosPublic(SQLModel):
     data: list[GridRatioPublic]
     count: int
+###################Biology Data##################
+
+
+class BiologyDefaultBase(SQLModel):
+    id: int | None = None
+    dthH: float | None = None
+    dthL: float | None = None
+    es: float | None = None
+    Th_m: float | None = None
+    tb: float | None = None
+    QT: float | None = None
+    dThD: float | None = None
+    Th_d: float | None = None
     
+class BiologyDefaultCreate(BiologyDefaultBase):
+    id: int | None = None
+    dthH: float | None = None
+    dthL: float | None = None
+    es: float | None = None
+    Th_m: float | None = None
+    tb: float | None = None
+    QT: float | None = None
+    dThD: float | None = None
+    Th_d: float | None = None
+
+class BiologyDefault(BiologyDefaultBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    dthH: float | None = None
+    dthL: float | None = None
+    es: float | None = None
+    Th_m: float | None = None
+    tb: float | None = None
+    QT: float | None = None
+    dThD: float | None = None
+    Th_d: float | None = None
+    
+    
+#############End Biology
+    
+class BiologyDefault(BiologyDefaultBase, table=True):
+    __tablename__ = "biologydefault"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    dthH = Column(Float)
+    dthL = Column(Float)
+    es = Column(Float)
+    Th_m = Column(Float)
+    tb = Column(Float)
+    QT = Column(Float)
+    dThD = Column(Float)
+    Th_d = Column(Float)  
 
 ######### Weather tab model Start ##############
 
