@@ -438,11 +438,11 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
     odate =  datetime.now()
     odate_int = odate.timestamp()  # This converts to float (seconds since epoch)
     odate_int = int(odate_int) 
-
+    status=1
     # record_tuple = (rotationID,site,managementname,weather,soilname,stationtype,startyear,endyear,odate,waterstress,nitrostress,tempVar,rainVar,CO2Var)
     query = text("""
-        INSERT INTO pastruns ("rotationID", "site", "treatment", "weather", "soil", "stationtype", "startyear", "endyear", "odate", "waterstress", "nitrostress", "tempVar", "rainVar", "CO2Var","owner_id")
-        VALUES (:rotationID, :site, :managementname, :weather, :soilname, :stationtype, :startyear, :endyear, :odate, :waterstress, :nitrostress, :tempVar, :rainVar, :CO2Var, :userid)
+        INSERT INTO pastruns ("rotationID", "site", "treatment", "weather", "soil", "stationtype", "startyear", "endyear", "odate", "waterstress", "nitrostress", "tempVar", "rainVar", "CO2Var","owner_id", "status")
+        VALUES (:rotationID, :site, :managementname, :weather, :soilname, :stationtype, :startyear, :endyear, :odate, :waterstress, :nitrostress, :tempVar, :rainVar, :CO2Var, :userid, :status)
         RETURNING "id"
     """)
 
@@ -463,7 +463,8 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
         'tempVar': tempVar,
         'rainVar': rainVar,
         'CO2Var': CO2Var,
-        'userid':userid
+        'owner_id':userid,
+        'status': status
     }
     result = session.execute(query, record_dict)
     session.commit()
@@ -756,7 +757,7 @@ def create_soil(
         station = payload["station"]
         expert_system = payload["expertSystem"]
         selected_date = payload["selectedDate"]
-
+        
         for row in payload["rows"]:
             crop = row["crop"]
             experiment = row["experiment"]
@@ -767,11 +768,10 @@ def create_soil(
             temp_variance = row["tempVariance"]
             rain_variance = row["rainVariance"]
             co2_variance = row["co2Variance"]
-
+ 
             waterStressFlag = 0 if water_stress == "Yes" else 1
             nitroStressFlag = 0 if nitrogen_stress == "Yes" else 1
             co2_variance = 0 if co2_variance == "None" else co2_variance
-
             crop_treatment = f"{crop}/{experiment}"
             simulation_name = update_pastrunsDB(
                 0,
@@ -789,6 +789,7 @@ def create_soil(
                 str(co2_variance),
                 session,
                 current_user.id,
+                str(status),
             )
 
             simulationList.append(simulation_name)

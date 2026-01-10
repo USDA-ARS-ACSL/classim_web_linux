@@ -12,6 +12,8 @@ desktop_tool_code/CustomTool/__init__.py
 desktop_tool_code/CustomTool/__pycache__/
 node_modules
 backend/executables/run/*
+backend/executables/datagen2.dat
+backend/executables/grid.bnd
 desktop_tool_code/
 $tf/
 $tf1/
