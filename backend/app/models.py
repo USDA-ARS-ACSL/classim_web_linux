@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from enum import Enum
 
 class GuestType(str, Enum):
-    ANONYMOUS = "anonymous"
+    ANONYMOUS="anonymous"
     EMAIL = "email"
 
 # Shared properties
@@ -612,18 +612,6 @@ class BiologyDefault(BiologyDefaultBase, table=True):
     
 #############End Biology
     
-class BiologyDefault(BiologyDefaultBase, table=True):
-    __tablename__ = "biologydefault"
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    dthH = Column(Float)
-    dthL = Column(Float)
-    es = Column(Float)
-    Th_m = Column(Float)
-    tb = Column(Float)
-    QT = Column(Float)
-    dThD = Column(Float)
-    Th_d = Column(Float)  
-
 ######### Weather tab model Start ##############
 
 ######### Weather tab model End ##############
@@ -1535,6 +1523,7 @@ class Pastrun(Pastrunbase, table=True):
     CO2Var: int
     owner_id:int
     status: int
+    odate: str
    
 # Guest-specific models
 class GuestCreate(SQLModel):
