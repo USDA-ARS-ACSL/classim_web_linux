@@ -68,6 +68,43 @@ Modify or add SQLModel models for data and SQL tables in `./backend/app/models.p
 There are already configurations in place to run the backend through the VS Code debugger, so that you can use breakpoints, pause and explore variables, etc.
 
 The setup is also already configured so you can run the tests through the VS Code Python tests tab.
+to select the correct python interpreter:
+Set the Python interpreter in VS Code (container window):
+Open the Command Palette (Ctrl+Shift+P).
+Type: Python: Select Interpreter
+Choose /usr/local/bin/python (or /usr/local/bin/python3.10 if available).
+This will update your workspace settings to use the correct Python for both the terminal and the debugger.
+The backend uses /user/bin/python3.10
+use this config for container debugging
+{
+  "name": "Python: Attach (debugpy)",
+  "type": "python",
+  "request": "attach",
+  "connect": { "host": "127.0.0.1", "port": 5678 }
+}  
+  Quick recap for future reference:
+  at the end of the dockerfile for the backend before the CMD we need to add this:
+  RUN pip install --no-cache-dir debugpy
+  the makes sure we are using debugpy that corresponds to our version of python in the backend container
+in the backend, we start using this command in the dockerfile:
+CMD ["python3.10","-m","debugpy","--listen","0.0.0.0:5678","--log-to","/tmp/debugpy.log","-m","uvicorn","app.main:app","--host","0.0.0.0","--port","8443","--ssl-certfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem","--ssl-keyfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.key"]
+
+Use an "attach" config if you start the server manually with debugpy.
+Use a "launch" config with the correct entry point (like uvicorn) if you want VS Code to start the server for you.
+Make sure "program" or "module" in launch.json matches your actual app entry point. 
+
+### Database
+in order to edit the files outside the container - it is best to map the container files with your linux file system
+All database revisions should be done through Alembic. You have to run the container, get bash terminal and run alembic from the folder withe
+Alembic.ini
+add table creation and modification sql code to models.py 
+then run 
+alembic revision --autogenerate -m "Describe your change"
+
+after that run Alembic upgrade head. 
+Alembic will first create a python file with the revisions and a revision number. this can be edited
+the command to upgrade head will upgrade the postgre database.
+
 
 ### Docker Compose Override
 
