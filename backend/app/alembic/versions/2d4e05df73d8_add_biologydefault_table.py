@@ -42,9 +42,14 @@ def upgrade():
                existing_nullable=False,
                autoincrement=True)
     op.execute("CREATE TYPE guesttype AS ENUM ('ANONYMOUS', 'EMAIL')")
-    op.execute(
-              "ALTER TABLE \"user\" ALTER COLUMN guest_type TYPE guesttype USING guest_type::guesttype"
-     )
+    op.execute("UPDATE \"user\" SET guest_type = 'ANONYMOUS' WHERE guest_type = 'anonymous'")
+    op.execute("UPDATE \"user\" SET guest_type = 'EMAIL' WHERE guest_type = 'email'")
+ 
+    op.execute("""
+              ALTER TABLE "user" 
+              ALTER COLUMN guest_type TYPE guesttype 
+              USING guest_type::guesttype
+     """)
     op.alter_column('user', 'guest_type',
                existing_type=sa.VARCHAR(),
                type_=sa.Enum('ANONYMOUS', 'EMAIL', name='guesttype'),

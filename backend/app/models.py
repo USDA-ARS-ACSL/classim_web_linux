@@ -574,31 +574,9 @@ class GridRatiosPublic(SQLModel):
     data: list[GridRatioPublic]
     count: int
 ###################Biology Data##################
+# only need a create statement as this table is not updated by the API, it is only read
 
-
-class BiologyDefaultBase(SQLModel):
-    id: int | None = None
-    dthH: float | None = None
-    dthL: float | None = None
-    es: float | None = None
-    Th_m: float | None = None
-    tb: float | None = None
-    QT: float | None = None
-    dThD: float | None = None
-    Th_d: float | None = None
-    
-class BiologyDefaultCreate(BiologyDefaultBase):
-    id: int | None = None
-    dthH: float | None = None
-    dthL: float | None = None
-    es: float | None = None
-    Th_m: float | None = None
-    tb: float | None = None
-    QT: float | None = None
-    dThD: float | None = None
-    Th_d: float | None = None
-
-class BiologyDefault(BiologyDefaultBase, table=True):
+class BiologyDefault(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     dthH: float | None = None
     dthL: float | None = None
@@ -611,6 +589,103 @@ class BiologyDefault(BiologyDefaultBase, table=True):
     
     
 #############End Biology
+
+#########Dispersivity Table################
+
+
+class Dispersivity(SQLModel, table=True):
+    __tablename__ = "dispersivity"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    texturecl: Optional[str] = Field(default=None, max_length=30)
+    alpha: float = Field(default=8.1)
+
+#########Dispersivity Table End############
+
+#########Gas Table#########################
+class Gas(SQLModel, table=True):
+    __tablename__ = "gas"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    name: Optional[str] = Field(default=None, max_length=30)
+    EPSI: float = Field(default=1)
+    bTort: float = Field(default=0.65)
+    Diffusion_Coeff: Optional[float] = None
+#########Gas Table End ############################## 
+
+#########FertNutrient table############################## 
+class FertNutrient(SQLModel, table=True):
+    __tablename__ = "fertNutrient"
+
+    fertilizationClass: Optional[str] = Field(default=None, primary_key=True)
+    Nutrient: Optional[str] = Field(default=None, primary_key=True)
+#########FertNutrient Table End ############################## 
+
+###### solute table#########################
+
+from sqlmodel import SQLModel, Field
+
+class solute(SQLModel, table=True):
+    __tablename__ = 'solute'
+    id: int | None = Field(default=None, primary_key=True)
+    name: str = Field(default='NitrogenDefault', max_length=30)
+    EPSI: float = Field(default=0.8)
+    IUPW: float = Field(default=0.0)
+    CourMax: float = Field(default=0.5)
+    Diffusion_Coeff: float = Field(default=1.2)
+
+##### solute table end#################
+
+#############Classim Version table #############
+class ClassimVersion(SQLModel, table=True):
+    __tablename__ = "classimVersion"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    version: str
+    date: str
+    comment: str
+
+###########Classim Version Table end #############
+
+##############MulchGeo and MulcDecomp##############
+
+
+class MulchDecomp(SQLModel, table=True):
+    __tablename__ = "mulchDecomp"
+
+    nutrient: Optional[str] = Field(default=None, primary_key=True)
+    contactFraction: Optional[float] = None
+    alphaFeeding: Optional[float] = None
+    carbMass: Optional[float] = None
+    cellMass: Optional[float] = None
+    lignMass: Optional[float] = None
+    carbNMass: Optional[float] = None
+    cellNMass: Optional[float] = None
+    lignNMass: Optional[float] = None
+    carbDecomp: Optional[float] = None
+    cellDecomp: Optional[float] = None
+    lignDecomp: Optional[float] = None
+
+class MulchGeo(SQLModel, table=True):
+    __tablename__ = "mulchGeo"
+
+    nutrient: Optional[str] = Field(default=None, primary_key=True)
+    minHoriSize: Optional[float] = None
+    diffusionRestriction: Optional[float] = None
+    longWaveRadiationCtrl: Optional[float] = None
+    decompositionCtrl: Optional[float] = None
+    deltaRShort: Optional[float] = None
+    deltaRLong: Optional[float] = None
+    omega: Optional[float] = None
+    epsilonMulch: Optional[float] = None
+    alphaMulch: Optional[float] = None
+    maxStepInPicardIteration: Optional[float] = None
+    toleranceHead: Optional[float] = None
+    rhoMulch: Optional[float] = None
+    poreSpace: Optional[float] = None
+    maxPondingDepth: Optional[float] = None
+
+#############Mulch Tables end##################
     
 ######### Weather tab model Start ##############
 
@@ -1267,9 +1342,10 @@ class CultivarMaizeCreate(CultivarMaizeBase):
     __tablename__ = 'cultivar_maize'
     hybridname: str
     juvenileleaves: int
-    DaylengthSensitive: float | None
+    DaylengthSensitive: int | None
     Rmax_LTAR: float | None
     Rmax_LTIR:float | None
+    LM_min:   float | None
     PhyllFrmTassel:float | None
     StayGreen:float | None
 
@@ -1281,28 +1357,134 @@ class CultivarMaizeUpdate(CultivarMaizeBase):
 
 
 # Database model, database table inferred from class name
+
+from sqlmodel import SQLModel, Field, Column
+from sqlalchemy import Float, Integer, String, text
+from typing import Optional
+
 class CultivarMaizedata(CultivarMaizeBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    
-    hybridname: str
-    juvenileleaves: int
-    DaylengthSensitive: float | None
-    Rmax_LTAR: float | None
-    Rmax_LTIR:float | None
-    PhyllFrmTassel:float | None
-    StayGreen:float | None
-    owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
-
-
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hybridname: Optional[str] = Field(default=None)
+    juvenileleaves: Optional[int] = Field(default=None)
+    DaylengthSensitive: int = Field(
+        default=1,
+        sa_column=Column(Integer, server_default=text("1"))
+    )
+    Rmax_LTAR: float = Field(
+        default=0.53,
+        sa_column=Column(Float, server_default=text("0.53"))
+    )
+    Rmax_LTIR: float = Field(
+        default=0.978,
+        sa_column=Column(Float, server_default=text("0.978"))
+    )
+    PhyllFrmTassel: float = Field(
+        default=3,
+        sa_column=Column(Float, server_default=text("3"))
+    )
+    StayGreen: float = Field(
+        default=4.5,
+        sa_column=Column(Float, server_default=text("4.5"))
+    )
+    LM_min: float = Field(
+        default=120,
+        sa_column=Column(Float, server_default=text("120"))
+    )
+    RRRM: float = Field(
+        default=166.7,
+        sa_column=Column(Float, server_default=text("166.7"))
+    )
+    RRRY: float = Field(
+        default=31.3,
+        sa_column=Column(Float, server_default=text("31.3"))
+    )
+    RVRL: float = Field(
+        default=0.73,
+        sa_column=Column(Float, server_default=text("0.73"))
+    )
+    ALPM: float = Field(
+        default=0.55,
+        sa_column=Column(Float, server_default=text("0.55"))
+    )
+    ALPY: float = Field(
+        default=0.04,
+        sa_column=Column(Float, server_default=text("0.04"))
+    )
+    RTWL: float = Field(
+        default=1.06e-4,
+        sa_column=Column(Float, server_default=text("0.000106"))
+    )
+    RTMinWTperArea: float = Field(
+        default=2.00e-4,
+        sa_column=Column(Float, server_default=text("0.0002"))
+    )
+    EPSI: int = Field(
+        default=1,
+        sa_column=Column(Integer, server_default=text("1"))
+    )
+    IUPW: int = Field(
+        default=1,
+        sa_column=Column(Integer, server_default=text("1"))
+    )
+    CourMax: float = Field(
+        default=1,
+        sa_column=Column(Float, server_default=text("1"))
+    )
+    Diffx: float = Field(
+        default=2.4,
+        sa_column=Column(Float, server_default=text("2.4"))
+    )
+    Diffz: float = Field(
+        default=2.9,
+        sa_column=Column(Float, server_default=text("2.9"))
+    )
+    VelZ: float = Field(
+        default=0,
+        sa_column=Column(Float, server_default=text("0"))
+    )
+    lsink: int = Field(
+        default=1,
+        sa_column=Column(Integer, server_default=text("1"))
+    )
+    Rroot: float = Field(
+        default=0.017,
+        sa_column=Column(Float, server_default=text("0.017"))
+    )
+    Constl_M: float = Field(
+        default=35.0,
+        sa_column=Column(Float, server_default=text("35.0"))
+    )
+    ConstK_M: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    Cmin0_M: float = Field(
+        default=0.01,
+        sa_column=Column(Float, server_default=text("0.01"))
+    )
+    ConstI_Y: float = Field(
+        default=17.2,
+        sa_column=Column(Float, server_default=text("17.2"))
+    )
+    ConstK_Y: float = Field(
+        default=0.75,
+        sa_column=Column(Float, server_default=text("0.75"))
+    )
+    Cmin0_Y: float = Field(
+        default=0.03,
+        sa_column=Column(Float, server_default=text("0.03"))
+    )
+    owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
 
 # Properties to return via API, id is always required
 class CultivarMaizePublic(CultivarMaizeBase):
     id: int
     hybridname: str
     juvenileleaves: int
-    DaylengthSensitive: float | None
+    DaylengthSensitive: int | None
     Rmax_LTAR: float | None
     Rmax_LTIR:float | None
+    LM_min:   float | None
     PhyllFrmTassel:float | None
     StayGreen:float | None
 
@@ -1522,9 +1704,14 @@ class Pastrun(Pastrunbase, table=True):
     rainVar: int
     CO2Var: int
     owner_id:int
-    status: int
-    odate: str
+    status: Optional[int] = None
+    odate:  Optional[str] = None
    
+def upgrade():
+    op.alter_column('pastruns', 'status', nullable=True)
+def downgrade():
+    op.alter_column('pastruns', 'status', nullable=False)
+
 # Guest-specific models
 class GuestCreate(SQLModel):
     email: str | None = None
@@ -1553,8 +1740,6 @@ class PastrunsPublic(SQLModel):
     data: list[Pastrun]
 ####### Site model End############
 
-
-
-
 class seasonRunResponse(SQLModel):
     data: list[Any]
+

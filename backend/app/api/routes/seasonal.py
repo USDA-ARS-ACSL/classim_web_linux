@@ -463,7 +463,7 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
         'tempVar': tempVar,
         'rainVar': rainVar,
         'CO2Var': CO2Var,
-        'owner_id':userid,
+        'userid':userid,
         'status': status
     }
     result = session.execute(query, record_dict)
@@ -757,7 +757,7 @@ def create_soil(
         station = payload["station"]
         expert_system = payload["expertSystem"]
         selected_date = payload["selectedDate"]
-        
+        status=0
         for row in payload["rows"]:
             crop = row["crop"]
             experiment = row["experiment"]
@@ -788,8 +788,7 @@ def create_soil(
                 str(rain_variance),
                 str(co2_variance),
                 session,
-                current_user.id,
-                str(status),
+                current_user.id
             )
 
             simulationList.append(simulation_name)
