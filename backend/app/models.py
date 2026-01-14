@@ -1493,6 +1493,7 @@ class CultivarMaizesPublic(SQLModel):
     data: list[CultivarMaizePublic]
 
 #########Cultivar Maize End#############
+
 ###############Cultivar Potato table#############
 # # Shared properties
 class CultivarPotatoBase(SQLModel):
@@ -1505,15 +1506,16 @@ class CultivarPotatoBase(SQLModel):
 class CultivarPotatoCreate(CultivarPotatoBase):
     __tablename__ = 'cultivar_potato'
     hybridname: str
-    A1: float | None
-    A6:float | None
-    A8:float | None
-    A9:float | None
-    A10:float | None
-    G1:float | None
-    G2:float | None
-    G3:float | None
-    G4:float | None
+    A1: float =1.5
+    A6: float =2.5
+    A8: float =2.6
+    A9: float =0.8
+    A10: float =1.2
+    G1: float =0.7
+    G2: float =300.0
+    G3: float =15.0
+    G4: float =0.004
+
 
 
 
@@ -1524,20 +1526,135 @@ class CultivarPotatoUpdate(CultivarPotatoBase):
 
 # Database model, database table inferred from class name
 class CultivarPotatodata(CultivarPotatoBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    
-    hybridname: str
-    A1: float | None
-    A6:float | None
-    A8:float | None
-    A9:float | None
-    A10:float | None
-    G1:float | None
-    G2:float | None
-    G3:float | None
-    G4:float | None
-    owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
+    __tablename__ = 'cultivar_potato'
+# sa-column not needed here as this is a primary key which is handled automatically
+    id: Optional[int] = Field(default=None, primary_key=True)
 
+    hybridname: str | None = Field(
+        default=None,
+        sa_column=Column(String)
+    )
+    A1: float | None = Field(
+        default=1.5,
+        sa_column=Column(Float, server_default=text("1.5"))
+    )
+    A6: float | None = Field(
+        default=2.5,
+        sa_column=Column(Float, server_default=text("2.5"))
+    )
+    A8: float | None = Field(
+        default=2.6,
+        sa_column=Column(Float, server_default=text("2.6"))
+    )
+    A9: float | None = Field(
+        default=0.8,
+        sa_column=Column(Float, server_default=text("0.8"))
+    )
+    A10: float | None = Field(
+        default=1.2,
+        sa_column=Column(Float, server_default=text("1.2"))
+    )
+    G1: float | None = Field(
+        default=0.7,
+        sa_column=Column(Float, server_default=text("0.7"))
+    )
+    G2: float | None = Field(
+        default=300.0,
+        sa_column=Column(Float, server_default=text("300.0"))
+    )
+    G3: float | None = Field(
+        default=15.0,
+        sa_column=Column(Float, server_default=text("15.0"))
+    )
+    G4: float | None = Field(
+        default=0.004,
+        sa_column=Column(Float, server_default=text("0.004"))
+    )
+    RRRM: float = Field(
+        default=166.7,
+        sa_column=Column(Float, server_default=text("166.7"))
+    )
+    RRRY: float = Field(
+        default=31.3,
+        sa_column=Column(Float, server_default=text("31.3"))
+    )
+    RVRL: float = Field(
+        default=0.73,
+        sa_column=Column(Float, server_default=text("0.73"))
+    )
+    ALPM: float = Field(
+        default=0.35,
+        sa_column=Column(Float, server_default=text("0.35"))
+    )
+    ALPY: float = Field(
+        default=0.04,
+        sa_column=Column(Float, server_default=text("0.04"))
+    )
+    RTWL: float = Field(
+        default=1.06e-4,
+        sa_column=Column(Float, server_default=text("1.06E-4"))
+    )
+    RTMinWTperArea: float = Field(
+        default=2.00e-4,
+        sa_column=Column(Float, server_default=text("2.00E-4"))
+    )
+    EPSI: float = Field(
+        default=1.0,
+        sa_column=Column(Float, server_default=text("1"))
+    )
+    IUPW: float = Field(
+        default=1.0,
+        sa_column=Column(Float, server_default=text("1"))
+    )
+    CourMax: float = Field(
+        default=1.0,
+        sa_column=Column(Float, server_default=text("1"))
+    )
+    Diffx: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    Diffz: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    VelZ: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    lsink: float = Field(
+        default=1.0,
+        sa_column=Column(Float, server_default=text("1"))
+    )
+    Rroot: float = Field(
+        default=0.017,
+        sa_column=Column(Float, server_default=text("0.017"))
+    )
+    Constl_M: float = Field(
+        default=35.0,
+        sa_column=Column(Float, server_default=text("35.0"))
+    )
+    ConstK_M: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    Cmin0_M: float = Field(
+        default=0.01,
+        sa_column=Column(Float, server_default=text("0.01"))
+    )
+    ConstI_Y: float = Field(
+        default=17.2,
+        sa_column=Column(Float, server_default=text("17.2"))
+    )
+    ConstK_Y: float = Field(
+        default=0.75,
+        sa_column=Column(Float, server_default=text("0.75"))
+    )
+    Cmin0_Y: float = Field(
+        default=0.03,
+        sa_column=Column(Float, server_default=text("0.03"))
+    )    
+    owner_id: Optional[int] = Field(default=None, foreign_key="user.id")
 
 
 # Properties to return via API, id is always required
