@@ -1156,7 +1156,7 @@ class PGRUnit(SQLModel, table=True):
     __tablename__ = 'PGRUnit'
     id: int | None = Field(default=None, primary_key=True)
     PGRUnit: str | None = None 
-    code: int | None = None
+    code: int | None = Field(default=None, primary_key=True)
     
 class SurfResType(SQLModel, table=True):
     __tablename__ = 'surfResType'
@@ -1743,3 +1743,660 @@ class PastrunsPublic(SQLModel):
 class seasonRunResponse(SQLModel):
     data: list[Any]
 
+# --- Auto-generated SQLModel classes from cropOutput.db.sql ---
+
+# --- Maize Table Models ---
+# Table: plantStress_maize
+
+
+
+# Table: g01_maize
+class G01Maize(SQLModel, table=True):
+    __tablename__ = "g01_maize"
+    g01_maize_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    jday: int | None = None
+    Leaves: float | None = None
+    MaturLvs: int | None = None
+    Dropped: int | None = None
+    LA_pl: float | None = None
+    LA_dead: float | None = None
+    LAI: float | None = None
+    RH: float | None = None
+    LeafWP: float | None = None
+    PFD: float | None = None
+    SolRad: float | None = None
+    SoilT: float | None = None
+    Tair: float | None = None
+    Tcan: float | None = None
+    ETdmd: float | None = None
+    ETsply: float | None = None
+    Pn: float | None = None
+    Pg: float | None = None
+    Respir: float | None = None
+    av_gs: float | None = None
+    VPD: float | None = None
+    Nitr: float | None = None
+    N_Dem: float | None = None
+    NUpt: float | None = None
+    LeafN: float | None = None
+    PCRL: float | None = None
+    totalDM: float | None = None
+    shootDM: float | None = None
+    earDM: float | None = None
+    grainDM: float | None = None
+    TotLeafDM: float | None = None
+    DrpLfDM: float | None = None
+    stemDM: float | None = None
+    rootDM: float | None = None
+    SoilRt: float | None = None
+    MxRtDep: float | None = None
+    AvailW: float | None = None
+    solubleC: float | None = None
+    Note: str | None = None
+
+# Table: g03_maize
+class G03Maize(SQLModel, table=True):
+    __tablename__ = "g03_maize"
+    g03_maize_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Humus_N: float | None = None
+    Humus_C: float | None = None
+    Litter_N: float | None = None
+    Litter_C: float | None = None
+    Manure_N: float | None = None
+    Manure_C: float | None = None
+    Root_N: float | None = None
+    Root_C: float | None = None
+
+    # Table: g04_maize
+class G04Maize(SQLModel, table=True):
+    __tablename__ = "g04_maize"
+    g04_maize_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Node: float | None = None
+    RMassM: float | None = None
+    RMassY: float | None = None
+    RDenM: float | None = None
+    RDenY: float | None = None
+    WaterSink: float | None = None
+    NitSink: float | None = None
+    GasSink: float | None = None
+
+# Table: g05_maize
+class G05Maize(SQLModel, table=True):
+    __tablename__ = "g05_maize"
+    g05_maize_id: int = Field(primary_key=True)
+    Date_Time: str
+    PSoilEvap: float | None = None
+    ASoilEVap: float | None = None
+    PET_PEN: float | None = None
+    PE_T_int: float | None = None
+    transp: float | None = None
+    CumRain: float | None = None
+    infil: float | None = None
+    FLuxAct: float | None = None
+    Drainage: float | None = None
+    N_Leach: float | None = None
+    Runoff: float | None = None
+    cover: float | None = None
+    PSIM: float | None = None
+    SeasPSoEv: float | None = None
+    SeasASoEv: float | None = None
+    SeasPTran: float | None = None
+    SeasATran: float | None = None
+    SeasRain: float | None = None
+    SeasInfil: float | None = None
+    ThetaAvail: float | None = None
+    CO2FLux: float | None = None
+    O2FLux: float | None = None
+    N2OFLux: float | None = None
+    
+class G07Maize(SQLModel, table=True):
+    __tablename__ = "g07_maize"
+    g07_maize_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Humus_N: float | None = None
+    Humus_C: float | None = None
+    Litter_N: float | None = None
+    Litter_C: float | None = None
+    Manure_N: float | None = None
+    Manure_C: float | None = None
+    Root_N: float | None = None
+    Root_C: float | None = None
+    
+class PlantStressMaize(SQLModel, table=True):
+    __tablename__ = "plantStress_maize"
+    plantStress_maize_id: int = Field(primary_key=True)
+    Date_Time: str
+    waterstress: float | None = None
+    N_stress: float | None = None
+    Shade_Stress: float | None = None
+    PotentialArea: float | None = None    
+    
+# --- Potato Table Models ---
+
+# Table: g01_potato
+class G01Potato(SQLModel, table=True):
+    __tablename__ = "g01_potato"
+    g01_potato_id: int = Field(primary_key=True)
+    Date_Time: str
+    jday: int
+    LA_pl: float | None = None
+    LAI: float | None = None
+    PFD: float | None = None
+    SolRad: float | None = None
+    Tair: float | None = None
+    Tcan: float | None = None
+    Pgross: float | None = None
+    Rg_Rm: float | None = None
+    Tr_Pot: float | None = None
+    Tr_Act: float | None = None
+    Stage: float | None = None
+    totalDM: float | None = None
+    leafDM: float | None = None
+    stemDM: float | None = None
+    rootDM: float | None = None
+    tuberDM: float | None = None
+    deadDM: float | None = None
+    Cdead: float | None = None
+    Cpool: float | None = None
+    LWPpd: float | None = None
+    LWPave: float | None = None
+    gs_ave: float | None = None
+    Nstress1: float | None = None
+    Nstress2: float | None = None
+    Wstress1: float | None = None
+    Wstress2: float | None = None
+    Wstress3: float | None = None
+
+
+    # Table: g03_potato
+class G03Potato(SQLModel, table=True):
+    __tablename__ = "g03_potato"
+    g03_potato_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Humus_N: float | None = None
+    Humus_C: float | None = None
+    Litter_N: float | None = None
+    Litter_C: float | None = None
+    Manure_N: float | None = None
+    Manure_C: float | None = None
+    Root_N: float | None = None
+    Root_C: float | None = None
+
+
+
+# Table: g04_potato
+class G04Potato(SQLModel, table=True):
+    __tablename__ = "g04_potato"
+    g04_potato_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Node: int | None = None
+    RMassM: float | None = None
+    RMassY: float | None = None
+    RDenM: float | None = None
+    RDenY: float | None = None
+    WaterSink: float | None = None
+    NitSink: float | None = None
+    GasSink: float | None = None
+    
+    # Table: g05_maize
+class G05Potato(SQLModel, table=True):
+    __tablename__ = "g05_potato"
+    g05_potato_id: int = Field(primary_key=True)
+    Date_Time: str
+    PSoilEvap: float | None = None
+    ASoilEVap: float | None = None
+    PET_PEN: float | None = None
+    PE_T_int: float | None = None
+    transp: float | None = None
+    CumRain: float | None = None
+    infil: float | None = None
+    FLuxAct: float | None = None
+    Drainage: float | None = None
+    N_Leach: float | None = None
+    Runoff: float | None = None
+    cover: float | None = None
+    PSIM: float | None = None
+    SeasPSoEv: float | None = None
+    SeasASoEv: float | None = None
+    SeasPTran: float | None = None
+    SeasATran: float | None = None
+    SeasRain: float | None = None
+    SeasInfil: float | None = None
+    ThetaAvail: float | None = None
+    CO2FLux: float | None = None
+    O2FLux: float | None = None
+    N2OFLux: float | None = None
+    
+# Table: g07_potato
+class G07Potato(SQLModel, table=True):
+    __tablename__ = "g07_potato"
+    g07_potato_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Humus_N: float | None = None
+    Humus_C: float | None = None
+    Litter_N: float | None = None
+    Litter_C: float | None = None
+    Manure_N: float | None = None
+    Manure_C: float | None = None
+    Root_N: float | None = None
+    Root_C: float | None = None
+    # Table: nitrogen_potato
+class NitrogenPotato(SQLModel, table=True):
+    __tablename__ = "nitrogen_potato"
+    nitrogen_potato_id: int = Field(primary_key=True)
+    Date_Time: int | None = None
+    tot_N: float | None = None
+    leaf_N: float | None = None
+    stem_N: float | None = None
+    root_N: float | None = None
+    tuber_N: float | None = None
+    dead_N: float | None = None
+    tot_N_C: float | None = None
+    leaf_N_C: float | None = None
+    stem_N_C: float | None = None
+    root_N_C: float | None = None
+    tubr_N_C: float | None = None
+    N_uptake: float | None = None
+    N_demand: float | None = None
+    seed_N: float | None = None
+    Nstress: float | None = None
+
+# Table: plantStress_potato
+class PlantStressPotato(SQLModel, table=True):
+    __tablename__ = "plantStress_potato"
+    plantStress_potato_id: int = Field(primary_key=True)
+    Date_Time: str | None = None
+    waterstressfactor: float | None = None
+    PSIEffect_leaf: int | None = None
+    NEffect_leaf: float | None = None
+    PSIEffect_Pn: float | None = None
+    NEffect_Pn: float | None = None
+    Dev_stage: float | None = None
+    Heat_veg: float | None = None
+    Heat_repre: float | None = None
+
+
+
+
+# --- Cotton Table Models ---
+
+
+# Table: g01_cotton
+class G01Cotton(SQLModel, table=True):
+    __tablename__ = "g01_cotton"
+    g01_cotton_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    PlantH: float | None = None
+    LAI: float | None = None
+    LInt: float | None = None
+    Nodes: int | None = None
+    Sites: int | None = None
+    N_Squares: int | None = None
+    N_GB: int | None = None
+    N_OB: int | None = None
+    NLvsLoss: int | None = None
+    NSqLoss: int | None = None
+    NBollsLoss: int | None = None
+    NFruitShed: int | None = None
+    PetShd_DM: float | None = None
+    GB_lossDM: float | None = None
+    Lf_lossDM: float | None = None
+    Rt_lossDM: float | None = None
+    Dd_WtDM: float | None = None
+    SquareDM: float | None = None
+    GB_DM: float | None = None
+    OB_DM: float | None = None
+    LeafDM: float | None = None
+    StemDM: float | None = None
+    RootDM: float | None = None
+    ResC: float | None = None
+    PlantDM: float | None = None
+    R_S: float | None = None
+    Yield: float | None = None
+    Temp: float | None = None
+    L_Temp: float | None = None
+    Rain: float | None = None
+    SRad: int | None = None
+    PFD: float | None = None
+    RH: float | None = None
+    LeafN: float | None = None
+    StemN: float | None = None
+    SeedN: float | None = None
+    BurrN: float | None = None
+    RootN: float | None = None
+    Nloss: float | None = None
+    PlantN: float | None = None
+    N_uptake: float | None = None
+    S_Psi: float | None = None
+    L_Psi: float | None = None
+    LArea: float | None = None
+    VPD: float | None = None
+    StCond: float | None = None
+    Pnet: float | None = None
+    PGross: float | None = None
+    L_Res: float | None = None
+    Main_Res: float | None = None
+    Resp: float | None = None
+    SPnet: float | None = None
+    C_Bal: float | None = None
+    Nstress_Pn: float | None = None
+    Note: str | None = None
+
+# Table: g03_cotton
+class G03Cotton(SQLModel, table=True):
+    __tablename__ = "g03_cotton"
+    g03_cotton_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    hNew: float | None = None
+    thNew: float | None = None
+    Q: float | None = None
+    NO3N: float | None = None
+    NH4N: float | None = None
+    Temp: float | None = None
+    CO2Conc: float | None = None
+    O2Conc: float | None = None
+    N2OConc: float | None = None
+
+# Table: g04_cotton
+class G04Cotton(SQLModel, table=True):
+    __tablename__ = "g04_cotton"
+    g04_cotton_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Node: int | None = None
+    RMassM: float | None = None
+    RMassY: float | None = None
+    RDenM: float | None = None
+    RDenY: float | None = None
+    WaterSink: float | None = None
+    NitSink: float | None = None
+    GasSink: float | None = None
+
+    # Table: g05_cotton
+class G05Cotton(SQLModel, table=True):
+    __tablename__ = "g05_cotton"
+    g05_cotton_id: int = Field(primary_key=True)
+    Date_Time: str
+    PSoilEvap: float | None = None
+    ASoilEVap: float | None = None
+    PET_PEN: float | None = None
+    PE_T_int: float | None = None
+    transp: float | None = None
+    CumRain: float | None = None
+    infil: float | None = None
+    FLuxAct: float | None = None
+    Drainage: float | None = None
+    N_Leach: float | None = None
+    Runoff: float | None = None
+    cover: float | None = None
+    PSIM: float | None = None
+    SeasPSoEv: float | None = None
+    SeasASoEv: float | None = None
+    SeasPTran: float | None = None
+    SeasATran: float | None = None
+    SeasRain: float | None = None
+    SeasInfil: float | None = None
+    ThetaAvail: float | None = None
+    CO2FLux: float | None = None
+    O2FLux: float | None = None
+    N2OFLux: float | None = None
+    
+# Table: g07_cotton
+class G07Cotton(SQLModel, table=True):
+    __tablename__ = "g07_cotton"
+    g07_cotton_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Humus_N: float | None = None
+    Humus_C: float | None = None
+    Litter_N: float | None = None
+    Litter_C: float | None = None
+    Manure_N: float | None = None
+    Manure_C: float | None = None
+    Root_N: float | None = None
+    Root_C: float | None = None
+
+class PlantStressCotton(SQLModel, table=True):
+    __tablename__ = "plantStress_cotton"
+
+    plantStress_cotton_id: Optional[int] = Field(default=None, primary_key=True)
+    Date_Time: datetime
+    W_stress: Optional[float] = None
+    N_Veg_Str: Optional[float] = None
+    N_Fru_Str: Optional[float] = None
+    N_Rt_Str: Optional[float] = None
+    C_Stress: Optional[float] = None
+
+# --- Soybean Table Models ---
+
+
+# Table: g01_soybean
+class G01Soybean(SQLModel, table=True):
+    __tablename__ = "g01_soybean"
+    g01_soybean_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    jday: int | None = None
+    RSTAGE: float | None = None
+    VSTAGE: float | None = None
+    PFD: float | None = None
+    SolRad: float | None = None
+    Tair: float | None = None
+    Tcan: float | None = None
+    Pgross: float | None = None
+    Pnet: float | None = None
+    gs: float | None = None
+    PSIL: float | None = None
+    LAI: float | None = None
+    LAREAT: float | None = None
+    totalDM: float | None = None
+    rootDM: float | None = None
+    stemDM: float | None = None
+    leafDM: float | None = None
+    seedDM: float | None = None
+    podDM: float | None = None
+    DeadDM: float | None = None
+    Tr_pot: float | None = None
+    Tr_act: float | None = None
+    wstress: float | None = None
+    Nstress: float | None = None
+    Limit: str | None = None
+    
+    # Table: g03_soybean
+class G03Soybean(SQLModel, table=True):
+    __tablename__ = "g03_soybean"
+    g03_soybean_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    hNew: float | None = None
+    thNew: float | None = None
+    Q: float | None = None
+    NO3N: float | None = None
+    NH4N: float | None = None
+    Temp: float | None = None
+    CO2Conc: float | None = None
+    O2Conc: float | None = None
+    N2OConc: float | None = None
+
+# Table: g04_soybean
+class G04Soybean(SQLModel, table=True):
+    __tablename__ = "g04_soybean"
+    g04_soybean_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Node: int | None = None
+    RMassM: float | None = None
+    RMassY: float | None = None
+    RDenM: float | None = None
+    RDenY: float | None = None
+    WaterSink: float | None = None
+    NitSink: float | None = None
+    GasSink: float | None = None
+# Table: g05_maize
+class G05Soybean(SQLModel, table=True):
+    __tablename__ = "g05_soybean"
+    g05_soybean_id: int = Field(primary_key=True)
+    Date_Time: str
+    PSoilEvap: float | None = None
+    ASoilEVap: float | None = None
+    PET_PEN: float | None = None
+    PE_T_int: float | None = None
+    transp: float | None = None
+    CumRain: float | None = None
+    infil: float | None = None
+    FLuxAct: float | None = None
+    Drainage: float | None = None
+    N_Leach: float | None = None
+    Runoff: float | None = None
+    cover: float | None = None
+    PSIM: float | None = None
+    SeasPSoEv: float | None = None
+    SeasASoEv: float | None = None
+    SeasPTran: float | None = None
+    SeasATran: float | None = None
+    SeasRain: float | None = None
+    SeasInfil: float | None = None
+    ThetaAvail: float | None = None
+    CO2FLux: float | None = None
+    O2FLux: float | None = None
+    N2OFLux: float | None = None
+# Table: g07_soybean
+class G07Soybean(SQLModel, table=True):
+    __tablename__ = "g07_soybean"
+    g07_soybean_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: str | None = None
+    X: float | None = None
+    Y: float | None = None
+    Humus_N: float | None = None
+    Humus_C: float | None = None
+    Litter_N: float | None = None
+    Litter_C: float | None = None
+    Manure_N: float | None = None
+    Manure_C: float | None = None
+    Root_N: float | None = None
+    Root_C: float | None = None
+    
+class NitrogenSoybean(SQLModel, table=True):
+    __tablename__ = "nitrogen_soybean"
+    nitrogen_soybean_id: Optional[int] = Field(default=None, primary_key=True)
+    Date_Time: datetime
+    total_N: Optional[float] = None
+    leaf_N: Optional[float] = None
+    stem_N: Optional[float] = None
+    pod_N: Optional[float] = None
+    seed_N: Optional[float] = None
+    root_N: Optional[float] = None
+    dead_N: Optional[float] = None
+    plant_N_C: Optional[float] = None
+    N_uptake: Optional[float] = None
+    N_demand: Optional[float] = None
+    Nstress: Optional[float] = None
+    
+class PlantStressSoybean(SQLModel, table=True):
+    __tablename__ = "plantStress_soybean"
+
+    plantStress_soybean_id: Optional[int] = Field(default=None, primary_key=True)
+    Date_Time: datetime
+    wstress: Optional[float] = None
+    Nstress: Optional[float] = None
+    Cstress: Optional[float] = None
+    NEffect_ve: Optional[float] = None
+    wstress2: Optional[float] = None
+
+
+# --- Fallow Table Models ---
+
+# G03_fallow
+class G03Fallow(SQLModel, table=True):
+    __tablename__ = "g03_fallow"
+
+    g03_fallow_id: Optional[int] = Field(default=None, primary_key=True)
+    Date_Time: Optional[float] = None
+    X: Optional[float] = None
+    Y: Optional[float] = None
+    hNew: Optional[float] = None
+    thNew: Optional[float] = None
+    Q: Optional[float] = None
+    NO3N: Optional[float] = None
+    NH4N: Optional[float] = None
+    Temp: Optional[float] = None
+    CO2Conc: Optional[float] = None
+    O2Conc: Optional[int] = None
+    N2OConc: Optional[float] = None
+    
+# Table: g05_fallow
+class G05Fallow(SQLModel, table=True):
+    __tablename__ = "g05_fallow"
+    g05_fallow_id: int | None = Field(default=None, primary_key=True)
+    Date_Time: float | None = None
+    PSoilEvap: float | None = None
+    ASoilEVap: float | None = None
+    PET_PEN: float | None = None
+    PE_T_int: float | None = None
+    transp: float | None = None
+    CumRain: float | None = None
+    infil: float | None = None
+    FLuxAct: float | None = None
+    Drainage: float | None = None
+    N_Leach: float | None = None
+    Runoff: float | None = None
+    cover: float | None = None
+    PSIM: float | None = None
+    SeasPSoEv: float | None = None
+    SeasASoEv: float | None = None
+    SeasPTran: float | None = None
+    SeasATran: float | None = None
+    SeasRain: float | None = None
+    SeasInfil: float | None = None
+    ThetaAvail: float | None = None
+    CO2FLux: float | None = None
+    O2FLux: float | None = None
+    N2OFLux: float | None = None
+
+class G07Fallow(SQLModel, table=True):
+    __tablename__ = "g07_fallow"
+
+    g07_fallow_id: Optional[int] = Field(default=None, primary_key=True)
+    Date_Time: str
+    X: Optional[float] = None
+    Y: Optional[float] = None
+    Humus_N: Optional[float] = None
+    Humus_C: Optional[float] = None
+    Litter_N: Optional[float] = None
+    Litter_C: Optional[float] = None
+    Manure_N: Optional[float] = None
+    Manure_C: Optional[float] = None
+    Root_N: Optional[float] = None
+    Root_C: Optional[float] = None
+
+# Table: plantStress_fallow (potato/fallow)
+class PlantStressFallow(SQLModel, table=True):
+    __tablename__ = "plantStress_fallow"
+    date: str | None = None
+    time: str | None = None
+    waterstress: str | None = None
+    N_stress: str | None = None
+
+    Shade_Stress: str | None = None
+    PotentialArea: str | None = None
+    plantStress_fallow_id: int | None = Field(default=None, primary_key=True)
