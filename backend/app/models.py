@@ -1861,7 +1861,21 @@ class PastrunsPublic(SQLModel):
 class seasonRunResponse(SQLModel):
     data: list[Any]
 
+# Geometry table
+class Geometry(SQLModel, table=True):
+    __tablename__ = "geometry"
+
+    nodeNum: Optional[int] = Field(default=None, primary_key=True)
+    X: Optional[float] = None
+    Y: Optional[float] = None
+    Layer: Optional[int] = None
+    Area: Optional[float] = None
+    N2OConc: Optional[float] = None
+    simID: Optional[int] = None
+
+
 # --- Auto-generated SQLModel classes from cropOutput.db.sql ---
+
 
 # --- Maize Table Models ---
 # Table: plantStress_maize
@@ -2069,7 +2083,7 @@ class G04Potato(SQLModel, table=True):
     NitSink: float | None = None
     GasSink: float | None = None
     
-    # Table: g05_maize
+    # Table: g05_potato
 class G05Potato(SQLModel, table=True):
     __tablename__ = "g05_potato"
     g05_potato_id: int = Field(primary_key=True)
@@ -2113,6 +2127,7 @@ class G07Potato(SQLModel, table=True):
     Manure_C: float | None = None
     Root_N: float | None = None
     Root_C: float | None = None
+
     # Table: nitrogen_potato
 class NitrogenPotato(SQLModel, table=True):
     __tablename__ = "nitrogen_potato"
