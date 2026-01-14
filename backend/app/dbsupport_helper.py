@@ -704,14 +704,14 @@ def read_soilhydroDB(soilname, session: SessionDep,current_user_id) -> Any:
             query = text("""
             SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id)
+            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id) order by id
         """)
             result = session.execute(query, {'soilname': soilname, 'user_id': 1})
         else:
             query = text("""
                 SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
                 FROM soil_long 
-                WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id )
+                WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id ) order by id
             """)
             print("query", query, current_user_id, soilname)
             result = session.execute(query, {'soilname': soilname, 'user_id':current_user_id})
@@ -732,7 +732,7 @@ def read_soilOMDB(soilname, session: SessionDep, current_user_id) -> Any:
         query = text("""
             SELECT id, "Sand", "Silt", "Clay", "BD", "OM_pct", "TH33", "TH1500" 
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id)
+            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id) order by id
         """)
         result = session.execute(query, {'soilname': soilname, 'user_id': current_user_id})
         rlist = result.fetchall()
@@ -958,7 +958,7 @@ def read_soilshortDB(soilname: str, session: SessionDep,current_user_id) -> list
                     SELECT id
                     FROM soil
                     WHERE soilname = :soilname AND owner_id = :current_user_id
-                )
+                ) order by "Bottom_depth"
             """)
             # Execute the query with the provided soilname parameter
             result = session.execute(query, {'soilname': soilname, 'current_user_id': current_user_id}).fetchall()
