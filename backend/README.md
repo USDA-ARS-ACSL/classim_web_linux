@@ -30,14 +30,26 @@ Traefik UI, to see how the routes are being handled by the proxy: http://localho
 To check the logs, run:
 
 ```bash
-docker compose logs
+docker-compose logs
+
 ```
 
 To check the logs of a specific service, add the name of the service, e.g.:
 
 ```bash
-docker compose logs backend
+docker-compose logs backend
+or docker-compose logs -f backend 
+to get continuous logs
 ```
+
+To open a terminal into the container
+```
+docker exec -it <container number or name> bash
+```
+
+sometimes the program won't find the container by name if you use backend or frontend. if you use the number, it only needs 4 digits
+use docker ps to get the id's of running containers.
+
 
 If your Docker is not running in `localhost` (the URLs above wouldn't work) you would need to use the IP or domain where your Docker is running.
 
