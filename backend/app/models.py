@@ -1,4 +1,5 @@
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import Field, Relationship, SQLModel, Column
+from sqlalchemy import Float, Integer, String, text
 from pydantic import BaseModel
 from typing import Optional, List, Any
 from datetime import datetime, timezone
@@ -411,7 +412,7 @@ class SoilLongUpdate(SoilLongBase):
 # Database model, database table inferred from class name
 class SoilLong(SoilLongBase, table=True):
     __tablename__ = 'soil_long'  
-    id: float | None = Field(default=None, primary_key=True)    
+    id: int | None = Field(default=None, primary_key=True)    
     o_sid: int
     initType: float | None
     Bottom_depth: float | None
@@ -768,9 +769,9 @@ class WeatherBase(SQLModel):
     id: int | None = Field(default=None, primary_key=True)
     stationtype: str | None = None
     weather_id: str | None = None
-    jday: float | None = None
+    jday: int | None = None
     date: str | None = None
-    hour: float | None = None
+    hour: int | None = None
     srad: float | None = None
     wind: float | None = None
     rh: float | None = None
@@ -785,9 +786,9 @@ class WeatherCreate(WeatherBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     stationtype: str | None = None
     weather_id: str | None = None
-    jday: float | None = None
+    jday: int | None = None
     date: str | None = None
-    hour: float | None = None
+    hour: int | None = None
     srad: float | None = None
     wind: float | None = None
     rh: float | None = None
@@ -800,9 +801,9 @@ class WeatherCreate(WeatherBase, table=True):
 class WeatherUpdate(WeatherBase):
     stationtype: str | None = None
     weather_id: str | None = None
-    jday: float | None = None
+    jday: int | None = None
     date: str | None = None
-    hour: float | None = None
+    hour: int | None = None
     srad: float | None = None
     wind: float | None = None
     rh: float | None = None
@@ -818,9 +819,9 @@ class WeatherData(WeatherBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     stationtype: str | None = None
     weather_id: str | None = None
-    jday: float | None = None
+    jday: int | None = None
     date: str | None = None
-    hour: float | None = None
+    hour: int | None = None
     srad: float | None = None
     wind: float | None = None
     rh: float | None = None
@@ -834,9 +835,9 @@ class WeatherDataPublic(WeatherBase):
     id: int | None = Field(default=None, primary_key=True)
     stationtype: str | None = None
     weather_id: str | None = None
-    jday: float | None = None
+    jday: int | None = None
     date: str | None = None
-    hour: float | None = None
+    hour: int | None = None
     srad: float | None = None
     wind: float | None = None
     rh: float | None = None
