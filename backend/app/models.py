@@ -1957,7 +1957,7 @@ class Geometry(SQLModel, table=True):
 # Table: g01_maize
 class G01Maize(SQLModel, table=True):
     __tablename__ = "g01_maize"
-    g01_maize_id: int | None = Field(default=None, primary_key=True)
+    g01_maize_id: int | None = Field(default=None)
     Date_Time: str | None = None
     jday: int | None = None
     Leaves: float | None = None
@@ -2002,7 +2002,7 @@ class G01Maize(SQLModel, table=True):
 # Table: g03_maize
 class G03Maize(SQLModel, table=True):
     __tablename__ = "g03_maize"
-    g03_maize_id: int | None = Field(default=None, primary_key=True)
+    g03_maize_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2018,7 +2018,7 @@ class G03Maize(SQLModel, table=True):
     # Table: g04_maize
 class G04Maize(SQLModel, table=True):
     __tablename__ = "g04_maize"
-    g04_maize_id: int | None = Field(default=None, primary_key=True)
+    g04_maize_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2305,7 +2305,7 @@ class G01Cotton(SQLModel, table=True):
 # Table: g03_cotton
 class G03Cotton(SQLModel, table=True):
     __tablename__ = "g03_cotton"
-    g03_cotton_id: int | None = Field(default=None, primary_key=True)
+    g03_cotton_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2322,7 +2322,7 @@ class G03Cotton(SQLModel, table=True):
 # Table: g04_cotton
 class G04Cotton(SQLModel, table=True):
     __tablename__ = "g04_cotton"
-    g04_cotton_id: int | None = Field(default=None, primary_key=True)
+    g04_cotton_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2367,7 +2367,7 @@ class G05Cotton(SQLModel, table=True):
 # Table: g07_cotton
 class G07Cotton(SQLModel, table=True):
     __tablename__ = "g07_cotton"
-    g07_cotton_id: int | None = Field(default=None, primary_key=True)
+    g07_cotton_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2397,7 +2397,7 @@ class PlantStressCotton(SQLModel, table=True):
 # Table: g01_soybean
 class G01Soybean(SQLModel, table=True):
     __tablename__ = "g01_soybean"
-    g01_soybean_id: int | None = Field(default=None, primary_key=True)
+    g01_soybean_id: int | None = Field(default=None)
     Date_Time: str | None = None
     jday: int | None = None
     RSTAGE: float | None = None
@@ -2428,7 +2428,7 @@ class G01Soybean(SQLModel, table=True):
     # Table: g03_soybean
 class G03Soybean(SQLModel, table=True):
     __tablename__ = "g03_soybean"
-    g03_soybean_id: int | None = Field(default=None, primary_key=True)
+    g03_soybean_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2445,7 +2445,7 @@ class G03Soybean(SQLModel, table=True):
 # Table: g04_soybean
 class G04Soybean(SQLModel, table=True):
     __tablename__ = "g04_soybean"
-    g04_soybean_id: int | None = Field(default=None, primary_key=True)
+    g04_soybean_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2488,7 +2488,7 @@ class G05Soybean(SQLModel, table=True):
 # Table: g07_soybean
 class G07Soybean(SQLModel, table=True):
     __tablename__ = "g07_soybean"
-    g07_soybean_id: int | None = Field(default=None, primary_key=True)
+    g07_soybean_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2552,7 +2552,7 @@ class G03Fallow(SQLModel, table=True):
 # Table: g05_fallow
 class G05Fallow(SQLModel, table=True):
     __tablename__ = "g05_fallow"
-    g05_fallow_id: int | None = Field(default=None, primary_key=True)
+    g05_fallow_id: int | None = Field(default=None)
     Date_Time: float | None = None
     PSoilEvap: float | None = None
     ASoilEVap: float | None = None
@@ -2604,4 +2604,4 @@ class PlantStressFallow(SQLModel, table=True):
 
     Shade_Stress: str | None = None
     PotentialArea: str | None = None
-    plantStress_fallow_id: int | None = Field(default=None, primary_key=True)
+    plantStress_fallow_id: int | None = Field(default=None)
