@@ -2003,19 +2003,20 @@ class G01Maize(SQLModel, table=True):
 # Table: g03_maize
 class G03Maize(SQLModel, table=True):
     __tablename__ = "g03_maize"
-id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     g03_maize_id: int | None = Field(default=None)
-    Date_Time: str | None = None
-    X: float | None = None
-    Y: float | None = None
-    Humus_N: float | None = None
-    Humus_C: float | None = None
-    Litter_N: float | None = None
-    Litter_C: float | None = None
-    Manure_N: float | None = None
-    Manure_C: float | None = None
-    Root_N: float | None = None
-    Root_C: float | None = None
+    Date_Time: str |None = None
+    X: Optional[float] = None
+    Y: Optional[float] = None
+    hNew: Optional[float] = None
+    thNew: Optional[float] = None
+    Q: Optional[float] = None
+    NO3N: Optional[float] = None
+    NH4N: Optional[float] = None
+    Temp: Optional[float] = None
+    CO2Conc: Optional[float] = None
+    O2Conc: Optional[int] = None
+    N2OConc: Optional[float] = None
 
     # Table: g04_maize
 class G04Maize(SQLModel, table=True):
@@ -2039,7 +2040,7 @@ class G05Maize(SQLModel, table=True):
     __tablename__ = "g05_maize"
     id: Optional[int] = Field(default=None, primary_key=True)
     g05_maize_id: int = Field(primary_key=True)
-    Date_Time: str
+    Date_Time: str | None=None
     PSoilEvap: float | None = None
     ASoilEVap: float | None = None
     PET_PEN: float | None = None
@@ -2084,7 +2085,7 @@ class PlantStressMaize(SQLModel, table=True):
     __tablename__ = "plantStress_maize"
     id: Optional[int] = Field(default=None, primary_key=True)
     plantStress_maize_id: int | None = Field(default=None)
-    Date_Time: str
+    Date_Time: str | None=None
     waterstress: float | None = None
     N_stress: float | None = None
     Shade_Stress: float | None = None
@@ -2133,17 +2134,18 @@ class G03Potato(SQLModel, table=True):
     __tablename__ = "g03_potato"
     id: Optional[int] = Field(default=None, primary_key=True)
     g03_potato_id: int | None = Field(default=None)
-    Date_Time: str | None = None
-    X: float | None = None
-    Y: float | None = None
-    Humus_N: float | None = None
-    Humus_C: float | None = None
-    Litter_N: float | None = None
-    Litter_C: float | None = None
-    Manure_N: float | None = None
-    Manure_C: float | None = None
-    Root_N: float | None = None
-    Root_C: float | None = None
+    Date_Time: str |None= None
+    X: Optional[float] = None
+    Y: Optional[float] = None
+    hNew: Optional[float] = None
+    thNew: Optional[float] = None
+    Q: Optional[float] = None
+    NO3N: Optional[float] = None
+    NH4N: Optional[float] = None
+    Temp: Optional[float] = None
+    CO2Conc: Optional[float] = None
+    O2Conc: Optional[int] = None
+    N2OConc: Optional[float] = None
 
 
 
@@ -2560,7 +2562,7 @@ class PlantStressSoybean(SQLModel, table=True):
 # G03_fallow
 class G03Fallow(SQLModel, table=True):
     __tablename__ = "g03_fallow"
-
+    id: Optional[int] = Field(default=None, primary_key=True)
     g03_fallow_id: Optional[int] = Field(default=None, primary_key=True)
     Date_Time: Optional[float] = None
     X: Optional[float] = None
@@ -2578,6 +2580,7 @@ class G03Fallow(SQLModel, table=True):
 # Table: g05_fallow
 class G05Fallow(SQLModel, table=True):
     __tablename__ = "g05_fallow"
+    id: Optional[int] = Field(default=None, primary_key=True)
     g05_fallow_id: int | None = Field(default=None)
     Date_Time: float | None = None
     PSoilEvap: float | None = None
@@ -2606,7 +2609,7 @@ class G05Fallow(SQLModel, table=True):
 
 class G07Fallow(SQLModel, table=True):
     __tablename__ = "g07_fallow"
-
+    id: Optional[int] = Field(default=None, primary_key=True)
     g07_fallow_id: Optional[int] = Field(default=None, primary_key=True)
     Date_Time: str
     X: Optional[float] = None
@@ -2623,11 +2626,11 @@ class G07Fallow(SQLModel, table=True):
 # Table: plantStress_fallow (potato/fallow)
 class PlantStressFallow(SQLModel, table=True):
     __tablename__ = "plantStress_fallow"
+    id: Optional[int] = Field(default=None, primary_key=True)
     date: str | None = None
     time: str | None = None
     waterstress: str | None = None
     N_stress: str | None = None
-
     Shade_Stress: str | None = None
     PotentialArea: str | None = None
     plantStress_fallow_id: int | None = Field(default=None)
