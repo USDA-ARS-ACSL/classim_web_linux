@@ -1198,6 +1198,16 @@ class CultivarCottonBase(SQLModel):
 class CultivarCottonCreate(CultivarCottonBase):
     __tablename__ = 'cultivar_cotton'
     hybridname: str
+    calbrt1: float | None 
+    calbrt2: float | None
+    calbrt3: float | None
+    calbrt4: float | None
+    calbrt5: float | None
+    calbrt6: float | None
+    calbrt7: float | None
+    calbrt8: float | None
+    calbrt9: float | None
+    calbrt10: float | None
     calbrt11: float | None 
     calbrt12: float | None
     calbrt13: float | None
@@ -1233,6 +1243,10 @@ class CultivarCottonCreate(CultivarCottonBase):
     calbrt50: float | None
     calbrt52: float | None
     calbrt57: float | None
+    calbrt57: float | None
+    calbrt58: float | None
+    calbrt59: float | None
+    calbrt60: float | None
 
 
 # Properties to receive on CultivarCotton update
@@ -1241,53 +1255,108 @@ class CultivarCottonUpdate(CultivarCottonBase):
 
 
 # Database model, database table inferred from class name
-class CultivarCottondata(CultivarCottonBase, table=True):
-    id: int | None = Field(default=None, primary_key=True)
-    
-    hybridname: str
-    calbrt11: float | None 
-    calbrt12: float | None
-    calbrt13: float | None
-    calbrt15: float | None
-    calbrt16: float | None
-    calbrt17: float | None
-    calbrt18: float | None
-    calbrt19: float | None
-    calbrt22: float | None
-    calbrt26: float | None
-    calbrt27: float | None
-    calbrt28: float | None
-    calbrt29: float | None
-    calbrt30: float | None
-    calbrt31: float | None
-    calbrt32: float | None
-    calbrt33: float | None
-    calbrt34: float | None
-    calbrt35: float | None
-    calbrt36: float | None
-    calbrt37: float | None
-    calbrt38: float | None
-    calbrt39: float | None
-    calbrt40: float | None
-    calbrt41: float | None
-    calbrt42: float | None
-    calbrt43: float | None
-    calbrt44: float | None
-    calbrt45: float | None
-    calbrt47: float | None
-    calbrt48: float | None
-    calbrt49: float | None
-    calbrt50: float | None
-    calbrt52: float | None
-    calbrt57: float | None
+class CultivarCottonData(CultivarCottonBase, table=True):
+    __tablename__ = "cultivar_cotton"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hybridname: Optional[str] = None
+    calbrt1: Optional[float] = Field(default=0.9)
+    calbrt2: Optional[float] = Field(default=-0.22)
+    calbrt3: Optional[float] = Field(default=-2.2)
+    calbrt4: Optional[float] = Field(default=0.1)
+    calbrt5: Optional[float] = Field(default=-5.5)
+    calbrt6: Optional[float] = Field(default=0.5)
+    calbrt7: Optional[float] = Field(default=0.5)
+    calbrt8: Optional[float] = Field(default=0.1)
+    calbrt9: Optional[float] = Field(default=1.65)
+    calbrt10: Optional[float] = Field(default=2.15)
+    calbrt11: Optional[float] = Field(default=4)
+    calbrt12: Optional[float] = Field(default=6.75)
+    calbrt13: Optional[float] = Field(default=35)
+    calbrt14: Optional[float] = Field(default=0.1)
+    calbrt15: Optional[float] = Field(default=0.85)
+    calbrt16: Optional[float] = Field(default=-0.9)
+    calbrt17: Optional[float] = Field(default=0.9)
+    calbrt18: Optional[float] = Field(default=0)
+    calbrt19: Optional[float] = Field(default=1.5)
+    calbrt20: Optional[float] = Field(default=1)
+    calbrt21: Optional[float] = Field(default=1)
+    calbrt22: Optional[float] = Field(default=1)
+    calbrt23: Optional[float] = Field(default=1)
+    calbrt24: Optional[float] = Field(default=1)
+    calbrt25: Optional[float] = Field(default=1)
+    calbrt26: Optional[float] = Field(default=1.35)
+    calbrt27: Optional[float] = Field(default=1)
+    calbrt28: Optional[float] = Field(default=1)
+    calbrt29: Optional[float] = Field(default=0.9)
+    calbrt30: Optional[float] = Field(default=1.15)
+    calbrt31: Optional[float] = Field(default=1.1)
+    calbrt32: Optional[float] = Field(default=1)
+    calbrt33: Optional[float] = Field(default=-0.85)
+    calbrt34: Optional[float] = Field(default=1)
+    calbrt35: Optional[float] = Field(default=1)
+    calbrt36: Optional[float] = Field(default=1.1)
+    calbrt37: Optional[float] = Field(default=3)
+    calbrt38: Optional[float] = Field(default=0.75)
+    calbrt39: Optional[float] = Field(default=1)
+    calbrt40: Optional[float] = Field(default=2.5)
+    calbrt41: Optional[float] = Field(default=1)
+    calbrt42: Optional[float] = Field(default=1)
+    calbrt43: Optional[float] = Field(default=0.9)
+    calbrt44: Optional[float] = Field(default=1)
+    calbrt45: Optional[float] = Field(default=0.8)
+    calbrt46: Optional[float] = Field(default=1)
+    calbrt47: Optional[float] = Field(default=1.1)
+    calbrt48: Optional[float] = Field(default=0.9)
+    calbrt49: Optional[float] = Field(default=0.7)
+    calbrt50: Optional[float] = Field(default=1)
+    calbrt51: Optional[float] = Field(default=1)
+    calbrt52: Optional[float] = Field(default=1.35)
+    calbrt53: Optional[float] = Field(default=1)
+    calbrt54: Optional[float] = Field(default=0)
+    calbrt55: Optional[float] = Field(default=0.9)
+    calbrt56: Optional[float] = Field(default=1)
+    calbrt57: Optional[float] = Field(default=1)
+    calbrt58: Optional[float] = Field(default=1)
+    calbrt59: Optional[float] = Field(default=1)
+    calbrt60: Optional[float] = Field(default=1)
+    RRRM: Optional[float] = Field(default=166.7)
+    RRRY: Optional[float] = Field(default=31.3)
+    RVRL: Optional[float] = Field(default=0.73)
+    ALPM: Optional[float] = Field(default=0.6)
+    ALPY: Optional[float] = Field(default=0.3)
+    RTWL: Optional[float] = Field(default=0.00001)
+    RTMinWTperArea: Optional[float] = Field(default=0.0002)
+    EPSI: Optional[float] = Field(default=1)
+    IUPW: Optional[float] = Field(default=1)
+    CourMax: Optional[float] = Field(default=1)
+    Diffx: Optional[float] = Field(default=2.4)
+    Diffz: Optional[float] = Field(default=2.9)
+    VelZ: Optional[float] = Field(default=0)
+    lsink: Optional[float] = Field(default=1)
+    Rroot: Optional[float] = Field(default=0.03)
+    Constl_M: Optional[float] = Field(default=35)
+    ConstK_M: Optional[float] = Field(default=0.5)
+    Cmin0_M: Optional[float] = Field(default=0.01)
+    ConstI_Y: Optional[float] = Field(default=17.2)
+    ConstK_Y: Optional[float] = Field(default=0.75)
+    Cmin0_Y: Optional[float] = Field(default=0.03)
     owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
-
-
 
 # Properties to return via API, id is always required
 class CultivarCottonPublic(CultivarCottonBase):
     id: int
     hybridname: str
+    calbrt1: float | None 
+    calbrt2: float | None
+    calbrt3: float | None
+    calbrt4: float | None
+    calbrt5: float | None
+    calbrt6: float | None
+    calbrt7: float | None
+    calbrt8: float | None
+    calbrt9: float | None
+    calbrt10: float | None
     calbrt11: float | None 
     calbrt12: float | None
     calbrt13: float | None
@@ -1323,6 +1392,9 @@ class CultivarCottonPublic(CultivarCottonBase):
     calbrt50: float | None
     calbrt52: float | None
     calbrt57: float | None
+    calbrt58: float | None
+    calbrt59: float | None
+    calbrt60: float | None
 
 
 class CultivarCottonsPublic(SQLModel):
@@ -1990,7 +2062,7 @@ class G05Maize(SQLModel, table=True):
     
 class G07Maize(SQLModel, table=True):
     __tablename__ = "g07_maize"
-    g07_maize_id: int | None = Field(default=None, primary_key=True)
+    g07_maize_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2005,7 +2077,7 @@ class G07Maize(SQLModel, table=True):
     
 class PlantStressMaize(SQLModel, table=True):
     __tablename__ = "plantStress_maize"
-    plantStress_maize_id: int = Field(primary_key=True)
+    plantStress_maize_id: int | None = Field(default=None)
     Date_Time: str
     waterstress: float | None = None
     N_stress: float | None = None
@@ -2017,7 +2089,7 @@ class PlantStressMaize(SQLModel, table=True):
 # Table: g01_potato
 class G01Potato(SQLModel, table=True):
     __tablename__ = "g01_potato"
-    g01_potato_id: int = Field(primary_key=True)
+    g01_potato_id: int | None = Field(default=None)
     Date_Time: str
     jday: int
     LA_pl: float | None = None
@@ -2052,7 +2124,7 @@ class G01Potato(SQLModel, table=True):
     # Table: g03_potato
 class G03Potato(SQLModel, table=True):
     __tablename__ = "g03_potato"
-    g03_potato_id: int | None = Field(default=None, primary_key=True)
+    g03_potato_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2070,7 +2142,7 @@ class G03Potato(SQLModel, table=True):
 # Table: g04_potato
 class G04Potato(SQLModel, table=True):
     __tablename__ = "g04_potato"
-    g04_potato_id: int | None = Field(default=None, primary_key=True)
+    g04_potato_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2086,7 +2158,7 @@ class G04Potato(SQLModel, table=True):
     # Table: g05_potato
 class G05Potato(SQLModel, table=True):
     __tablename__ = "g05_potato"
-    g05_potato_id: int = Field(primary_key=True)
+    g05_potato_id: int | None = Field(default=None)
     Date_Time: str
     PSoilEvap: float | None = None
     ASoilEVap: float | None = None
@@ -2115,7 +2187,7 @@ class G05Potato(SQLModel, table=True):
 # Table: g07_potato
 class G07Potato(SQLModel, table=True):
     __tablename__ = "g07_potato"
-    g07_potato_id: int | None = Field(default=None, primary_key=True)
+    g07_potato_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
     Y: float | None = None
@@ -2131,7 +2203,7 @@ class G07Potato(SQLModel, table=True):
     # Table: nitrogen_potato
 class NitrogenPotato(SQLModel, table=True):
     __tablename__ = "nitrogen_potato"
-    nitrogen_potato_id: int = Field(primary_key=True)
+    nitrogen_potato_id: int | None = Field(default=None)
     Date_Time: int | None = None
     tot_N: float | None = None
     leaf_N: float | None = None
@@ -2152,7 +2224,7 @@ class NitrogenPotato(SQLModel, table=True):
 # Table: plantStress_potato
 class PlantStressPotato(SQLModel, table=True):
     __tablename__ = "plantStress_potato"
-    plantStress_potato_id: int = Field(primary_key=True)
+    plantStress_potato_id: int | None = Field(default=None)
     Date_Time: str | None = None
     waterstressfactor: float | None = None
     PSIEffect_leaf: int | None = None
@@ -2172,7 +2244,7 @@ class PlantStressPotato(SQLModel, table=True):
 # Table: g01_cotton
 class G01Cotton(SQLModel, table=True):
     __tablename__ = "g01_cotton"
-    g01_cotton_id: int | None = Field(default=None, primary_key=True)
+    g01_cotton_id: int | None = Field(default=None)
     Date_Time: str | None = None
     PlantH: float | None = None
     LAI: float | None = None
