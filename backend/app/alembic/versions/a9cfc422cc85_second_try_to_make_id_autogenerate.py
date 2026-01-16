@@ -32,9 +32,8 @@ tables = [
     "g01_soybean", "g03_soybean", "g04_soybean", "g05_soybean", "g07_soybean",
     "g01_cotton", "g03_cotton", "g04_cotton", "g05_cotton", "g07_cotton",
     "g01_potato", "g03_potato", "g04_potato", "g05_potato", "g07_potato",
-    PlantStressFallow,G07Fallow, G05Fallow, G03Fallow,PlantStressSoybean,
-    NitrogenSoybean, PlantStressCotton, PlantStressPotato, NitrogenPotato,
-    PlantStressMaize
+    "g07_fallow", "g05_fallow", "g03_fallow",
+    "plantstress_potato", "nitrogen_potato", "plantStress_maize"
 ]
 
 def upgrade():
