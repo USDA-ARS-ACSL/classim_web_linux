@@ -1801,56 +1801,202 @@ class CultivarSoybeandata(CultivarSoybeanBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     
     hybridname: str ='93B15'
-    matGrp:float = 5.0
-    seedLb:float =2800.0
-    fill:float =4.0
-    v1:float =0.00957
-    v2:float = 14.6
-    v3:float= 1.0
-    r1:float= 0.028
-    r2:float= 0.00619
-    r3:float=-0.0907
-    r4:float= 0.161
-    r5:float= 0.522
-    r6:float= 120.1
-    r7:float= 0.0062
-    r8:float= 250.0
-    r9:float= 200.0
-    r10:float= 0.5
-    r11:float= 0.0024
-    r12:float=3.8
-    g1:float= 0.0024
-    g2:float= 0.5
-    g3:float= 1.8
-    g4:float= 0.8
-    g5:float= 0.684
-    g6:float= 1.684
-    g7:float=0.5
-    g8:float= 2.5
-    g9:float= 3.2
+    matGrp: float = Field(
+        default=5.0,
+        sa_column=Column(Float, server_default=text("5.0"))
+    )
+    seedLb: float = Field(
+        default=2800.0,
+        sa_column=Column(Float, server_default=text("2800.0"))
+    )
+    fill: float = Field(
+        default=4.0,
+        sa_column=Column(Float, server_default=text("4.0"))
+    )
+    v1: float = Field(
+        default=0.00957,
+        sa_column=Column(Float, server_default=text("0.00957"))
+    )
+    v2: float = Field(
+        default=14.6,
+        sa_column=Column(Float, server_default=text("14.6"))
+    )
+    v3: float = Field(
+        default=1.0,
+        sa_column=Column(Float, server_default=text("1.0"))
+    )
+    r1: float = Field(
+        default=0.028,
+        sa_column=Column(Float, server_default=text("0.028"))
+    )
+    r2: float = Field(
+        default=0.00619,
+        sa_column=Column(Float, server_default=text("0.00619"))
+    )
+    r3: float = Field(
+        default=-0.0907,
+        sa_column=Column(Float, server_default=text("-0.0907"))
+    )
+    r4: float = Field(
+        default=0.161,
+        sa_column=Column(Float, server_default=text("0.161"))
+    )
+    r5: float = Field(
+        default=0.522,
+        sa_column=Column(Float, server_default=text("0.522"))
+    )
+    r6: float = Field(
+        default=120.1,
+        sa_column=Column(Float, server_default=text("120.1"))
+    )
+    r7: float = Field(
+        default=0.0062,
+        sa_column=Column(Float, server_default=text("0.0062"))
+    )
+    r8: float = Field(
+        default=250.0,
+        sa_column=Column(Float, server_default=text("250.0"))
+    )
+    r9: float = Field(
+        default=200.0,
+        sa_column=Column(Float, server_default=text("200.0"))
+    )
+    r10: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    r11: float = Field(
+        default=0.0024,
+        sa_column=Column(Float, server_default=text("0.0024"))
+    )
+    r12: float = Field(
+        default=3.8,
+        sa_column=Column(Float, server_default=text("3.8"))
+    )
+    g1: float = Field(
+        default=0.0024,
+        sa_column=Column(Float, server_default=text("0.0024"))
+    )
+    g2: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    g3: float = Field(
+        default=1.8,
+        sa_column=Column(Float, server_default=text("1.8"))
+    )
+    g4: float = Field(
+        default=0.8,
+        sa_column=Column(Float, server_default=text("0.8"))
+    )
+    g5: float = Field(
+        default=0.684,
+        sa_column=Column(Float, server_default=text("0.684"))
+    )
+    g6: float = Field(
+        default=1.684,
+        sa_column=Column(Float, server_default=text("1.684"))
+    )
+    g7: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    g8: float = Field(
+        default=2.5,
+        sa_column=Column(Float, server_default=text("2.5"))
+    )
+    g9: float = Field(
+        default=3.2,
+        sa_column=Column(Float, server_default=text("3.2"))
+)
 
-    RRRM: Optional[float] = Field(default=166.7)
-    RRRY: Optional[float] = Field(default=31.3)
-    RVRL: Optional[float] = Field(default=0.73)
-    ALPM: Optional[float] = Field(default=0.6)
-    ALPY: Optional[float] = Field(default=0.3)
-    RTWL: Optional[float] = Field(default=0.00001)
-    RTMinWTperArea: Optional[float] = Field(default=0.0002)
-    EPSI: Optional[float] = Field(default=1)
-    IUPW: Optional[float] = Field(default=1)
-    CourMax: Optional[float] = Field(default=1)
-    Diffx: Optional[float] = Field(default=2.4)
-    Diffz: Optional[float] = Field(default=2.9)
-    VelZ: Optional[float] = Field(default=0)
-    lsink: Optional[float] = Field(default=1)
-    Rroot: Optional[float] = Field(default=0.03)
-    Constl_M: Optional[float] = Field(default=35)
-    ConstK_M: Optional[float] = Field(default=0.5)
-    Cmin0_M: Optional[float] = Field(default=0.01)
-    ConstI_Y: Optional[float] = Field(default=17.2)
-    ConstK_Y: Optional[float] = Field(default=0.75)
-    Cmin0_Y: Optional[float] = Field(default=0.03)
-    owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
+
+    RRRM: float = Field(
+        default=166.7,
+        sa_column=Column(Float, server_default=text("166.7"))
+    )
+    RRRY: float = Field(
+        default=31.3,
+        sa_column=Column(Float, server_default=text("31.3"))
+    )
+    RVRL: float = Field(
+        default=0.73,
+        sa_column=Column(Float, server_default=text("0.73"))
+    )
+    ALPM: float = Field(
+        default=0.55,
+        sa_column=Column(Float, server_default=text("0.55"))
+    )
+    ALPY: float = Field(
+        default=0.04,
+        sa_column=Column(Float, server_default=text("0.04"))
+    )
+    RTWL: float = Field(
+        default=1.06e-4,
+        sa_column=Column(Float, server_default=text("0.000106"))
+    )
+    RTMinWTperArea: float = Field(
+        default=2.00e-4,
+        sa_column=Column(Float, server_default=text("0.0002"))
+    )
+    EPSI: int = Field(
+        default=1,
+        sa_column=Column(Integer, server_default=text("1"))
+    )
+    IUPW: int = Field(
+        default=1,
+        sa_column=Column(Integer, server_default=text("1"))
+    )
+    CourMax: float = Field(
+        default=1,
+        sa_column=Column(Float, server_default=text("1"))
+    )
+    Diffx: float = Field(
+        default=2.4,
+        sa_column=Column(Float, server_default=text("2.4"))
+    )
+    Diffz: float = Field(
+        default=2.9,
+        sa_column=Column(Float, server_default=text("2.9"))
+    )
+    VelZ: float = Field(
+        default=0,
+        sa_column=Column(Float, server_default=text("0"))
+    )
+    lsink: int = Field(
+        default=1,
+        sa_column=Column(Integer, server_default=text("1"))
+    )
+    Rroot: float = Field(
+        default=0.017,
+        sa_column=Column(Float, server_default=text("0.017"))
+    )
+    Constl_M: float = Field(
+        default=35.0,
+        sa_column=Column(Float, server_default=text("35.0"))
+    )
+    ConstK_M: float = Field(
+        default=0.5,
+        sa_column=Column(Float, server_default=text("0.5"))
+    )
+    Cmin0_M: float = Field(
+        default=0.01,
+        sa_column=Column(Float, server_default=text("0.01"))
+    )
+    ConstI_Y: float = Field(
+        default=17.2,
+        sa_column=Column(Float, server_default=text("17.2"))
+    )
+    ConstK_Y: float = Field(
+        default=0.75,
+        sa_column=Column(Float, server_default=text("0.75"))
+    )
+    Cmin0_Y: float = Field(
+        default=0.03,
+        sa_column=Column(Float, server_default=text("0.03"))
+    )
+    owner_id: Optional[int] = Field(default=None, foreign_key="user.id")   
+#    owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
 
 
 

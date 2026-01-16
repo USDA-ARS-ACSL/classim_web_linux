@@ -117,6 +117,11 @@ after that run Alembic upgrade head.
 Alembic will first create a python file with the revisions and a revision number. this can be edited
 the command to upgrade head will upgrade the postgre database.
 
+if you want to run postgres commands inside the db open a bash shell into the postgress container
+docker exec -it <name> bash
+then run
+psql -U postgres app
+then you can run commands
 
 ### Docker Compose Override
 
