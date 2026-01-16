@@ -1800,34 +1800,55 @@ class CultivarSoybeanUpdate(CultivarSoybeanBase):
 class CultivarSoybeandata(CultivarSoybeanBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     
-    hybridname: str
-    matGrp:float | None
-    seedLb:float | None
-    fill:float | None
-    v1:float | None
-    v2:float | None
-    v3:float | None
-    r1:float | None
-    r2:float | None
-    r3:float | None
-    r4:float | None
-    r5:float | None
-    r6:float | None
-    r7:float | None
-    r8:float | None
-    r9:float | None
-    r10:float | None
-    r11:float | None
-    r12:float | None
-    g1:float | None
-    g2:float | None
-    g3:float | None
-    g4:float | None
-    g5:float | None
-    g6:float | None
-    g7:float | None
-    g8:float | None
-    g9:float | None 
+    hybridname: str ='93B15'
+    matGrp:float = 5.0
+    seedLb:float =2800.0
+    fill:float =4.0
+    v1:float =0.00957
+    v2:float = 14.6
+    v3:float= 1.0
+    r1:float= 0.028
+    r2:float= 0.00619
+    r3:float=-0.0907
+    r4:float= 0.161
+    r5:float= 0.522
+    r6:float= 120.1
+    r7:float= 0.0062
+    r8:float= 250.0
+    r9:float= 200.0
+    r10:float= 0.5
+    r11:float= 0.0024
+    r12:float=3.8
+    g1:float= 0.0024
+    g2:float= 0.5
+    g3:float= 1.8
+    g4:float= 0.8
+    g5:float= 0.684
+    g6:float= 1.684
+    g7:float=0.5
+    g8:float= 2.5
+    g9:float= 3.2
+    RRRM: Optional[float] = Field(default=166.7)
+    RRRY: Optional[float] = Field(default=31.3)
+    RVRL: Optional[float] = Field(default=0.73)
+    ALPM: Optional[float] = Field(default=0.6)
+    ALPY: Optional[float] = Field(default=0.3)
+    RTWL: Optional[float] = Field(default=0.00001)
+    RTMinWTperArea: Optional[float] = Field(default=0.0002)
+    EPSI: Optional[float] = Field(default=1)
+    IUPW: Optional[float] = Field(default=1)
+    CourMax: Optional[float] = Field(default=1)
+    Diffx: Optional[float] = Field(default=2.4)
+    Diffz: Optional[float] = Field(default=2.9)
+    VelZ: Optional[float] = Field(default=0)
+    lsink: Optional[float] = Field(default=1)
+    Rroot: Optional[float] = Field(default=0.03)
+    Constl_M: Optional[float] = Field(default=35)
+    ConstK_M: Optional[float] = Field(default=0.5)
+    Cmin0_M: Optional[float] = Field(default=0.01)
+    ConstI_Y: Optional[float] = Field(default=17.2)
+    ConstK_Y: Optional[float] = Field(default=0.75)
+    Cmin0_Y: Optional[float] = Field(default=0.03)
     owner_id: int | None = Field(default=None, foreign_key="user.id", nullable=False)
 
 
