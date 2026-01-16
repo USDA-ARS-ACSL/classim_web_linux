@@ -1937,7 +1937,7 @@ class seasonRunResponse(SQLModel):
 class Geometry(SQLModel, table=True):
     __tablename__ = "geometry"
 
-    nodeNum: Optional[int] = Field(default=None, primary_key=True)
+    nodeNum: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     X: Optional[float] = None
     Y: Optional[float] = None
     Layer: Optional[int] = None
@@ -1957,7 +1957,7 @@ class Geometry(SQLModel, table=True):
 # Table: g01_maize
 class G01Maize(SQLModel, table=True):
     __tablename__ = "g01_maize"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g01_maize_id: int | None = Field(default=None)
     Date_Time: str | None = None
     jday: int | None = None
@@ -2003,7 +2003,7 @@ class G01Maize(SQLModel, table=True):
 # Table: g03_maize
 class G03Maize(SQLModel, table=True):
     __tablename__ = "g03_maize"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g03_maize_id: int | None = Field(default=None)
     Date_Time: str |None = None
     X: Optional[float] = None
@@ -2021,7 +2021,7 @@ class G03Maize(SQLModel, table=True):
     # Table: g04_maize
 class G04Maize(SQLModel, table=True):
     __tablename__ = "g04_maize"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g04_maize_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2038,7 +2038,7 @@ class G04Maize(SQLModel, table=True):
 # Table: g05_maize
 class G05Maize(SQLModel, table=True):
     __tablename__ = "g05_maize"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g05_maize_id: int = Field(primary_key=True)
     Date_Time: str | None=None
     PSoilEvap: float | None = None
@@ -2067,7 +2067,7 @@ class G05Maize(SQLModel, table=True):
     
 class G07Maize(SQLModel, table=True):
     __tablename__ = "g07_maize"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g07_maize_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2083,7 +2083,7 @@ class G07Maize(SQLModel, table=True):
     
 class PlantStressMaize(SQLModel, table=True):
     __tablename__ = "plantStress_maize"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     plantStress_maize_id: int | None = Field(default=None)
     Date_Time: str | None=None
     waterstress: float | None = None
@@ -2096,7 +2096,7 @@ class PlantStressMaize(SQLModel, table=True):
 # Table: g01_potato
 class G01Potato(SQLModel, table=True):
     __tablename__ = "g01_potato"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g01_potato_id: int | None = Field(default=None)
     Date_Time: str
     jday: int
@@ -2132,7 +2132,7 @@ class G01Potato(SQLModel, table=True):
     # Table: g03_potato
 class G03Potato(SQLModel, table=True):
     __tablename__ = "g03_potato"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g03_potato_id: int | None = Field(default=None)
     Date_Time: str |None= None
     X: Optional[float] = None
@@ -2152,7 +2152,7 @@ class G03Potato(SQLModel, table=True):
 # Table: g04_potato
 class G04Potato(SQLModel, table=True):
     __tablename__ = "g04_potato"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g04_potato_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2169,7 +2169,7 @@ class G04Potato(SQLModel, table=True):
     # Table: g05_potato
 class G05Potato(SQLModel, table=True):
     __tablename__ = "g05_potato"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g05_potato_id: int | None = Field(default=None)
     Date_Time: str
     PSoilEvap: float | None = None
@@ -2199,7 +2199,7 @@ class G05Potato(SQLModel, table=True):
 # Table: g07_potato
 class G07Potato(SQLModel, table=True):
     __tablename__ = "g07_potato"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g07_potato_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2216,7 +2216,7 @@ class G07Potato(SQLModel, table=True):
     # Table: nitrogen_potato
 class NitrogenPotato(SQLModel, table=True):
     __tablename__ = "nitrogen_potato"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     nitrogen_potato_id: int | None = Field(default=None)
     Date_Time: int | None = None
     tot_N: float | None = None
@@ -2238,7 +2238,7 @@ class NitrogenPotato(SQLModel, table=True):
 # Table: plantStress_potato
 class PlantStressPotato(SQLModel, table=True):
     __tablename__ = "plantStress_potato"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     plantStress_potato_id: int | None = Field(default=None)
     Date_Time: str | None = None
     waterstressfactor: float | None = None
@@ -2259,7 +2259,7 @@ class PlantStressPotato(SQLModel, table=True):
 # Table: g01_cotton
 class G01Cotton(SQLModel, table=True):
     __tablename__ = "g01_cotton"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g01_cotton_id: int | None = Field(default=None)
     Date_Time: str | None = None
     PlantH: float | None = None
@@ -2321,7 +2321,7 @@ class G01Cotton(SQLModel, table=True):
 # Table: g03_cotton
 class G03Cotton(SQLModel, table=True):
     __tablename__ = "g03_cotton"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g03_cotton_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2339,7 +2339,7 @@ class G03Cotton(SQLModel, table=True):
 # Table: g04_cotton
 class G04Cotton(SQLModel, table=True):
     __tablename__ = "g04_cotton"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g04_cotton_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2356,8 +2356,8 @@ class G04Cotton(SQLModel, table=True):
     # Table: g05_cotton
 class G05Cotton(SQLModel, table=True):
     __tablename__ = "g05_cotton"
-    id: Optional[int] = Field(default=None, primary_key=True)
-    g05_cotton_id: int = Field(primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
+    g05_cotton_id: int | None = Field(default=None)
     Date_Time: str
     PSoilEvap: float | None = None
     ASoilEVap: float | None = None
@@ -2386,7 +2386,7 @@ class G05Cotton(SQLModel, table=True):
 # Table: g07_cotton
 class G07Cotton(SQLModel, table=True):
     __tablename__ = "g07_cotton"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g07_cotton_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2403,8 +2403,8 @@ class G07Cotton(SQLModel, table=True):
 class PlantStressCotton(SQLModel, table=True):
     __tablename__ = "plantStress_cotton"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    plantStress_cotton_id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
+    plantStress_cotton_id: int | None = Field(default=None)
     Date_Time: datetime
     W_stress: Optional[float] = None
     N_Veg_Str: Optional[float] = None
@@ -2418,7 +2418,7 @@ class PlantStressCotton(SQLModel, table=True):
 # Table: g01_soybean
 class G01Soybean(SQLModel, table=True):
     __tablename__ = "g01_soybean"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g01_soybean_id: int | None = Field(default=None)
     Date_Time: str | None = None
     jday: int | None = None
@@ -2450,7 +2450,7 @@ class G01Soybean(SQLModel, table=True):
     # Table: g03_soybean
 class G03Soybean(SQLModel, table=True):
     __tablename__ = "g03_soybean"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g03_soybean_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2468,7 +2468,7 @@ class G03Soybean(SQLModel, table=True):
 # Table: g04_soybean
 class G04Soybean(SQLModel, table=True):
     __tablename__ = "g04_soybean"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g04_soybean_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2484,7 +2484,7 @@ class G04Soybean(SQLModel, table=True):
 # Table: g05_maize
 class G05Soybean(SQLModel, table=True):
     __tablename__ = "g05_soybean"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g05_soybean_id: int = Field(primary_key=True)
     Date_Time: str
     PSoilEvap: float | None = None
@@ -2513,7 +2513,7 @@ class G05Soybean(SQLModel, table=True):
 # Table: g07_soybean
 class G07Soybean(SQLModel, table=True):
     __tablename__ = "g07_soybean"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g07_soybean_id: int | None = Field(default=None)
     Date_Time: str | None = None
     X: float | None = None
@@ -2529,8 +2529,8 @@ class G07Soybean(SQLModel, table=True):
     
 class NitrogenSoybean(SQLModel, table=True):
     __tablename__ = "nitrogen_soybean"
-    id: Optional[int] = Field(default=None, primary_key=True)
-    nitrogen_soybean_id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
+    nitrogen_soybean_id: int | None = Field(default=None)
     Date_Time: datetime
     total_N: Optional[float] = None
     leaf_N: Optional[float] = None
@@ -2547,8 +2547,8 @@ class NitrogenSoybean(SQLModel, table=True):
 class PlantStressSoybean(SQLModel, table=True):
     __tablename__ = "plantStress_soybean"
 
-    id: Optional[int] = Field(default=None, primary_key=True)
-    plantStress_soybean_id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
+    plantStress_soybean_id: int | None = Field(default=None)
     Date_Time: datetime
     wstress: Optional[float] = None
     Nstress: Optional[float] = None
@@ -2562,8 +2562,8 @@ class PlantStressSoybean(SQLModel, table=True):
 # G03_fallow
 class G03Fallow(SQLModel, table=True):
     __tablename__ = "g03_fallow"
-    id: Optional[int] = Field(default=None, primary_key=True)
-    g03_fallow_id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
+    g03_fallow_id:int | None = Field(default=None)
     Date_Time: Optional[float] = None
     X: Optional[float] = None
     Y: Optional[float] = None
@@ -2580,7 +2580,7 @@ class G03Fallow(SQLModel, table=True):
 # Table: g05_fallow
 class G05Fallow(SQLModel, table=True):
     __tablename__ = "g05_fallow"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
     g05_fallow_id: int | None = Field(default=None)
     Date_Time: float | None = None
     PSoilEvap: float | None = None
@@ -2609,8 +2609,8 @@ class G05Fallow(SQLModel, table=True):
 
 class G07Fallow(SQLModel, table=True):
     __tablename__ = "g07_fallow"
-    id: Optional[int] = Field(default=None, primary_key=True)
-    g07_fallow_id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
+    g07_fallow_id: int | None = Field(default=None)
     Date_Time: str
     X: Optional[float] = None
     Y: Optional[float] = None
@@ -2626,11 +2626,12 @@ class G07Fallow(SQLModel, table=True):
 # Table: plantStress_fallow (potato/fallow)
 class PlantStressFallow(SQLModel, table=True):
     __tablename__ = "plantStress_fallow"
-    id: Optional[int] = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True, autoincrement=True)
+    plantStress_fallow_id: int | None = Field(default=None)
     date: str | None = None
     time: str | None = None
     waterstress: str | None = None
     N_stress: str | None = None
     Shade_Stress: str | None = None
     PotentialArea: str | None = None
-    plantStress_fallow_id: int | None = Field(default=None)
+
