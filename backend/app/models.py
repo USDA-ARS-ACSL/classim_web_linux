@@ -1828,6 +1828,7 @@ class CultivarSoybeandata(CultivarSoybeanBase, table=True):
     g7:float=0.5
     g8:float= 2.5
     g9:float= 3.2
+
     RRRM: Optional[float] = Field(default=166.7)
     RRRY: Optional[float] = Field(default=31.3)
     RVRL: Optional[float] = Field(default=0.73)
