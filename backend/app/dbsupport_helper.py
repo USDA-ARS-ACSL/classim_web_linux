@@ -407,6 +407,7 @@ def getSoybeanDevDate(sim_id, rstage, session:SessionDep):
     row = result.fetchone()
     if row:
         if row[0] is not None:
+            dt_obj = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
             rlist = row[0].strftime('%m/%d/%Y')
         else:
             rlist = "N/A"
