@@ -360,7 +360,9 @@ def getMaizeDateByDev(sim_id:int ,maizePhase: str, session:SessionDep):
     })
     row = result.fetchone()
     if row[0] is not None:
-        rlist = row[0].strftime('%m/%d/%Y')
+       dt_obj = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+       rlist = dt_obj.strftime('%m/%d/%Y')
+
     else:
         rlist="N/A"
     return rlist
@@ -381,7 +383,9 @@ def getMaturityDate(sim_id:int ,session:SessionDep):
     row = result.fetchone()
     if row[0] is not None:
         try:
-            rlist = row[0].strftime('%m/%d/%Y')
+            dt_obj = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+            rlist = dt_obj.strftime('%m/%d/%Y')
+
         except AttributeError:
             rlist = row[0]  # Already a string
     else:
@@ -452,7 +456,7 @@ def getPotatoAgronomicData(sim_id, date,session:SessionDep):
     '''
     rlist = None # list   
     harvestDate = dt.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
-    query= text("""select max("tuberDM"), max("totalDM"), sum("Tr-Act") from g01_potato where g01_potato_id=:id and "Date_Time" <= :time""")
+    query= text("""select max("tuberDM"), max("totalDM"), sum("Tr_Act") from g01_potato where g01_potato_id=:id and "Date_Time" <= :time""")
     result= session.execute(query, {
         'id': sim_id,
         'time': harvestDate+'%',

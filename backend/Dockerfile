@@ -42,4 +42,6 @@ COPY ./tests-start.sh /app/
 COPY ./app /app/app
 #for debugging
 RUN pip install --no-cache-dir debugpy
-CMD ["python3.10","-m","debugpy","--listen","0.0.0.0:5678","--log-to","/tmp/debugpy.log","-m","uvicorn","app.main:app","--host","0.0.0.0","--port","8443","--ssl-certfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem","--ssl-keyfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.key"]
+#CMD ["python3.10","-m","debugpy","--listen","0.0.0.0:5678","--log-to","/tmp/debugpy.log","-m","uvicorn","app.main:app","--reload","--host","0.0.0.0","--port","8443","--ssl-certfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem","--ssl-keyfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.key"]
+
+CMD ["python3.10","-m","debugpy","--listen","0.0.0.0:5678", "--wait-for-client", "--multiprocess", "-m","uvicorn","app.main:app","--reload","--host","0.0.0.0","--port","8443","--ssl-certfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem","--ssl-keyfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.key"]

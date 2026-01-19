@@ -140,7 +140,11 @@ def ingestOutputFile(table_name, g_name, simulationname, session: Any) -> bool:
             g_df['Date_Time'] = g_df.apply(lambda row: extract_date_time(row['date'], row['time']), axis=1)
             g_df = g_df.drop(columns=['date', 'time'],axis=1)
             if table_name == "g01_potato":
-                g_df.rename(columns={'LA/pl': 'LA_pl'}, inplace=True)
+                g_df.rename(columns={ 
+                    'LA/pl': 'LA_pl',
+                    'Tr-Pot': 'Tr_Pot','Tr-Act': 'Tr_Act',
+                    'Rg+Rm':'Rg_Rm'
+                    }, inplace=True)
             if table_name == "nitrogen_potato":
                 g_df.rename(columns={'Seed N': 'seed_N'}, inplace=True)
             if table_name in ["nitrogen_potato", "plantStress_potato", "nitrogen_soybean", 
@@ -670,7 +674,7 @@ async def stream_csv_selected_columns(file_path: str, simulation_name: int | str
     else:
         columns_to_keep = None  # Stream all columns if crop is unknown
 
-    print(f"Streaming columns: {columns_to_keep}, {file_path} for crop: {crop_name}")
+    #print(f"Streaming columns: {columns_to_keep}, {file_path} for crop: {crop_name}")
     header = None
     keep_indices = None
     last_position = 0
@@ -703,7 +707,7 @@ async def stream_csv_selected_columns(file_path: str, simulation_name: int | str
                         for row in csv.reader(file):
                             if keep_indices is not None and len(row) >= max(keep_indices) + 1:
                                 row_dict = {columns_to_keep[i]: (row[idx]) for i, idx in enumerate(keep_indices)}
-                                print(f"Yielding row: {row_dict}")
+                                #print(f"Yielding row: {row_dict}")
                                 yield f"data: {json.dumps(row_dict)}\n\n"
                         last_position = file.tell()
                 except FileNotFoundError:

@@ -769,7 +769,7 @@ def WriteIrrigation(field_name,field_path, simulationname, o_t_exid,session):
                 fout.write(f"{NCountS:5d}\n")
                 fout.write("Date             AmtIrrAppl (mm/day)\n")
                 for record_tuple in irrAmtlist:
-                    fout.write(f"'{record_tuple[0]:-10s}'      {record_tuple[1]:-14d}\n")
+                    fout.write(f"'{record_tuple[0]:<10s}'      {record_tuple[1]:<14d}\n")
             else:
                 fout.write("0\n")
                 fout.write("No Irrigation\n")
