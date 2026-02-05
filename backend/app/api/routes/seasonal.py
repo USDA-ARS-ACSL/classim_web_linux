@@ -664,7 +664,7 @@ async def stream_csv_selected_columns(file_path: str, simulation_name: int | str
     crop_name = crop_row.treatment.split('/')[0] if crop_row and crop_row.treatment else None
 
     if crop_name == "maize":
-        columns_to_keep = ["SoilT", "SolRad", "TotLeafDM", "ETdmd"]
+        columns_to_keep = ["LAI", "earDM", "TotLeafDM", "ETdmd"]
     elif crop_name == "soybean":
         columns_to_keep = ["LAI", "totalDM", "podDM", "Tr_act"]
     elif crop_name == "potato":
