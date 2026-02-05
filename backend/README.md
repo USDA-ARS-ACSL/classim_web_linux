@@ -105,6 +105,49 @@ Use an "attach" config if you start the server manually with debugpy.
 Use a "launch" config with the correct entry point (like uvicorn) if you want VS Code to start the server for you.
 Make sure "program" or "module" in launch.json matches your actual app entry point. 
 
+I use this launch.json file from my pc
+{
+"version": "0.2.0",
+"configurations": [
+{
+"name": "Attach to backend (Remote Docker)",
+"type": "python",
+"request": "attach",
+"connect": { "host": "arsmdbe3142acsl", "port": 5678 },
+"pathMappings": [
+{ "localRoot": "c:/Users/Dennis.Timlin/source/classim_web_linux/backend/app", "remoteRoot": "/app/app" }
+]
+}
+]
+}
+
+for this to work, the container has to be running, save this json file to the .vscode folder on your local pc and run the debugger from your local instance of 
+VS code. That is, open vscode to the project in your local folder (classim_web_linux) and then launch the debugger
+######### Edit and debug files inside a running container
+To edit and debug files directly inside a running Docker container on a remote machine using VS Code, follow these steps:
+
+Install the Remote - SSH extension in VS Code on your local machine.
+
+Connect to the remote Linux machine (arsmdbe3142acsl) via SSH using the green "><" icon in the lower left of VS Code and selecting "Remote-SSH: Connect to Host...".
+
+Once connected, install the Remote - Containers extension (if not already installed on the remote).
+
+Open the Remote Explorer panel in VS Code, select "Containers", and find your running backend container.
+
+Right-click the container and choose "Attach to Container".
+This will open a new VS Code window where the file explorer, terminal, and editor are all inside the container.
+
+Edit and debug files directly in the container.
+
+You can set breakpoints, run the debugger, and make code changes without rebuilding the image.
+Changes are made live in the container’s filesystem.
+Summary:
+
+Use Remote-SSH to connect to the remote host.
+Use Remote-Containers to attach to the running container.
+Edit and debug files directly inside the container from VS Code.
+This workflow allows you to develop and debug without rebuilding the container for every code change.
+
 ### Database
 in order to edit the files outside the container - it is best to map the container files with your linux file system
 All database revisions should be done through Alembic. You have to run the container, get bash terminal and run alembic from the folder withe
