@@ -82,9 +82,9 @@ const SurfChaTab: React.FC<SurfChaTabProps> = ({ cropArr }) => {
             <Plot
               data={plotData}
               layout={{
-                title: {text: 'Surface Characteristics Plot'},
-                xaxis: { title: 'Date Axis' },
-                yaxis: { title: 'Selected Parameters' },
+                title: { text: 'Surface Characteristics Plot' },
+                xaxis: { title: { text: 'Date Axis' } },
+                yaxis: { title: { text: 'Selected Parameters' } },
               }}
             />
           </Box>

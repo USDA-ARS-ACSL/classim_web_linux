@@ -48,8 +48,8 @@ const PlantTab: React.FC<PlantTabProps> = ({
     const layout: Partial<Layout> = {
       title: { text:"Plant Graph" },
       hovermode: false, // Disable hover for the entire plot
-      xaxis: { title: "X Axis" },
-      yaxis: { title: "Y Axis" },
+      xaxis: { title: { text: "X Axis" } },
+      yaxis: { title: { text: "Y Axis" } },
     };
 
     const config = {

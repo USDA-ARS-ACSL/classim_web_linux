@@ -63,10 +63,10 @@ const SoilWHN2DTab: React.FC<SoilWHN2DTabProps> = ({
     if (!plotData.length) return null;
 
     const layout: Partial<Layout> = {
-      title: {text: 'Soil WHN 2D Graph'},
+      title: { text: 'Soil WHN 2D Graph' },
       hovermode: false,
-      xaxis: { title: 'X Axis' },
-      yaxis: { title: 'Y Axis' },
+      xaxis: { title: { text: 'X Axis' } },
+      yaxis: { title: { text: 'Y Axis' } },
     };
 
     const config = {

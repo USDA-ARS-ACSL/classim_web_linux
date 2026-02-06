@@ -57,8 +57,8 @@ const SoilCNTab: React.FC<SoilCNTabProps> = ({
     const layout: Partial<Layout> = {
       title: { text: 'Soil CN Graph' },
       hovermode: false,
-      xaxis: { title: 'X Axis' },
-      yaxis: { title: 'Y Axis' },
+      xaxis: { title: { text: 'X Axis' } },
+      yaxis: { title: { text: 'Y Axis' } },
     };
 
     const config = {
