@@ -18,7 +18,7 @@ const MAX_POINTS = 3000;
 
 // Crop-specific keys to plot
 const cropKeys: Record<string, string[]> = {
-  maize: ["SoilT", "SolRad", "TotLeafDM", "ETdmd"],
+  maize: ["LAI", "earDM", "TotLeafDM", "ETdmd"],
   soybean: ["LAI", "totalDM", "podDM", "Tr_act"],
   potato: ["LAI", "totalDM", "tuberDM", "Tr-Pot"],
   cotton: ["LAI", "PlantDM", "Yield", "Nodes"],
@@ -27,8 +27,8 @@ const cropKeys: Record<string, string[]> = {
 // Add display names and units for each crop key
 const cropKeyMeta: Record<string, Record<string, { name: string; unit: string }>> = {
   maize: {
-    SoilT: { name: "Soil Temperature", unit: "°C" },
-    SolRad: { name: "Solar Radiation", unit: "MJ/m²" },
+    SoilT: { name: "Leaf Area Index", unit: "" },
+    SolRad: { name: "Ear Dry Matter", unit: "g/plant" },
     TotLeafDM: { name: "Total Leaf Dry Matter", unit: "kg/ha" },
     ETdmd: { name: "Evapotranspiration Demand", unit: "mm" },
   },

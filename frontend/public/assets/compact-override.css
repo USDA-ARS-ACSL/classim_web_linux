@@ -1,0 +1,333 @@
+/* Compact header/footer overrides - only what's needed */
+
+/* Reduce government banner padding */
+.usa-banner {
+  padding-bottom: 0.2rem !important;
+}
+
+.usa-banner-header {
+  padding-top: 0.2rem !important;
+  padding-bottom: 0.2rem !important;
+  min-height: auto !important;
+}
+
+/* More compact banner content when expanded */
+.usa-banner-content {
+  padding-top: 0.8rem !important;
+  padding-bottom: 0.8rem !important;
+}
+
+/* Reduce ARS logo section */
+.usa-navbar {
+  height: auto !important;
+  min-height: auto !important;
+  padding: 0.2rem 0 !important;
+}
+
+.usa-logo {
+  margin: 0.2rem 0 !important;
+}
+
+/* Make logo text much smaller */
+.usa-logo-text {
+  line-height: 1.1 !important;
+  font-size: 1rem !important; /* Much smaller */
+}
+
+.usa-logo-text a {
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+}
+
+.usa-logo-text h6 {
+  margin: 0.1rem 0 !important;
+  font-size: 0.85rem !important; /* Much smaller */
+  font-weight: 600 !important;
+}
+
+.usa-logo-text h6 a {
+  font-size: 0.85rem !important;
+}
+
+/* USDA logo smaller */
+.usda-logo-img {
+  height: 28px !important;
+}
+
+/* Reduce lab name section height */
+.usa-grid-full.usa-color-primary {
+  padding: 0.2rem 0 !important;
+}
+
+#LocationHeader {
+  padding: 0.2rem 1rem !important;
+  font-size: 0.9rem !important; /* Smaller */
+  margin: 0 !important;
+  line-height: 1.1 !important;
+  font-weight: 600 !important;
+}
+
+/* More compact navigation */
+.usa-nav-container {
+  min-height: auto !important;
+}
+
+.usa-nav {
+  padding-top: 0.2rem !important;
+  min-height: auto !important;
+  background-color: rgba(17, 46, 81, 0.95) !important; /* Dark blue with slight transparency */
+}
+
+.usa-nav-primary {
+  padding: 0.2rem 0 !important;
+}
+
+.usa-nav-link {
+  padding: 0.3rem 0.8rem !important;
+  font-size: 0.8rem !important;
+  color: white !important;
+}
+
+.usa-nav-link:hover {
+  background-color: rgba(0, 113, 188, 0.8) !important;
+}
+
+/* Make header overall more compact */
+.usa-header {
+  min-height: auto !important;
+  position: relative !important;
+  z-index: 10 !important;
+}
+
+.usa-header-basic {
+  min-height: auto !important;
+}
+
+/* ========== FOOTER COMPRESSION - 3X SMALLER ========== */
+
+/* Overall footer container - much smaller */
+.usa-footer {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.usa-footer-big {
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+/* Top footer navigation - compress significantly */
+.usa-grid-full.usa-color-gray-light {
+  padding: 0.3rem 0 !important;
+}
+
+.usa-footer-nav {
+  padding: 0.2rem 0 !important;
+}
+
+.usa-footer-primary-link {
+  padding-top: 0.3rem !important;
+  padding-bottom: 0.3rem !important;
+  font-size: 0.8rem !important;
+  margin-bottom: 0 !important;
+}
+
+/* Middle footer section - much more compact */
+.usa-grid-full.usa-color-gray-dark {
+  padding: 0.3rem 0 !important;
+}
+
+/* Connect with ARS section */
+.usa-sign_up-header {
+  font-size: 0.9rem !important;
+  margin-bottom: 0.2rem !important;
+  margin-top: 0 !important;
+}
+
+/* Social links - smaller */
+#socialLink {
+  padding: 0.2rem 0 !important;
+}
+
+#socialLink img {
+  max-height: 20px !important;
+  margin: 0.1rem 0.2rem !important;
+  max-width: 20px !important;
+}
+
+#socialLink a {
+  display: inline-block !important;
+  margin: 0.1rem !important;
+}
+
+/* Newsletter signup - compact */
+.usa-sign_up {
+  padding: 0.2rem 0 !important;
+}
+
+.usa-sign_up-block {
+  padding: 0.2rem 0 !important;
+}
+
+.EmailSignup-Footer {
+  gap: 0.3rem !important;
+  align-items: center !important;
+}
+
+.usa-sign_up-block input {
+  font-size: 0.8rem !important;
+  padding: 0.3rem 0.5rem !important;
+  margin-bottom: 0.2rem !important;
+}
+
+.usa-sign_up-block button,
+#go {
+  padding: 0.3rem 0.8rem !important;
+  font-size: 0.8rem !important;
+  margin-top: 0.1rem !important;
+}
+
+/* Bottom footer section - very compact */
+.usa-footer-contact-links {
+  padding: 0.2rem 0 !important;
+}
+
+.usa-footer-contact-links ul {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.usa-footer-contact-links ul li {
+  padding: 0.1rem 0 !important;
+  font-size: 0.7rem !important;
+  line-height: 1.2 !important;
+}
+
+.usa-footer-contact-links a {
+  font-size: 0.7rem !important;
+}
+
+/* Remove excessive spacing */
+.usa-footer ul {
+  padding-bottom: 0.2rem !important;
+  margin-bottom: 0 !important;
+}
+
+.usa-footer .usa-unstyled-list {
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Make footer content areas more compact */
+.usa-width-one-half,
+.usa-width-two-thirds {
+  padding: 0.2rem !important;
+}
+
+/* ========== END FOOTER COMPRESSION ========== */
+
+/* Fix UserMenu positioning - move it down to clear the header */
+div[style*="position: fixed"][style*="top: 1rem"] {
+  top: 6rem !important; /* Reduced since header is smaller */
+}
+
+/* Alternative: Target the UserMenu more specifically if the above doesn't work */
+.chakra-menu__menu-button {
+  z-index: 1000 !important;
+}
+
+/* Mobile optimizations */
+@media screen and (max-width: 768px) {
+  .usa-banner {
+    padding-bottom: 0.1rem !important;
+  }
+  
+  .usa-banner-header {
+    padding-top: 0.1rem !important;
+    padding-bottom: 0.1rem !important;
+  }
+  
+  .usa-navbar {
+    padding: 0.1rem 0 !important;
+  }
+  
+  .usa-logo-text {
+    font-size: 0.9rem !important;
+  }
+  
+  .usa-logo-text h6 {
+    font-size: 0.75rem !important;
+  }
+  
+  .usda-logo-img {
+    height: 24px !important;
+  }
+  
+  #LocationHeader {
+    font-size: 0.8rem !important;
+    padding: 0.1rem 0.8rem !important;
+  }
+
+  /* Mobile UserMenu positioning */
+  div[style*="position: fixed"][style*="top: 1rem"] {
+    top: 4.5rem !important;
+  }
+
+  /* Mobile footer - even more compact */
+  .usa-footer {
+    padding-top: 0.3rem !important;
+    padding-bottom: 0.3rem !important;
+  }
+
+  .usa-footer-primary-link {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0 !important;
+  }
+
+  .usa-sign_up-header {
+    font-size: 0.8rem !important;
+  }
+
+  #socialLink img {
+    max-height: 16px !important;
+    max-width: 16px !important;
+  }
+}
+
+/* Larger screens - still more compact */
+@media screen and (min-width: 951px) {
+  .usa-navbar {
+    height: 3rem !important; /* Much smaller */
+  }
+  
+  .usa-nav {
+    min-height: 2.5rem !important; /* Much smaller */
+  }
+  
+  .usa-logo-text {
+    font-size: 1.1rem !important;
+    padding-left: 4rem !important; /* Adjust for smaller logo */
+  }
+  
+  .usa-logo-text h6 {
+    font-size: 0.9rem !important;
+  }
+
+  /* Desktop UserMenu positioning */
+  div[style*="position: fixed"][style*="top: 1rem"] {
+    top: 7rem !important;
+  }
+}
+
+/* Login page specific fixes */
+body:has([data-route="/login"]) .usa-nav,
+.usa-nav {
+  background-color: #112e51 !important; /* Ensure dark blue background */
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; /* Add shadow for better separation */
+}
+
+/* Ensure proper layering on login page */
+.usa-header {
+  background-color: white !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}

@@ -360,7 +360,9 @@ def getMaizeDateByDev(sim_id:int ,maizePhase: str, session:SessionDep):
     })
     row = result.fetchone()
     if row[0] is not None:
-        rlist = row[0].strftime('%m/%d/%Y')
+       dt_obj = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+       rlist = dt_obj.strftime('%m/%d/%Y')
+
     else:
         rlist="N/A"
     return rlist
@@ -381,7 +383,9 @@ def getMaturityDate(sim_id:int ,session:SessionDep):
     row = result.fetchone()
     if row[0] is not None:
         try:
-            rlist = row[0].strftime('%m/%d/%Y')
+            dt_obj = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+            rlist = dt_obj.strftime('%m/%d/%Y')
+
         except AttributeError:
             rlist = row[0]  # Already a string
     else:
@@ -407,7 +411,8 @@ def getSoybeanDevDate(sim_id, rstage, session:SessionDep):
     row = result.fetchone()
     if row:
         if row[0] is not None:
-            rlist = row[0].strftime('%m/%d/%Y')
+            dt_obj = datetime.strptime(row[0], "%Y-%m-%d %H:%M:%S")
+            rlist = dt_obj.strftime('%m/%d/%Y')
         else:
             rlist = "N/A"
         return rlist
@@ -451,7 +456,7 @@ def getPotatoAgronomicData(sim_id, date,session:SessionDep):
     '''
     rlist = None # list   
     harvestDate = dt.strptime(date, '%m/%d/%Y').strftime('%Y-%m-%d')
-    query= text("""select max("tuberDM"), max("totalDM"), sum("Tr-Act") from g01_potato where g01_potato_id=:id and "Date_Time" <= :time""")
+    query= text("""select max("tuberDM"), max("totalDM"), sum("Tr_Act") from g01_potato where g01_potato_id=:id and "Date_Time" <= :time""")
     result= session.execute(query, {
         'id': sim_id,
         'time': harvestDate+'%',
@@ -704,14 +709,14 @@ def read_soilhydroDB(soilname, session: SessionDep,current_user_id) -> Any:
             query = text("""
             SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id)
+            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id) order by id
         """)
             result = session.execute(query, {'soilname': soilname, 'user_id': 1})
         else:
             query = text("""
                 SELECT thr, ths, tha, th, "Alfa", n, "Ks", "Kk", thk, "BD", "OM_pct", "Sand", "Silt" 
                 FROM soil_long 
-                WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id )
+                WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id ) order by id
             """)
             print("query", query, current_user_id, soilname)
             result = session.execute(query, {'soilname': soilname, 'user_id':current_user_id})
@@ -732,7 +737,7 @@ def read_soilOMDB(soilname, session: SessionDep, current_user_id) -> Any:
         query = text("""
             SELECT id, "Sand", "Silt", "Clay", "BD", "OM_pct", "TH33", "TH1500" 
             FROM soil_long 
-            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id)
+            WHERE o_sid = (SELECT id FROM soil WHERE soilname = :soilname and owner_id = :user_id) order by id
         """)
         result = session.execute(query, {'soilname': soilname, 'user_id': current_user_id})
         rlist = result.fetchall()
@@ -958,7 +963,7 @@ def read_soilshortDB(soilname: str, session: SessionDep,current_user_id) -> list
                     SELECT id
                     FROM soil
                     WHERE soilname = :soilname AND owner_id = :current_user_id
-                )
+                ) order by "Bottom_depth"
             """)
             # Execute the query with the provided soilname parameter
             result = session.execute(query, {'soilname': soilname, 'current_user_id': current_user_id}).fetchall()

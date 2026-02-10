@@ -140,7 +140,11 @@ def ingestOutputFile(table_name, g_name, simulationname, session: Any) -> bool:
             g_df['Date_Time'] = g_df.apply(lambda row: extract_date_time(row['date'], row['time']), axis=1)
             g_df = g_df.drop(columns=['date', 'time'],axis=1)
             if table_name == "g01_potato":
-                g_df.rename(columns={'LA/pl': 'LA_pl'}, inplace=True)
+                g_df.rename(columns={ 
+                    'LA/pl': 'LA_pl',
+                    'Tr-Pot': 'Tr_Pot','Tr-Act': 'Tr_Act',
+                    'Rg+Rm':'Rg_Rm'
+                    }, inplace=True)
             if table_name == "nitrogen_potato":
                 g_df.rename(columns={'Seed N': 'seed_N'}, inplace=True)
             if table_name in ["nitrogen_potato", "plantStress_potato", "nitrogen_soybean", 
@@ -438,11 +442,11 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
     odate =  datetime.now()
     odate_int = odate.timestamp()  # This converts to float (seconds since epoch)
     odate_int = int(odate_int) 
-
+    status=1
     # record_tuple = (rotationID,site,managementname,weather,soilname,stationtype,startyear,endyear,odate,waterstress,nitrostress,tempVar,rainVar,CO2Var)
     query = text("""
-        INSERT INTO pastruns ("rotationID", "site", "treatment", "weather", "soil", "stationtype", "startyear", "endyear", "odate", "waterstress", "nitrostress", "tempVar", "rainVar", "CO2Var","owner_id")
-        VALUES (:rotationID, :site, :managementname, :weather, :soilname, :stationtype, :startyear, :endyear, :odate, :waterstress, :nitrostress, :tempVar, :rainVar, :CO2Var, :userid)
+        INSERT INTO pastruns ("rotationID", "site", "treatment", "weather", "soil", "stationtype", "startyear", "endyear", "odate", "waterstress", "nitrostress", "tempVar", "rainVar", "CO2Var","owner_id", "status")
+        VALUES (:rotationID, :site, :managementname, :weather, :soilname, :stationtype, :startyear, :endyear, :odate, :waterstress, :nitrostress, :tempVar, :rainVar, :CO2Var, :userid, :status)
         RETURNING "id"
     """)
 
@@ -463,7 +467,8 @@ def update_pastrunsDB(rotationID,site,managementname,weather,stationtype,
         'tempVar': tempVar,
         'rainVar': rainVar,
         'CO2Var': CO2Var,
-        'userid':userid
+        'userid':userid,
+        'status': status
     }
     result = session.execute(query, record_dict)
     session.commit()
@@ -659,7 +664,7 @@ async def stream_csv_selected_columns(file_path: str, simulation_name: int | str
     crop_name = crop_row.treatment.split('/')[0] if crop_row and crop_row.treatment else None
 
     if crop_name == "maize":
-        columns_to_keep = ["SoilT", "SolRad", "TotLeafDM", "ETdmd"]
+        columns_to_keep = ["LAI", "earDM", "TotLeafDM", "ETdmd"]
     elif crop_name == "soybean":
         columns_to_keep = ["LAI", "totalDM", "podDM", "Tr_act"]
     elif crop_name == "potato":
@@ -669,7 +674,7 @@ async def stream_csv_selected_columns(file_path: str, simulation_name: int | str
     else:
         columns_to_keep = None  # Stream all columns if crop is unknown
 
-    print(f"Streaming columns: {columns_to_keep}, {file_path} for crop: {crop_name}")
+    #print(f"Streaming columns: {columns_to_keep}, {file_path} for crop: {crop_name}")
     header = None
     keep_indices = None
     last_position = 0
@@ -702,7 +707,7 @@ async def stream_csv_selected_columns(file_path: str, simulation_name: int | str
                         for row in csv.reader(file):
                             if keep_indices is not None and len(row) >= max(keep_indices) + 1:
                                 row_dict = {columns_to_keep[i]: (row[idx]) for i, idx in enumerate(keep_indices)}
-                                print(f"Yielding row: {row_dict}")
+                                #print(f"Yielding row: {row_dict}")
                                 yield f"data: {json.dumps(row_dict)}\n\n"
                         last_position = file.tell()
                 except FileNotFoundError:
@@ -756,7 +761,7 @@ def create_soil(
         station = payload["station"]
         expert_system = payload["expertSystem"]
         selected_date = payload["selectedDate"]
-
+        status=0
         for row in payload["rows"]:
             crop = row["crop"]
             experiment = row["experiment"]
@@ -767,11 +772,10 @@ def create_soil(
             temp_variance = row["tempVariance"]
             rain_variance = row["rainVariance"]
             co2_variance = row["co2Variance"]
-
+ 
             waterStressFlag = 0 if water_stress == "Yes" else 1
             nitroStressFlag = 0 if nitrogen_stress == "Yes" else 1
             co2_variance = 0 if co2_variance == "None" else co2_variance
-
             crop_treatment = f"{crop}/{experiment}"
             simulation_name = update_pastrunsDB(
                 0,
@@ -788,7 +792,7 @@ def create_soil(
                 str(rain_variance),
                 str(co2_variance),
                 session,
-                current_user.id,
+                current_user.id
             )
 
             simulationList.append(simulation_name)

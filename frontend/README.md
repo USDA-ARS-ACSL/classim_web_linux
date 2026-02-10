@@ -115,3 +115,40 @@ The frontend code is structured as follows:
 * `frontend/src/hooks` - Custom hooks.
 * `frontend/src/routes` - The different routes of the frontend which include the pages.
 * `theme.tsx` - The Chakra UI custom theme.
+
+## to debug the frontend from the server (not container
+
+sudo npm run dev --host
+the --host will expose the machine to the network rather than local host only
+use sudo since you are running using https: (443)
+in the frontend folder there is a vite.config.ts file:
+import { TanStackRouterVite } from "@tanstack/router-vite-plugin"
+import react from "@vitejs/plugin-react-swc"
+import { defineConfig } from "vite"
+import fs from 'fs'
+
+// https://vitejs.dev/config/
+export default defineConfig({
+  plugins: [react(), TanStackRouterVite()],
+  server: {
+    port: 443,
+    host: 'arsmdbe3142acsl.usda.net',
+    https: {
+      key: fs.readFileSync('ARSMDBE3142ACSL.key'),
+      cert: fs.readFileSync('ARSMDBE3142ACSL.pem'),
+    },
+  },
+})
+I added all the lines in the server block and the fs import
+in the server you need to add these packages (these are there now  but if the server is reset it may have to be done again
+make sure you have a .bashrc in your home folder
+sudo apt install npm
+get nvm
+ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+nvm install --lts
+npm install vite
+npm install react-icons
+
+now, how to debug
+using VS code connect to the remote server
+attach and js debugger

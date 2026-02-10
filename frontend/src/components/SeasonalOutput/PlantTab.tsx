@@ -46,10 +46,10 @@ const PlantTab: React.FC<PlantTabProps> = ({
     if (!plotVisible || !plotData.length) return null;
 
     const layout: Partial<Layout> = {
-      title: "Plant Graph",
+      title: { text:"Plant Graph" },
       hovermode: false, // Disable hover for the entire plot
-      xaxis: { title: "X Axis" },
-      yaxis: { title: "Y Axis" },
+      xaxis: { title: { text: "X Axis" } },
+      yaxis: { title: { text: "Y Axis" } },
     };
 
     const config = {

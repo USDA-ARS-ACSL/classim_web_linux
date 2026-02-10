@@ -30,14 +30,26 @@ Traefik UI, to see how the routes are being handled by the proxy: http://localho
 To check the logs, run:
 
 ```bash
-docker compose logs
+docker-compose logs
+
 ```
 
 To check the logs of a specific service, add the name of the service, e.g.:
 
 ```bash
-docker compose logs backend
+docker-compose logs backend
+or docker-compose logs -f backend 
+to get continuous logs
 ```
+
+To open a terminal into the container
+```
+docker exec -it <container number or name> bash
+```
+
+sometimes the program won't find the container by name if you use backend or frontend. if you use the number, it only needs 4 digits
+use docker ps to get the id's of running containers.
+
 
 If your Docker is not running in `localhost` (the URLs above wouldn't work) you would need to use the IP or domain where your Docker is running.
 
@@ -68,6 +80,91 @@ Modify or add SQLModel models for data and SQL tables in `./backend/app/models.p
 There are already configurations in place to run the backend through the VS Code debugger, so that you can use breakpoints, pause and explore variables, etc.
 
 The setup is also already configured so you can run the tests through the VS Code Python tests tab.
+to select the correct python interpreter:
+Set the Python interpreter in VS Code (container window):
+Open the Command Palette (Ctrl+Shift+P).
+Type: Python: Select Interpreter
+Choose /usr/local/bin/python (or /usr/local/bin/python3.10 if available).
+This will update your workspace settings to use the correct Python for both the terminal and the debugger.
+The backend uses /user/bin/python3.10
+use this config for container debugging
+{
+  "name": "Python: Attach (debugpy)",
+  "type": "python",
+  "request": "attach",
+  "connect": { "host": "127.0.0.1", "port": 5678 }
+}  
+  Quick recap for future reference:
+  at the end of the dockerfile for the backend before the CMD we need to add this:
+  RUN pip install --no-cache-dir debugpy
+  the makes sure we are using debugpy that corresponds to our version of python in the backend container
+in the backend, we start using this command in the dockerfile:
+CMD ["python3.10","-m","debugpy","--listen","0.0.0.0:5678","--log-to","/tmp/debugpy.log","-m","uvicorn","app.main:app","--host","0.0.0.0","--port","8443","--ssl-certfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem","--ssl-keyfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.key"]
+
+Use an "attach" config if you start the server manually with debugpy.
+Use a "launch" config with the correct entry point (like uvicorn) if you want VS Code to start the server for you.
+Make sure "program" or "module" in launch.json matches your actual app entry point. 
+
+I use this launch.json file from my pc
+{
+"version": "0.2.0",
+"configurations": [
+{
+"name": "Attach to backend (Remote Docker)",
+"type": "python",
+"request": "attach",
+"connect": { "host": "arsmdbe3142acsl", "port": 5678 },
+"pathMappings": [
+{ "localRoot": "c:/Users/Dennis.Timlin/source/classim_web_linux/backend/app", "remoteRoot": "/app/app" }
+]
+}
+]
+}
+
+for this to work, the container has to be running, save this json file to the .vscode folder on your local pc and run the debugger from your local instance of 
+VS code. That is, open vscode to the project in your local folder (classim_web_linux) and then launch the debugger
+######### Edit and debug files inside a running container
+To edit and debug files directly inside a running Docker container on a remote machine using VS Code, follow these steps:
+
+Install the Remote - SSH extension in VS Code on your local machine.
+
+Connect to the remote Linux machine (arsmdbe3142acsl) via SSH using the green "><" icon in the lower left of VS Code and selecting "Remote-SSH: Connect to Host...".
+
+Once connected, install the Remote - Containers extension (if not already installed on the remote).
+
+Open the Remote Explorer panel in VS Code, select "Containers", and find your running backend container.
+
+Right-click the container and choose "Attach to Container".
+This will open a new VS Code window where the file explorer, terminal, and editor are all inside the container.
+
+Edit and debug files directly in the container.
+
+You can set breakpoints, run the debugger, and make code changes without rebuilding the image.
+Changes are made live in the container’s filesystem.
+Summary:
+
+Use Remote-SSH to connect to the remote host.
+Use Remote-Containers to attach to the running container.
+Edit and debug files directly inside the container from VS Code.
+This workflow allows you to develop and debug without rebuilding the container for every code change.
+
+### Database
+in order to edit the files outside the container - it is best to map the container files with your linux file system
+All database revisions should be done through Alembic. You have to run the container, get bash terminal and run alembic from the folder withe
+Alembic.ini
+add table creation and modification sql code to models.py 
+then run 
+alembic revision --autogenerate -m "Describe your change"
+
+after that run Alembic upgrade head. 
+Alembic will first create a python file with the revisions and a revision number. this can be edited
+the command to upgrade head will upgrade the postgre database.
+
+if you want to run postgres commands inside the db open a bash shell into the postgress container
+docker exec -it <name> bash
+then run
+psql -U postgres app
+then you can run commands
 
 ### Docker Compose Override
 
@@ -168,6 +265,9 @@ $ docker compose exec backend bash
 ```
 
 * Alembic is already configured to import your SQLModel models from `./backend/app/models.py`.
+Your files represent the evolution of your CLASSIM database - from initial tables to adding features like weather data, soil information, and most recently your guest user support.
+
+When you run alembic upgrade head, it applies all pending migrations to bring your database to the latest version.
 
 * After changing a model (for example, adding a column), inside the container, create a revision, e.g.:
 

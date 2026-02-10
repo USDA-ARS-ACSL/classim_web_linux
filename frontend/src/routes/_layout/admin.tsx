@@ -74,7 +74,7 @@ function Admin() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {users.data.map((user) => (
+                  {users.data.map((user: UserPublic) => (
                     <Tr key={user.id}>
                       <Td color={!user.full_name ? "ui.dim" : "inherit"}>
                         {user.full_name || "N/A"}

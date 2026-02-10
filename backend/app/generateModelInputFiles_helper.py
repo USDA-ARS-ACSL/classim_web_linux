@@ -82,8 +82,8 @@ def WriteCropVariety(crop, cultivar, field_name, field_path,session,current_user
                 fout.write(f"maize growth simulation for variety {hybridname}\n")
                 fout.write("Juvenile   Daylength   StayGreen  LM_Min Rmax_LTAR          Rmax_LTIR          Phyllochrons from \n")
                 fout.write("leaves     Sensitive   Leaf tip appearance   Leaf tip initiation       TassellInit\n")
-                fout.write(f'{hybridparameters[0]:0f}{hybridparameters[1]:-14.0f}{hybridparameters[5]:-14.6f}{hybridparameters[6]:-14.6f}'
-                           f'{hybridparameters[2]:-14.6f}{hybridparameters[3]:-14.6f}{hybridparameters[4]:-14.6f}\n')
+                fout.write(f'{hybridparameters[0]:5d}{hybridparameters[1]:5d}{hybridparameters[5]:-14.2f}{hybridparameters[6]:-14.2f}'
+                           f'{hybridparameters[2]:-14.4f}{hybridparameters[3]:-14.4f}{hybridparameters[4]:-14.2f}\n')
             elif crop == "potato":
                 a2 = (hybridparameters[0] - 1) / 10
                 a3 = 100
@@ -769,7 +769,7 @@ def WriteIrrigation(field_name,field_path, simulationname, o_t_exid,session):
                 fout.write(f"{NCountS:5d}\n")
                 fout.write("Date             AmtIrrAppl (mm/day)\n")
                 for record_tuple in irrAmtlist:
-                    fout.write(f"'{record_tuple[0]:-10s}'      {record_tuple[1]:-14d}\n")
+                    fout.write(f"'{record_tuple[0]:<10s}'      {record_tuple[1]:<14d}\n")
             else:
                 fout.write("0\n")
                 fout.write("No Irrigation\n")
