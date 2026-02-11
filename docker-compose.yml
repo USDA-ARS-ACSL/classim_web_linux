@@ -60,9 +60,14 @@ services:
       args:
         INSTALL_DEV: ${INSTALL_DEV-false}
     platform: linux/amd64 # Patch for M1 Mac
-    ports:
-      - "8443:8443"
-      - "5678:5678"
+    expose:
+      - "80"
+      - "443"
+    # Remove the ports section completely - no host binding
+    # ports:
+    #   - "8443:8443"  # Remove this
+    #   - "5678:5678"  # Remove this
+
   
   frontend:
     image: '${DOCKER_IMAGE_FRONTEND?Variable not set}:${TAG-latest}'
@@ -74,6 +79,10 @@ services:
       args:
         - VITE_API_URL=https://${DOMAIN?Variable not set}
         - NODE_ENV=local
+    expose:
+      - "80" 
+      - "443"
+    # No ports section needed unless you want external access
 
 volumes:
   app-db-data:

@@ -17,39 +17,29 @@ services:
       - debugpy
       - --listen
       - 0.0.0.0:5678
-   #   - --wait-for-client
       - -m
       - uvicorn
       - app.main:app
       - --host
       - 0.0.0.0
       - --port
-      - "8443"
+      - "443"  # Change from 8443 to 443
       - --ssl-certfile
       - /usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem
       - --ssl-keyfile
       - /usr/local/share/ca-certificates/ARSMDBE3142ACSL.key
+    # Only expose debugger port to host, not the app ports
     ports:
       - "5678:5678"
-      # optionally also expose the API:
-      - "8443:8443"
-    volumes:
-      - ./backend/:/app
-    build:
-      context: ./backend
-      args:
-        INSTALL_DEV: ${INSTALL_DEV-true}
+    # Remove:
+    # - "8443:8443"
 
   frontend:
     restart: "no"
-    build:
-      context: ./frontend
-      args:
-        - VITE_API_URL=https://${DOMAIN?Variable not set}
-        - NODE_ENV=development
-    ports:
-      - "443:443"
-      - "80:80"
+    # Remove external port bindings if you don't need host access
+    # ports:
+    #   - "443:443"
+    #   - "80:80"
 
 networks:
   traefik-public:
