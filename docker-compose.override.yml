@@ -33,6 +33,12 @@ services:
       - "5678:5678"
     # Remove:
     # - "8443:8443"
+    volumes:
+      - ./backend/:/app
+    build:
+      context: ./backend
+      args:
+        INSTALL_DEV: ${INSTALL_DEV-true}
 
   frontend:
     restart: "no"

@@ -19,8 +19,9 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=/opt/poetry python
 # Copy poetry.lock* in case it doesn't exist in the repo
 COPY ./pyproject.toml ./poetry.lock* /app/
 
-EXPOSE 80 443  
-#use 80 for non-SSL traffic and 443 for SSL traffic
+EXPOSE 8443
+
+
 
 # Allow installing dev dependencies to run tests
 ARG INSTALL_DEV=false
@@ -41,6 +42,6 @@ COPY ./tests-start.sh /app/
 COPY ./app /app/app
 #for debugging
 RUN pip install --no-cache-dir debugpy
-#CMD ["python3.10","-m","debugpy","--listen","0.0.0.0:5678","--log-to","/tmp/debugpy.log","-m","uvicorn","app.main:app","--reload","--host","0.0.0.0","--port","8443","--ssl-certfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem","--ssl-keyfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.key"]
+#CMD ["python3.10","-m","debugpy","--listen","0.0.0.0:5678","--log-to","/tmp/debugpy.log","-m","uvicorn","app.main:app","--reload","--host","0.0.0.0","--port","443","--ssl-certfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem","--ssl-keyfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.key"]
 
 CMD ["python3.10","-m","debugpy","--listen","0.0.0.0:5678", "--wait-for-client", "--multiprocess", "-m","uvicorn","app.main:app","--reload","--host","0.0.0.0","--port","443","--ssl-certfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.pem","--ssl-keyfile","/usr/local/share/ca-certificates/ARSMDBE3142ACSL.key"]
