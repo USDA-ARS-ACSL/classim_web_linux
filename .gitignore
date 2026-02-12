@@ -20,7 +20,6 @@ $tf/
 $tf1/
 org_root_ca.crt
 .env
-.env
 backend/cacerts
 frontend/src/routes/_layout/management_old.tsx
 backend/executables/gossym
